@@ -3,9 +3,10 @@
 // @namespace   Violentmonkey Scripts
 // @match       https://*.duolingo.com/*
 // @grant       GM_log
-// @version     2.0
+// @version     2.0B1
 // @author      anonymoushackerIV
 // @description Duolingo Auto-Solver Tool - WORKING AUGUST 2023
+// @license MIT
 // ==/UserScript==
 
 //localStorage.getItem("someVarKey");
@@ -35,9 +36,6 @@ if (Boolean(localStorage.getItem("onboardingDone")) === false) {
     Boolean(localStorage.setItem("onboardingDone", onboardingDone));
 }
 //...all your existing code
-
-let lastVersionOnline;
-
 
 const onBoardingHTML = `
 <html>
