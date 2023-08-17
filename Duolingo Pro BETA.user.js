@@ -8,35 +8,36 @@
 // @description Duolingo Auto-Solver Tool - WORKING AUGUST 2023
 // @license MIT
 // ==/UserScript==
-
+ 
 //localStorage.getItem("someVarKey");
-
+ 
 let solvingIntervalId;
 let isAutoMode = false;
 isAutoMode = Boolean(sessionStorage.getItem('isAutoMode'));
-
+ 
 const debug = false;
-
+ 
 let numberOfTimes = 0;
 numberOfTimes = Number(sessionStorage.getItem('numberOfTimes'));
-
+ 
 let isStartButtonPressed = false;
 isStartButtonPressed = Boolean(sessionStorage.getItem('isStartButtonPressed'));
-
+ 
 let onboardingDone;
-
+ 
 if (Boolean(localStorage.getItem("onboardingDone")) === false) {
     console.log('onboardingDone False');
 } else if (Boolean(localStorage.getItem("onboardingDone")) === true) {
     console.log('onboardingDone True');
 } else {
     console.log('onboardingDone Set to false');
-
+ 
     onboardingDone = false;
     Boolean(localStorage.setItem("onboardingDone", onboardingDone));
 }
-//...all your existing code
-
+//...all your existing c
+ 
+ 
 const onBoardingHTML = `
 <html>
     <head>
@@ -52,18 +53,18 @@ const onBoardingHTML = `
                 background: #1CB0F6;
                 cursor: pointer;
             }
-
+ 
             .BoxOneTwoButtonOne:hover {
                 opacity: 0.8;
             }
-
+ 
             .BoxOneTwoButtonOne:active {
                 opacity: 0.8;
                 border-bottom: 0px solid #168DC5;
                 margin-top: 4px;
                 height: 46px;
             }
-
+ 
             .BoxOneTwoButtonOneTextOne {
                 display: flex;
                 width: 640px;
@@ -323,13 +324,13 @@ margin-bottom: 0px;">Many bug fixes, support for more languages and lessons are 
 <div class="BoxOneTwoButtonOne">
 <p class="BoxOneTwoButtonOneTextOne">CONTINUE</p>
 </div>
-
+ 
         </div>
         </div>
     </body>
 </html>
 `;
-
+ 
 function injectOnBoardingHTML() {
   // Creating a container for the overlay
     if (Boolean(localStorage.getItem("onboardingDone")) === false) {
@@ -340,17 +341,17 @@ function injectOnBoardingHTML() {
         console.log('idk check');
 }
 }
-
+ 
 //setTimeout(injectOnBoardingHTML, 1000);
 injectOnBoardingHTML();
-
-
+ 
+ 
 function onBoardingButton() {
     if (Boolean(localStorage.getItem("onboardingDone")) === false) {
   const onBoardingContinueButton = document.querySelector('.BoxOneTwoButtonOne');
         console.log('continue pressed');
-
-
+ 
+ 
     onBoardingContinueButton.addEventListener('click', () => {
         console.log('continue registered');
         onboardingDone = true;
@@ -362,14 +363,14 @@ function onBoardingButton() {
     }
 }
 onBoardingButton();
-
-
-
+ 
+ 
+ 
 if (window.location.href.includes('duolingo.com/learn')) {
 // HTML content
 const htmlContent = `
     <div class="boxFirst">
-    <a href="mailto:murk.hornet.0k@icloud.com">
+    <a href="mailto:murk.hornet.0k@icloud.com?subject=Bug Report or Suggestion (only keep the one you're contacting about) - Duolingo Pro 2.0 BETA 1&body=This is a Bug Report or Suggestion (only keep the one you're contacting about) about Duolingo Pro 2.0 BETA 1">
     <button class="ContactButton">SEND FEEDBACK</button>
     </a>
   <div class="boxOne">
@@ -405,7 +406,7 @@ const htmlContent = `
     </div>
     </div>
 `;
-
+ 
 // CSS content
 const cssContent = `
 .boxFirst {
@@ -418,7 +419,7 @@ gap: 16px;
   right: 24px;
   z-index:2;
 }
-
+ 
 .ContactButton {
   position: relative;
   min-width: 50px;
@@ -439,7 +440,7 @@ gap: 16px;
   cursor: pointer;
 height: 50px;
 }
-
+ 
 .ContactButton:hover {
   position: relative;
   min-width: 50px;
@@ -460,7 +461,7 @@ height: 50px;
 height: 50px;
         filter: brightness(0.9);
 }
-
+ 
 .ContactButton:active {
   position: relative;
   min-width: 50px;
@@ -481,7 +482,7 @@ height: 50px;
 height: 48px;
         filter: brightness(0.9);
 }
-
+ 
 .boxOne {
   padding: 16px;
   background-color: rgb(var(--color-snow));
@@ -494,7 +495,7 @@ height: 48px;
   width: 100%;
   margin-right: 20px;
 }
-
+ 
 .BetaTagAlert  {
   display: flex;
 justify-content: space-between;
@@ -502,7 +503,7 @@ align-items: center;
 align-self: stretch;
   padding-bottom: 10px;
 }
-
+ 
 .BETATagSpaceText {
   color: rgb(var(--color-eel));
 font-size: 25px;
@@ -512,7 +513,7 @@ line-height: 100%; /* 50px */
 margin-top: 0px;
 margin-bottom: 0px;
 }
-
+ 
 .BETATag {
   display: flex;
 padding: 10px;
@@ -522,7 +523,7 @@ align-items: center;
 border-radius: 12.5px;
 background: #FF4B4B;
 }
-
+ 
 .BETATagText {color: #FFF;
 font-style: normal;
 font-weight: 700;
@@ -530,7 +531,7 @@ line-height: normal;
 margin-top: 0px;
 margin-bottom: 0px;
 }
-
+ 
 .BoxInsideAlert  {
   display: inline-flex;
   align-items: center;
@@ -538,19 +539,19 @@ margin-bottom: 0px;
   height: 18px;
   padding-bottom: 16px;
 }
-
+ 
 .AutoBoxAlertIcon {
 width: 20px;
 height: 18px;
 }
-
+ 
 .AutoBoxAlertText {
   color: #FF4B4B;
   font-weight: 700;
   height: 18px;
   margin-top: 16px;
 }
-
+ 
 .AutoBoxAlertTwo {
   display: inline-flex;
   align-items: center;
@@ -559,38 +560,38 @@ height: 18px;
   padding-bottom: 24px;
   padding-top: 16px;
 }
-
+ 
 .AutoBoxAlertTwoIcon {
 width: 20px;
 height: 20px;
 }
-
+ 
 .AutoBoxAlertTwoText {
   color: #FFC800;
   font-weight: 700;
   height: 18px;
   margin-top: 16px;
 }
-
+ 
 .AutoBoxExplanation {
   color: rgb(var(--color-eel));
   margin-top: -0px;
 }
-
+ 
 .AutoBoxExplanation {
   color: rgb(var(--color-eel));
   margin-top: -0px;
   height: 30px;
   font-weight: 700;
 }
-
+ 
 .BoxInside {
   height: 100%;
   width: 100%;
   display: flex;
   margin-right: 20px;
 }
-
+ 
 .button-down {
   position: relative;
   min-width: 50px;
@@ -609,7 +610,7 @@ height: 20px;
   text-align: center;
   cursor: pointer;
 }
-
+ 
 .button-down:hover {
   position: relative;
   min-width: 50px;
@@ -629,7 +630,7 @@ height: 20px;
   cursor: pointer;
         filter: brightness(1.1);
 }
-
+ 
 .button-down:active {
   position: relative;
   min-width: 50px;
@@ -650,7 +651,7 @@ height: 20px;
         margin-top: 4px;
         filter: brightness(1.1);
 }
-
+ 
 .ticker {
   position: relative;
   min-width: 100px;
@@ -668,7 +669,7 @@ height: 20px;
   margin-left: 10px;
   text-align: center;
 }
-
+ 
 .button-up {
   position: relative;
   min-width: 50px;
@@ -688,7 +689,7 @@ height: 20px;
   text-align: center;
         cursor: pointer;
 }
-
+ 
 .button-up:hover {
   position: relative;
   min-width: 50px;
@@ -709,7 +710,7 @@ height: 20px;
         cursor: pointer;
         filter: brightness(1.1);
 }
-
+ 
 .button-up:active {
   position: relative;
   min-width: 50px;
@@ -731,7 +732,7 @@ height: 20px;
         margin-top: 4px;
         filter: brightness(1.1);
 }
-
+ 
 .StartToolWithValue {
   position: relative;
   min-width: 150px;
@@ -751,7 +752,7 @@ height: 20px;
   text-align: center;
   cursor: pointer;
 }
-
+ 
 .StartToolWithValue:hover {
   position: relative;
   min-width: 150px;
@@ -772,7 +773,7 @@ height: 20px;
   cursor: pointer;
         filter: brightness(1.1);
 }
-
+ 
 .StartToolWithValue:active {
   position: relative;
   min-width: 150px;
@@ -794,13 +795,13 @@ height: 20px;
         filter: brightness(1.1);
 }
 `;
-
+ 
 // Function to inject HTML and CSS into the document
 let injectedContainer = null;
 let injectedStyleElement = null;
-
+ 
 function injectContent() {
-
+ 
   // Check if the current URL matches the target URL
   if (window.location.href === 'https://preview.duolingo.com/learn' || window.location.href === 'https://duolingo.com/learn') {
       //console.log('tageturlmatches')
@@ -810,7 +811,7 @@ function injectContent() {
       injectedContainer = document.createElement('div');
       injectedContainer.innerHTML = htmlContent;
       document.body.appendChild(injectedContainer);
-
+ 
       // Creating a style tag for CSS
       injectedStyleElement = document.createElement('style');
       injectedStyleElement.type = 'text/css';
@@ -828,19 +829,19 @@ function injectContent() {
     }
   }
 }
-
+ 
 // Check the URL and inject/remove content every 1 second
 setInterval(injectContent, 1000);
-
-
+ 
+ 
 // Function to initialize JavaScript functionality
 function initialize() {
   const ticker = document.querySelector('.ticker');
   const buttonUp = document.querySelector('.button-up');
   const buttonDown = document.querySelector('.button-down');
     const solveFastButton = document.querySelector('.StartToolWithValue');
-
-
+ 
+ 
     solveFastButton.addEventListener('click', () => {
         sessionStorage.setItem('isAutoMode', true);
         sessionStorage.setItem('numberOfTimes', numberOfTimes);
@@ -848,14 +849,14 @@ function initialize() {
         sessionStorage.setItem('isStartButtonPressed', true);
         isAutoMode = true;
     });
-
-
+ 
+ 
   buttonUp.addEventListener('click', () => {
     numberOfTimes++;
     ticker.textContent = numberOfTimes;
         sessionStorage.setItem('numberOfTimes', numberOfTimes);
   });
-
+ 
   buttonDown.addEventListener('click', () => {
     numberOfTimes--;
     if (numberOfTimes < 0) {
@@ -866,16 +867,16 @@ function initialize() {
   });
     console.log(isAutoMode)
 }
-
+ 
 // Calling the functions to inject content and initialize functionality
 injectContent();
 initialize();
-
+ 
 }
-
-
-
-
+ 
+ 
+ 
+ 
 const muteButtonHTML = `
 <div class="TopBoxPart">
 <button class="SettingsButtonOne">SETTINGS</button>
@@ -883,7 +884,7 @@ const muteButtonHTML = `
 </div>
 `;
 const muteButtonCSS = `
-
+ 
 .TopBoxPart {
 display: inline-flex;
 gap: 16px;
@@ -894,7 +895,7 @@ top: 100px;
 right: 16px;
 z-index: 2;
 }
-
+ 
 .SettingsButtonOne {
   min-width: 50px;
   width: height;
@@ -914,7 +915,7 @@ z-index: 2;
   cursor: pointer;
 height: 50px;
 }
-
+ 
 .SettingsButtonOne:hover {
   position: relative;
   min-width: 50px;
@@ -936,7 +937,7 @@ height: 50px;
 height: 50px;
         filter: brightness(0.9);
 }
-
+ 
 .SettingsButtonOne:active {
   position: relative;
   min-width: 50px;
@@ -958,7 +959,7 @@ height: 48px;
 margin-top: 2px;
         filter: brightness(0.9);
 }
-
+ 
 .MuteAllDuolingoSounds {
   min-width: 50px;
   width: height;
@@ -978,7 +979,7 @@ margin-top: 2px;
   cursor: pointer;
 height: 50px;
 }
-
+ 
 .MuteAllDuolingoSounds:hover {
   position: relative;
   min-width: 50px;
@@ -1000,7 +1001,7 @@ height: 50px;
 height: 50px;
         filter: brightness(0.9);
 }
-
+ 
 .MuteAllDuolingoSounds:active {
   position: relative;
   min-width: 50px;
@@ -1023,12 +1024,12 @@ margin-top: 2px;
         filter: brightness(0.9);
 }
 `;
-
+ 
 function injectMuteButton() {
   const injectedMuteButtonContainer = document.createElement('div');
   injectedMuteButtonContainer.innerHTML = muteButtonHTML;
   document.body.appendChild(injectedMuteButtonContainer);
-
+ 
   // Creating a style tag for CSS
   const injectedMuteButtonStyle = document.createElement('style');
   injectedMuteButtonStyle.type = 'text/css';
@@ -1036,10 +1037,10 @@ function injectMuteButton() {
   document.head.appendChild(injectedMuteButtonStyle);
     console.log('injected mute button');
 }
-
+ 
 injectMuteButton();
-
-
+ 
+ 
 window.document.querySelector('.MuteAllDuolingoSounds').onclick = function() {
   function muteAudioElements(doc) {
     var audioElements = doc.getElementsByTagName('audio');
@@ -1047,10 +1048,10 @@ window.document.querySelector('.MuteAllDuolingoSounds').onclick = function() {
       audioElements[i].muted = !audioElements[i].muted;
     }
   }
-
+ 
   // Mute audio elements in the main document.
   muteAudioElements(window.document);
-
+ 
   // Mute audio elements inside iframes.
   var iframes = window.document.getElementsByTagName('iframe');
   for (var i = 0; i < iframes.length; i++) {
@@ -1060,22 +1061,22 @@ window.document.querySelector('.MuteAllDuolingoSounds').onclick = function() {
       console.error('Unable to access iframe content:', e);
     }
   }
-
+ 
   // Update the button text.
   this.textContent = this.textContent === 'UNDER CONSTRUCTION' ? 'MUTE SOUND' : 'UNDER CONSTRUCTION';
 };
-
-
-
+ 
+ 
+ 
 function checkDomainAndCallSolving() {
       console.log('checking domain');
   // Get the current URL.
   const currentUrl = window.location.href;
-
+ 
   // Check if the domain of the current URL includes "duolingo.com/lesson" or "duolingo.com/unit".
   const domain = currentUrl;
   const isDuolingoLessonOrUnit = domain.includes("duolingo.com/lesson") || domain.includes("duolingo.com/unit") || domain.includes("duolingo.com/practice");
-
+ 
       console.log(isDuolingoLessonOrUnit);
   // If the domain is a Duolingo lesson or unit, and the let value is true, call the solving function.
   if(Boolean(isDuolingoLessonOrUnit) && Boolean(isAutoMode)) {
@@ -1085,13 +1086,13 @@ function checkDomainAndCallSolving() {
       console.log('shouldnt happen ' + domain);
   }
 }
-
+ 
 // Add the checkDomainAndCallSolving function to the window.onload event listener.
 window.onload = setTimeout(checkDomainAndCallSolving, 2000);
-
-
-
-
+ 
+ 
+ 
+ 
 function checkAutoMode() {
     if(isAutoMode === true) {
         console.log('smth');
@@ -1100,15 +1101,15 @@ function checkAutoMode() {
         console.log('wdf');
     }
 }
-
+ 
 setInterval(checkAutoMode, 1000);
-
-
-
-
+ 
+ 
+ 
+ 
 //testing
 function checkUrl() {
-
+ 
   const currentUrl = window.location.href;
     const mainUrls = [
   'http://duolingo.com',
@@ -1129,28 +1130,28 @@ try {
 if(mainUrls.includes(currentUrl) && isAutoMode && numberOfTimes > 0 && isStartButtonPressed === true) {
 window.location.href = currentOrigin + '/lesson';
     numberOfTimes = numberOfTimes - 1;
-
+ 
         sessionStorage.setItem('numberOfTimes', numberOfTimes);
 console.log('hey1');
-
+ 
 } if(isStartButtonPressed === true && numberOfTimes === 0) {
     isStartButtonPressed = false;
         sessionStorage.setItem('isStartButtonPressed', false);
 }
-
+ 
 } catch (error) {
 console.log('error number 7');
 }
-
+ 
 console.log(currentUrl);
-
+ 
     console.log('isAutoMode ' + isAutoMode)
-
+ 
 }
-
+ 
 setInterval(checkUrl, 1000);
 //testing
-
+ 
 function addButtons() {
     if (window.location.pathname === '/learn') {
         let button = document.querySelector('a[data-test="global-practice"]');
@@ -1158,14 +1159,14 @@ function addButtons() {
             return; //button.click();
         }
     }
-
-
+ 
+ 
     const solveAllButton = document.getElementById("solveAllButton");
     if (solveAllButton !== null) {
         //solving();
         return;
     }
-
+ 
     const original = document.querySelectorAll('[data-test="player-next"]')[0];
     if (original === undefined) {
         const startButton = document.querySelector('[data-test="start-button"]');
@@ -1193,16 +1194,16 @@ function addButtons() {
     } else {
         const wrapper = document.getElementsByClassName('_10vOG')[0];
         wrapper.style.display = "flex";
-
-
-
-
+ 
+ 
+ 
+ 
         const solveCopy = document.createElement('button');
-
-
+ 
+ 
         //
-
-
+ 
+ 
         const presssolveCopy1 = () => {
             solveCopy.style.borderBottom = '0px';
             solveCopy.style.marginBottom = '4px';
@@ -1218,17 +1219,17 @@ function addButtons() {
         solveCopy.addEventListener('mousedown', presssolveCopy1);
         solveCopy.addEventListener('mouseup', releasesolveCopy1);
         solveCopy.addEventListener('mouseleave', releasesolveCopy1);
-
-
+ 
+ 
         //
-
-
+ 
+ 
         const pauseCopy = document.createElement('button');
-
-
+ 
+ 
         //
-
-
+ 
+ 
         const presspauseCopy2 = () => {
             pauseCopy.style.borderBottom = '0px';
             pauseCopy.style.marginBottom = '4px';
@@ -1244,17 +1245,17 @@ function addButtons() {
         pauseCopy.addEventListener('mousedown', presspauseCopy2);
         pauseCopy.addEventListener('mouseup', releasepauseCopy2);
         pauseCopy.addEventListener('mouseleave', releasepauseCopy2);
-
-
+ 
+ 
         //
-
-
+ 
+ 
         solveCopy.id = 'solveAllButton';
         solveCopy.innerHTML = solvingIntervalId ? 'PAUSE SOLVE' : 'SOLVE ALL';
         solveCopy.disabled = false;
         pauseCopy.innerHTML = 'SOLVE';
-
-
+ 
+ 
         const defaultButtonStyle = `
         position: relative;
         min-width: 150px;
@@ -1272,8 +1273,8 @@ function addButtons() {
         margin-left: 20px;
         cursor: pointer;
         `;
-
-
+ 
+ 
         const solveCopyStyle = `
         position: relative;
       min-width: 150px;
@@ -1291,8 +1292,8 @@ function addButtons() {
       margin-left: 20px;
       cursor: pointer;
     `;
-
-
+ 
+ 
         const pauseCopyStyle = `
         position: relative;
       min-width: 100px;
@@ -1310,35 +1311,35 @@ function addButtons() {
       margin-left: 20px;
       cursor: pointer;
     `;
-
+ 
         solveCopy.style.cssText = solveCopyStyle;
         pauseCopy.style.cssText = pauseCopyStyle;
-
+ 
         [solveCopy, pauseCopy].forEach(button => {
             button.addEventListener("mousemove", () => {
                 button.style.filter = "brightness(1.1)";
             });
         });
-
+ 
         [solveCopy, pauseCopy].forEach(button => {
             button.addEventListener("mouseleave", () => {
                 button.style.filter = "none";
             });
         });
-
+ 
         original.parentElement.appendChild(pauseCopy);
         original.parentElement.appendChild(solveCopy);
-
+ 
         solveCopy.addEventListener('click', solving);
         pauseCopy.addEventListener('click', solve);
-
+ 
         //solving();
     }
 }
-
-
+ 
+ 
 setInterval(addButtons, 1000);
-
+ 
 function solving() {
     if (solvingIntervalId) {
         clearInterval(solvingIntervalId);
@@ -1351,7 +1352,7 @@ function solving() {
         solvingIntervalId = setInterval(solve, 500);
     }
 }
-
+ 
 function solve() {
     const selAgain = document.querySelectorAll('[data-test="player-practice-again"]');
     const practiceAgain = document.querySelector('[data-test="player-practice-again"]');
@@ -1394,9 +1395,9 @@ function solve() {
     } else if (window.sol.type === 'listenMatch') {
         if (debug)
             document.getElementById("solveAllButton").innerText = 'Listen Match';
-
+ 
         console.log('hello');
-
+ 
         const nl = document.querySelectorAll('[data-test$="challenge-tap-token"]');
         window.sol.pairs?.forEach((pair) => {
             for (let i = 0; i < nl.length; i++) {
@@ -1489,7 +1490,7 @@ function solve() {
         let inputEvent = new Event('input', {
             bubbles: true
         });
-
+ 
         elm.dispatchEvent(inputEvent);
     } else if (document.querySelectorAll('[data-test*="challenge-partialReverseTranslate"]').length > 0) {
         if (debug)
@@ -1500,7 +1501,7 @@ function solve() {
         let inputEvent = new Event('input', {
             bubbles: true
         });
-
+ 
         elm.dispatchEvent(inputEvent);
     } else if (document.querySelectorAll('textarea[data-test="challenge-translate-input"]').length > 0) {
         if (debug)
@@ -1508,16 +1509,16 @@ function solve() {
         const elm = document.querySelector('textarea[data-test="challenge-translate-input"]');
         const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
         nativeInputValueSetter.call(elm, window.sol.correctSolutions ? window.sol.correctSolutions[0] : window.sol.prompt);
-
+ 
         let inputEvent = new Event('input', {
             bubbles: true
         });
-
+ 
         elm.dispatchEvent(inputEvent);
     }
     nextButton.click()
 }
-
+ 
 function correctTokensRun() {
     const all_tokens = document.querySelectorAll('[data-test$="challenge-tap-token"]');
     const correct_tokens = window.sol.correctTokens;
@@ -1535,7 +1536,7 @@ function correctTokensRun() {
         }
     });
 }
-
+ 
 function correctIndicesRun() {
     if (window.sol.correctIndices) {
         window.sol.correctIndices?.forEach(index => {
@@ -1544,12 +1545,12 @@ function correctIndicesRun() {
         // nextButton.click();
     }
 }
-
+ 
 function findSubReact(dom, traverseUp = 0) {
     const key = Object.keys(dom).find(key => key.startsWith("__reactProps$"));
     return dom.parentElement[key].children.props;
 }
-
+ 
 function findReact(dom, traverseUp = 0) {
     let reactProps = Object.keys(dom.parentElement).find((key) => key.startsWith("__reactProps$"));
     while (traverseUp-- > 0 && dom.parentElement) {
@@ -1564,8 +1565,8 @@ return dom?.parentElement?.[reactProps]?.children[0]?._owner?.stateNode;
 }
     //return dom?.parentElement?.[reactProps]?.children[0]?._owner?.stateNode;
 }
-
-
+ 
+ 
 window.findReact = findReact;
-
+ 
 window.ss = solving;
