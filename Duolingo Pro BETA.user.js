@@ -2246,30 +2246,12 @@ function solve() {
         if (debug) {
             document.getElementById("solveAllButton").innerText = 'Listen Match';
         }
-        const nl = document.querySelectorAll('[data-test$="challenge-tap-token"]');
-        window.sol.pairs?.forEach((pair) => {
-            for (let i = 0; i < nl.length; i++) {
-                let nlInnerText;
-                if (nl[i].querySelectorAll('[data-test="challenge-tap-token-text"]').length > 1) {
-                    nlInnerText = nl[i].querySelector('[data-test="challenge-tap-token-text"]').innerText.toLowerCase().trim();
-                } else {
-                    //nlInnerText = findSubReact(nl[i]).textContent.toLowerCase().trim();
-                    nlInnerText = nl[i].getAttribute('data-test').split('-')[0].toLowerCase().trim();
-                    console.log(nlInnerText);
-                }
-                if (
-                    (
-                        nlInnerText === pair.learningWord.toLowerCase().trim() ||
-                        nlInnerText === pair.translation.toLowerCase().trim()
-                    ) &&
-                    !nl[i].disabled
-                ) {
-                    nl[i].click();
-                }
-            }
-        });
+        const buttonSkip = document.querySelector('button[data-test="player-skip"]');
+        if (buttonSkip) {
+            buttonSkip.click();
+        }
     } else if (document.querySelectorAll('[data-test="challenge-choice"]').length > 0) {
-        // choice challenge
+        // choice challenge (TODO)
         if (debug) {
             document.getElementById("solveAllButton").innerText = 'Challenge Choice';
         }
@@ -2352,7 +2334,7 @@ function solve() {
         }
         let elm = document.querySelector('[data-test*="challenge-partialReverseTranslate"]')?.querySelector("span[contenteditable]");
         let nativeInputNodeTextSetter = Object.getOwnPropertyDescriptor(Node.prototype, "textContent").set
-        nativeInputNodeTextSetter.call(elm, '"' + window.sol?.displayTokens?.filter(t => t.isBlank)?.map(t => t.text)?.join()?.replaceAll(',', '') + '"');
+        nativeInputNodeTextSetter.call(elm, window.sol?.displayTokens?.filter(t => t.isBlank)?.map(t => t.text)?.join()?.replaceAll(',', ''));
         let inputEvent = new Event('input', {
             bubbles: true
         });
