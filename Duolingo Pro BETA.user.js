@@ -2251,15 +2251,34 @@ function solve() {
             buttonSkip.click();
         }
     } else if (document.querySelectorAll('[data-test="challenge-choice"]').length > 0) {
-        // choice challenge (TODO)
+        // choice challenge
         if (debug) {
             document.getElementById("solveAllButton").innerText = 'Challenge Choice';
         }
+        // text input (if one exists)
+        if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0) {
+            if (debug) {
+                document.getElementById("solveAllButton").innerText = 'Challenge Choice with Text Input';
+            }
+            let elm = document.querySelectorAll('[data-test="challenge-text-input"]')[0];
+            let nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+            nativeInputValueSetter.call(elm, window.sol.correctSolutions ? window.sol.correctSolutions[0].split(/(?<=^\S+)\s/)[1] : (window.sol.displayTokens ? window.sol.displayTokens.find(t => t.isBlank).text : window.sol.prompt));
+            let inputEvent = new Event('input', {
+                bubbles: true
+            });
+
+            elm.dispatchEvent(inputEvent);
+        }
+        // choice
         if (window.sol.correctTokens !== undefined) {
             correctTokensRun();
             nextButton.click()
         } else if (window.sol.correctIndex !== undefined) {
             document.querySelectorAll('[data-test="challenge-choice"]')[window.sol.correctIndex].click();
+            nextButton.click();
+        } else if (window.sol.correctSolutions !== undefined) {
+            var xpath = `//div[@data-test="challenge-choice" and ./div[@data-test="challenge-judge-text"]/text()="${window.sol.correctSolutions[0].split(/(?<=^\S+)\s/)[0]}"]`;
+            document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click();
             nextButton.click();
         }
     } else if (document.querySelectorAll('[data-test$="challenge-tap-token"]').length > 0) {
