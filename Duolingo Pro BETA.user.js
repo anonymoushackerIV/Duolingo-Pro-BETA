@@ -2246,38 +2246,39 @@ function solve() {
         if (debug) {
             document.getElementById("solveAllButton").innerText = 'Listen Match';
         }
-        const nl = document.querySelectorAll('[data-test$="challenge-tap-token"]');
-        window.sol.pairs?.forEach((pair) => {
-            for (let i = 0; i < nl.length; i++) {
-                let nlInnerText;
-                if (nl[i].querySelectorAll('[data-test="challenge-tap-token-text"]').length > 1) {
-                    nlInnerText = nl[i].querySelector('[data-test="challenge-tap-token-text"]').innerText.toLowerCase().trim();
-                } else {
-                    //nlInnerText = findSubReact(nl[i]).textContent.toLowerCase().trim();
-                    nlInnerText = nl[i].getAttribute('data-test').split('-')[0].toLowerCase().trim();
-                    console.log(nlInnerText);
-                }
-                if (
-                    (
-                        nlInnerText === pair.learningWord.toLowerCase().trim() ||
-                        nlInnerText === pair.translation.toLowerCase().trim()
-                    ) &&
-                    !nl[i].disabled
-                ) {
-                    nl[i].click();
-                }
-            }
-        });
+        const buttonSkip = document.querySelector('button[data-test="player-skip"]');
+        if (buttonSkip) {
+            buttonSkip.click();
+        }
     } else if (document.querySelectorAll('[data-test="challenge-choice"]').length > 0) {
         // choice challenge
         if (debug) {
             document.getElementById("solveAllButton").innerText = 'Challenge Choice';
         }
+        // text input (if one exists)
+        if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0) {
+            if (debug) {
+                document.getElementById("solveAllButton").innerText = 'Challenge Choice with Text Input';
+            }
+            let elm = document.querySelectorAll('[data-test="challenge-text-input"]')[0];
+            let nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+            nativeInputValueSetter.call(elm, window.sol.correctSolutions ? window.sol.correctSolutions[0].split(/(?<=^\S+)\s/)[1] : (window.sol.displayTokens ? window.sol.displayTokens.find(t => t.isBlank).text : window.sol.prompt));
+            let inputEvent = new Event('input', {
+                bubbles: true
+            });
+
+            elm.dispatchEvent(inputEvent);
+        }
+        // choice
         if (window.sol.correctTokens !== undefined) {
             correctTokensRun();
             nextButton.click()
         } else if (window.sol.correctIndex !== undefined) {
             document.querySelectorAll('[data-test="challenge-choice"]')[window.sol.correctIndex].click();
+            nextButton.click();
+        } else if (window.sol.correctSolutions !== undefined) {
+            var xpath = `//div[@data-test="challenge-choice" and ./div[@data-test="challenge-judge-text"]/text()="${window.sol.correctSolutions[0].split(/(?<=^\S+)\s/)[0]}"]`;
+            document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click();
             nextButton.click();
         }
     } else if (document.querySelectorAll('[data-test$="challenge-tap-token"]').length > 0) {
@@ -2352,7 +2353,7 @@ function solve() {
         }
         let elm = document.querySelector('[data-test*="challenge-partialReverseTranslate"]')?.querySelector("span[contenteditable]");
         let nativeInputNodeTextSetter = Object.getOwnPropertyDescriptor(Node.prototype, "textContent").set
-        nativeInputNodeTextSetter.call(elm, '"' + window.sol?.displayTokens?.filter(t => t.isBlank)?.map(t => t.text)?.join()?.replaceAll(',', '') + '"');
+        nativeInputNodeTextSetter.call(elm, window.sol?.displayTokens?.filter(t => t.isBlank)?.map(t => t.text)?.join()?.replaceAll(',', ''));
         let inputEvent = new Event('input', {
             bubbles: true
         });
