@@ -2740,6 +2740,8 @@ const DuolingoProSettingsBoxCSS = `
 
 .DuolingoProSettingsBoxLayers {
     display: flex;
+    max-height: 90vh;
+    max-width: 90vw;
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
@@ -2796,6 +2798,10 @@ const DuolingoProSettingsBoxCSS = `
     align-items: flex-start;
     gap: 16px;
     align-self: stretch;
+    overflow-y: auto;
+    /* Scrollbar repositioning */
+    margin-right: -16px;
+    padding-right: 16px;
 }
 
 .DuolingoProSettingsBoxSectionTwoBoxOne {
