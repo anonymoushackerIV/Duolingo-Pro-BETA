@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        Duolingo Pro Alpha
+// @name        Duolingo Pro BETA
 // @namespace   Violentmonkey Scripts
 // @match       https://*.duolingo.com/*
 // @grant       GM_log
