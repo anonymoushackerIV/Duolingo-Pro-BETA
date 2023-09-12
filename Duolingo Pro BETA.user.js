@@ -2704,6 +2704,10 @@ const DuolingoProSettingsBoxHTML = `
 `;
 
 const DuolingoProSettingsBoxCSS = `
+:root {
+    --box-padding: 16px;
+}
+
 .DuolingoProSettingsBoxShadow {
     position: fixed;
     display: flex;
@@ -2726,7 +2730,7 @@ const DuolingoProSettingsBoxCSS = `
 .DuolingoProSettingsBoxBackground {
     display: flex;
     width: 500px;
-    padding: 16px;
+    padding: var(--box-padding);
     flex-direction: column;
     justify-content: center;
     align-items: center;
@@ -2741,7 +2745,6 @@ const DuolingoProSettingsBoxCSS = `
 .DuolingoProSettingsBoxLayers {
     display: flex;
     max-height: 90vh;
-    max-width: 90vw;
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
@@ -2800,8 +2803,8 @@ const DuolingoProSettingsBoxCSS = `
     align-self: stretch;
     overflow-y: auto;
     /* Scrollbar repositioning */
-    margin-right: -16px;
-    padding-right: 16px;
+    margin-right: calc(-1*var(--box-padding));
+    padding-right: var(--box-padding);
 }
 
 .DuolingoProSettingsBoxSectionTwoBoxOne {
@@ -2996,6 +2999,20 @@ const DuolingoProSettingsBoxCSS = `
     -moz-user-select: none; // Firefox
     -webkit-text-select: none; // IOS Safari
     -webkit-user-select: none; // Safari
+}
+
+
+@media screen and (max-width: 699px) {
+    .DuolingoProSettingsBoxBackground {
+        align-self: flex-start;
+        margin-top: calc(var(--app-offset) - var(--box-padding));
+        width: 100vw;
+        border: none;
+        border-radius: 0px;
+    }
+    .DuolingoProSettingsBoxLayers {
+        max-height: calc(100vh - var(--app-offset) - 90px - var(--box-padding));
+    }
 }
 `;
 
