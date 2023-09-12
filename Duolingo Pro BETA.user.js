@@ -2706,6 +2706,7 @@ const DuolingoProSettingsBoxHTML = `
 const DuolingoProSettingsBoxCSS = `
 :root {
     --box-padding: 16px;
+    --gap: 8px;
 }
 
 .DuolingoProSettingsBoxShadow {
@@ -2734,7 +2735,7 @@ const DuolingoProSettingsBoxCSS = `
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 8px;
+    gap: var(--gap);
     flex-shrink: 0;
 
     border-radius: 16px;
@@ -2747,7 +2748,7 @@ const DuolingoProSettingsBoxCSS = `
     max-height: 90vh;
     flex-direction: column;
     align-items: flex-start;
-    gap: 8px;
+    gap: var(--gap);
     align-self: stretch;
 }
 
@@ -2796,7 +2797,7 @@ const DuolingoProSettingsBoxCSS = `
 
 .DuolingoProSettingsBoxSectionTwo {
     display: flex;
-    padding-bottom: 8px;
+    padding-bottom: var(--gap);
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
@@ -2867,7 +2868,7 @@ const DuolingoProSettingsBoxCSS = `
     height: 48px;
     justify-content: center;
     align-items: center;
-    gap: 8px;
+    gap: var(--gap);
 
     border-radius: 8px;
     border: 2px solid rgba(0, 0, 0, 0.20);
@@ -2908,7 +2909,7 @@ const DuolingoProSettingsBoxCSS = `
 .DuolingoProSettingsBoxSectionThree {
     display: flex;
     align-items: flex-start;
-    gap: 8px;
+    gap: var(--gap);
     align-self: stretch;
 }
 
@@ -2918,7 +2919,7 @@ const DuolingoProSettingsBoxCSS = `
     height: 54px;
     justify-content: center;
     align-items: center;
-    gap: 8px;
+    gap: var(--gap);
 
     border-radius: 8px;
     border: 2px solid rgb(var(--color-swan));
@@ -2962,7 +2963,7 @@ const DuolingoProSettingsBoxCSS = `
     padding: 0px 16px;
     justify-content: center;
     align-items: center;
-    gap: 8px;
+    gap: var(--gap);
     flex: 1 0 0;
 
     border-radius: 8px;
@@ -3011,7 +3012,7 @@ const DuolingoProSettingsBoxCSS = `
         border-radius: 0px;
     }
     .DuolingoProSettingsBoxLayers {
-        max-height: calc(100vh - var(--app-offset) - 90px - var(--box-padding));
+        max-height: calc(100vh - var(--app-offset) - 90px - var(--gap));
     }
 }
 `;
