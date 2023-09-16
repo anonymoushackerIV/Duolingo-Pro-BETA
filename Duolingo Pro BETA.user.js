@@ -11,6 +11,7 @@
 
 let solvingIntervalId;
 let isAutoMode = false;
+let isSolving = false;
 
 const debug = false;
 
@@ -3211,7 +3212,7 @@ function updateDuolingoProSettingsToggle(element, value) {
 
 
 
-function solving() {
+async function solving() {
     if (solvingIntervalId) {
         clearInterval(solvingIntervalId);
         solvingIntervalId = undefined;
@@ -3220,11 +3221,11 @@ function solving() {
     } else {
         document.getElementById("solveAllButton").innerText = "PAUSE SOLVE";
         isAutoMode = true;
-        solvingIntervalId = setInterval(solve, 200);
+        solvingIntervalId = setInterval(await solve, 100);
     }
 }
 
-function solve() {
+async function solve() {
     const selAgain = document.querySelectorAll('[data-test="player-practice-again"]');
     const practiceAgain = document.querySelector('[data-test="player-practice-again"]');
     if (selAgain.length === 1 && isAutoMode) {
@@ -3258,26 +3259,27 @@ function solve() {
     if (!nextButton) {
         return;
     }
-    nextButton.click();
-    waitForElm('button[data-test="player-skip"]').then(() => {
-        // Player next button only becomes effective after player skip button shows up
+    if (nextButton.getAttribute('aria-disabled') === 'true') {
+        if (isSolving === true) {
+            return;
+        }
+        isSolving = true;
+
         if (document.querySelectorAll('[data-test*="challenge-speak"]').length > 0) {
             if (debug) {
                 document.getElementById("solveAllButton").innerText = 'Challenge Speak';
             }
-            const buttonSkip = document.querySelector('button[data-test="player-skip"]');
-            if (buttonSkip) {
-                buttonSkip.click();
-            }
+            waitForElm('button[data-test="player-skip"]').then((skip) => {
+                skip.click();
+            });
         } else if (window.sol.type === 'listenMatch') {
             // listen match question
             if (debug) {
                 document.getElementById("solveAllButton").innerText = 'Listen Match';
             }
-            const buttonSkip = document.querySelector('button[data-test="player-skip"]');
-            if (buttonSkip) {
-                buttonSkip.click();
-            }
+            waitForElm('button[data-test="player-skip"]').then((skip) => {
+                skip.click();
+            });
         } else if (document.querySelectorAll('[data-test="challenge-choice"]').length > 0) {
             // choice challenge
             if (debug) {
@@ -3299,15 +3301,12 @@ function solve() {
             }
             // choice
             if (window.sol.correctTokens !== undefined) {
-                correctTokensRun();
-                nextButton.click()
+                await correctTokensRun();
             } else if (window.sol.correctIndex !== undefined) {
                 document.querySelectorAll('[data-test="challenge-choice"]')[window.sol.correctIndex].click();
-                nextButton.click();
             } else if (window.sol.correctSolutions !== undefined) {
                 var xpath = `//div[@data-test="challenge-choice" and ./div[@data-test="challenge-judge-text"]/text()="${window.sol.correctSolutions[0].split(/(?<=^\S+)\s/)[0]}"]`;
                 document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click();
-                nextButton.click();
             }
         } else if (document.querySelectorAll('[data-test$="challenge-tap-token"]').length > 0) {
             // match correct pairs challenge
@@ -3349,20 +3348,19 @@ function solve() {
                 if (debug) {
                     document.getElementById("solveAllButton").innerText = 'Token Run';
                 }
-                correctTokensRun();
-                nextButton.click()
+                await correctTokensRun();
             } else if (window.sol.correctIndices !== undefined) {
                 if (debug) {
                     document.getElementById("solveAllButton").innerText = 'Indices Run';
                 }
-                correctIndicesRun();
+                await correctIndicesRun();
             }
         } else if (document.querySelectorAll('[data-test="challenge-tap-token-text"]').length > 0) {
             if (debug) {
                 document.getElementById("solveAllButton").innerText = 'Challenge Tap Token Text';
             }
             // fill the gap challenge
-            correctIndicesRun();
+            await correctIndicesRun();
         } else if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0) {
             if (debug) {
                 document.getElementById("solveAllButton").innerText = 'Challenge Text Input';
@@ -3401,19 +3399,24 @@ function solve() {
 
             elm.dispatchEvent(inputEvent);
         }
-    });
+        await nextButtonClick();
+        isSolving = false;
+    } else {
+        isSolving = false;
+        await nextButtonClick();
+    }
 }
 
 function waitForElm(selector) {
     return new Promise(resolve => {
-        if (document.querySelector(selector)) {
+        if (document.querySelector(selector) && (document.querySelector(selector).getAttribute('aria-disabled') !== 'true')) {
             return resolve(document.querySelector(selector));
         }
 
         const observer = new MutationObserver(mutations => {
-            if (mutations.addedNodes.find(node => node.matchesSelector(selector))) {
+            if (document.querySelector(selector) && (document.querySelector(selector).getAttribute('aria-disabled') !== 'true')) {
                 observer.disconnect();
-                resolve(mutations.addedNodes.find(node => node.matchesSelector(selector)));
+                resolve(document.querySelector(selector));
             }
         });
 
@@ -3424,7 +3427,22 @@ function waitForElm(selector) {
     });
 }
 
-function correctTokensRun() {
+async function nextButtonClick() {
+    return Promise.race([
+        new Promise(async (resolve) => {
+            let next = await waitForElm('[data-test="player-next"]');
+            next.click();
+            resolve();
+        }),
+        new Promise(async (resolve) => {
+            // Maximum wait time for next button to show up
+            setTimeout(() => resolve(), 600);
+        })
+    ]);
+}
+
+
+async function correctTokensRun() {
     const all_tokens = document.querySelectorAll('[data-test$="challenge-tap-token"]');
     const correct_tokens = window.sol.correctTokens;
     const clicked_tokens = [];
@@ -3442,12 +3460,12 @@ function correctTokensRun() {
     });
 }
 
-function correctIndicesRun() {
+async function correctIndicesRun() {
     if (window.sol.correctIndices) {
         window.sol.correctIndices?.forEach(index => {
             document.querySelectorAll('div[data-test="word-bank"] [data-test="challenge-tap-token-text"]')[index].click();
         });
-        // nextButton.click();
+        // nextButtonClick();
     }
 }
 
