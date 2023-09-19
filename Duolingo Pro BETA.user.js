@@ -12,8 +12,10 @@
 let solvingIntervalId;
 let isAutoMode = false;
 let isSolving = false;
+let isTokenRunning = false;
 
 const debug = false;
+const simulated = true;
 
 let isSendFeedbackButtonPressed = false;
 
@@ -3221,7 +3223,7 @@ async function solving() {
     } else {
         document.getElementById("solveAllButton").innerText = "PAUSE SOLVE";
         isAutoMode = true;
-        solvingIntervalId = setInterval(await solve, 100);
+        solvingIntervalId = setInterval(solve, 150);
     }
 }
 
@@ -3232,6 +3234,7 @@ async function solve() {
         // Make sure it's the `practice again` button
         //if (selAgain[0].innerHTML.toLowerCase() === 'practice again') {
         // Click the `practice again` button
+        if (simulated == true) await sleep(50, 50);
         selAgain[0].click();
         // Terminate
         return;
@@ -3255,15 +3258,18 @@ async function solve() {
     if (!window.sol) {
         return;
     }
+
+    if (isSolving == true) {
+        return;
+    }
     let nextButton = document.querySelector('[data-test="player-next"]');
     if (!nextButton) {
         return;
     }
+    nextButton.click(); // skips motivational messages
     if (nextButton.getAttribute('aria-disabled') === 'true') {
-        if (isSolving === true) {
-            return;
-        }
         isSolving = true;
+        if (simulated == true) await sleep(300, 300); // time to read the question
 
         if (document.querySelectorAll('[data-test*="challenge-speak"]').length > 0) {
             if (debug) {
@@ -3291,8 +3297,13 @@ async function solve() {
                     document.getElementById("solveAllButton").innerText = 'Challenge Choice with Text Input';
                 }
                 let elm = document.querySelectorAll('[data-test="challenge-text-input"]')[0];
+                elm.focus();
+                let answer = window.sol.correctSolutions ? window.sol.correctSolutions[0].split(/(?<=^\S+)\s/)[1] : (window.sol.displayTokens ? window.sol.displayTokens.find(t => t.isBlank).text : window.sol.prompt);
+                if (!answer) return;
+
+                if (simulated == true) await sleep(answer.length*100, 100);
                 let nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
-                nativeInputValueSetter.call(elm, window.sol.correctSolutions ? window.sol.correctSolutions[0].split(/(?<=^\S+)\s/)[1] : (window.sol.displayTokens ? window.sol.displayTokens.find(t => t.isBlank).text : window.sol.prompt));
+                nativeInputValueSetter.call(elm, simplifyString(answer));
                 let inputEvent = new Event('input', {
                     bubbles: true
                 });
@@ -3306,7 +3317,7 @@ async function solve() {
                 document.querySelectorAll('[data-test="challenge-choice"]')[window.sol.correctIndex].click();
             } else if (window.sol.correctSolutions !== undefined) {
                 var xpath = `//div[@data-test="challenge-choice" and ./div[@data-test="challenge-judge-text"]/text()="${window.sol.correctSolutions[0].split(/(?<=^\S+)\s/)[0]}"]`;
-                document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click();
+                document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue?.click();
             }
         } else if (document.querySelectorAll('[data-test$="challenge-tap-token"]').length > 0) {
             // match correct pairs challenge
@@ -3314,36 +3325,7 @@ async function solve() {
                 if (debug) {
                     document.getElementById("solveAllButton").innerText = 'Pairs';
                 }
-                let nl = document.querySelectorAll('[data-test$="challenge-tap-token"]');
-                if (document.querySelectorAll('[data-test="challenge-tap-token-text"]').length
-                    === nl.length) {
-                    window.sol.pairs?.forEach((pair) => {
-                        for (let i = 0; i < nl.length; i++) {
-                            const nlInnerText = nl[i].querySelector('[data-test="challenge-tap-token-text"]').innerText.toLowerCase().trim();
-                            try {
-                                if (
-                                    (
-                                        nlInnerText === pair.transliteration.toLowerCase().trim() ||
-                                        nlInnerText === pair.character.toLowerCase().trim()
-                                    )
-                                    && !nl[i].disabled
-                                ) {
-                                    nl[i].click()
-                                }
-                            } catch (TypeError) {
-                                if (
-                                    (
-                                        nlInnerText === pair.learningToken.toLowerCase().trim() ||
-                                        nlInnerText === pair.fromToken.toLowerCase().trim()
-                                    )
-                                    && !nl[i].disabled
-                                ) {
-                                    nl[i].click()
-                                }
-                            }
-                        }
-                    })
-                }
+                await correctPairsRun();
             } else if (window.sol.correctTokens !== undefined) {
                 if (debug) {
                     document.getElementById("solveAllButton").innerText = 'Token Run';
@@ -3366,8 +3348,13 @@ async function solve() {
                 document.getElementById("solveAllButton").innerText = 'Challenge Text Input';
             }
             let elm = document.querySelectorAll('[data-test="challenge-text-input"]')[0];
+            elm.focus();
+            let answer = window.sol.correctSolutions ? window.sol.correctSolutions[0] : (window.sol.displayTokens ? window.sol.displayTokens.find(t => t.isBlank).text : window.sol.prompt);
+            if (!answer) return;
+
+            if (simulated == true) await sleep(answer.length*100, 100);
             let nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
-            nativeInputValueSetter.call(elm, window.sol.correctSolutions ? window.sol.correctSolutions[0] : (window.sol.displayTokens ? window.sol.displayTokens.find(t => t.isBlank).text : window.sol.prompt));
+            nativeInputValueSetter.call(elm, simplifyString(answer));
             let inputEvent = new Event('input', {
                 bubbles: true
             });
@@ -3378,8 +3365,13 @@ async function solve() {
                 document.getElementById("solveAllButton").innerText = 'Partial Reverse';
             }
             let elm = document.querySelector('[data-test*="challenge-partialReverseTranslate"]')?.querySelector("span[contenteditable]");
-            let nativeInputNodeTextSetter = Object.getOwnPropertyDescriptor(Node.prototype, "textContent").set
-            nativeInputNodeTextSetter.call(elm, window.sol?.displayTokens?.filter(t => t.isBlank)?.map(t => t.text)?.join()?.replaceAll(',', ''));
+            elm.focus();
+            let answer = window.sol?.displayTokens?.filter(t => t.isBlank)?.map(t => t.text)?.join()?.replaceAll(',', '');
+            if (!answer) return;
+
+            if (simulated == true) await sleep(answer.length*100, 100);
+            let nativeInputNodeTextSetter = Object.getOwnPropertyDescriptor(Node.prototype, "textContent").set;
+            nativeInputNodeTextSetter.call(elm, simplifyString(answer));
             let inputEvent = new Event('input', {
                 bubbles: true
             });
@@ -3390,8 +3382,13 @@ async function solve() {
                 document.getElementById("solveAllButton").innerText = 'Challenge Translate Input';
             }
             const elm = document.querySelector('textarea[data-test="challenge-translate-input"]');
+            elm.focus();
+            let answer = window.sol.correctSolutions ? window.sol.correctSolutions[0] : window.sol.prompt;
+            if (!answer) return;
+
+            if (simulated == true) await sleep(answer.length*100, 100);
             const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
-            nativeInputValueSetter.call(elm, window.sol.correctSolutions ? window.sol.correctSolutions[0] : window.sol.prompt);
+            nativeInputValueSetter.call(elm, simplifyString(answer));
 
             let inputEvent = new Event('input', {
                 bubbles: true
@@ -3400,11 +3397,9 @@ async function solve() {
             elm.dispatchEvent(inputEvent);
         }
         await nextButtonClick();
-        isSolving = false;
-    } else {
-        isSolving = false;
-        await nextButtonClick();
+        nextButtonClick();
     }
+    isSolving = false;
 }
 
 function waitForElm(selector) {
@@ -3427,27 +3422,70 @@ function waitForElm(selector) {
     });
 }
 
+
+function simplifyString(str) {
+    return str.replace(/[\p{P}$+<=>^`|~]/gu, '').replace(/\s{2,}/g, ' ').toLowerCase();
+}
+
+function randInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function sleep(ms, tolerance = 0) {
+    /** Sleeps for a random amount of time within the range [ms, ms + tolerance]. */
+    let sleepTime = randInt(ms, ms + tolerance)
+    return new Promise(resolve => setTimeout(resolve, sleepTime));
+}
+
+function sleepProbability(ms, tolerance = 0, probability = 0.05) {
+    /** Has a probability to sleep for ms milliseconds. */
+    if (Math.random() < probability) {
+        return sleep(ms, tolerance)
+    }
+}
+
+function until(conditionFunction) {
+    /**
+     * Utility function to resolve a promise when condition is fulfilled.
+     * Usage: await until(_ => condition == true);
+     */
+    const poll = resolve => {
+        if(conditionFunction()) resolve();
+        else setTimeout(_ => poll(resolve), 150); // callback interval
+    }
+
+    return new Promise(poll);
+}
+
 async function nextButtonClick() {
     return Promise.race([
         new Promise(async (resolve) => {
             let next = await waitForElm('[data-test="player-next"]');
+            await until(_ => isTokenRunning == false);
+            if (simulated == true) await sleep(50, 50);
             next.click();
             resolve();
         }),
         new Promise(async (resolve) => {
-            // Maximum wait time for next button to show up
-            setTimeout(() => resolve(), 600);
+            setTimeout(() => resolve(), 700); // Maximum wait time until the "next" button shows up
         })
     ]);
 }
 
 
 async function correctTokensRun() {
+    isTokenRunning = true;
     const all_tokens = document.querySelectorAll('[data-test$="challenge-tap-token"]');
     const correct_tokens = window.sol.correctTokens;
     const clicked_tokens = [];
-    correct_tokens.forEach(correct_token => {
+    for (const correct_token of correct_tokens) {
         const matching_elements = Array.from(all_tokens).filter(element => element.textContent.trim() === correct_token.trim());
+        if (simulated == true) {
+            await sleepProbability(200, 500, 0.1) // has a small chance to stay idle for a while
+            await sleep(50, 150);
+        }
         if (matching_elements.length > 0) {
             const match_index = clicked_tokens.filter(token => token.textContent.trim() === correct_token.trim()).length;
             if (match_index < matching_elements.length) {
@@ -3457,16 +3495,55 @@ async function correctTokensRun() {
                 clicked_tokens.push(matching_elements[0]);
             }
         }
-    });
+    };
+    isTokenRunning = false;
 }
 
 async function correctIndicesRun() {
+    isTokenRunning = true;
     if (window.sol.correctIndices) {
-        window.sol.correctIndices?.forEach(index => {
+        for (const index of window.sol.correctIndices) {
+            if (simulated == true) await sleep(50, 150);
             document.querySelectorAll('div[data-test="word-bank"] [data-test="challenge-tap-token-text"]')[index].click();
-        });
+        };
         // nextButtonClick();
     }
+    isTokenRunning = false;
+}
+
+async function correctPairsRun() {
+    isTokenRunning = true;
+    let nl = document.querySelectorAll('button[data-test*="challenge-tap-token"]');
+    if (document.querySelectorAll('[data-test*="challenge-tap-token-text"]').length === nl.length) {
+        for (const pair of window.sol.pairs) {
+            for (let i = 0; i < nl.length; i++) {
+                if (simulated == true) await sleep(20, 50);
+                const nlInnerText = nl[i].querySelector('[data-test="challenge-tap-token-text"]').innerText.toLowerCase().trim();
+                try {
+                    if (
+                        (
+                            nlInnerText === pair.transliteration.toLowerCase().trim() ||
+                            nlInnerText === pair.character.toLowerCase().trim()
+                        )
+                        && !nl[i].disabled
+                    ) {
+                        nl[i].click()
+                    }
+                } catch (TypeError) {
+                    if (
+                        (
+                            nlInnerText === pair.learningToken.toLowerCase().trim() ||
+                            nlInnerText === pair.fromToken.toLowerCase().trim()
+                        )
+                        && !nl[i].disabled
+                    ) {
+                        nl[i].click()
+                    }
+                }
+            }
+        }
+    }
+    isTokenRunning = false;
 }
 
 function findSubReact(dom, traverseUp = 0) {
