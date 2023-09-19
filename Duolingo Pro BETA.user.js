@@ -11,8 +11,11 @@
 
 let solvingIntervalId;
 let isAutoMode = false;
+let isSolving = false;
+let isTokenRunning = false;
 
 const debug = false;
+const simulated = true;
 
 let isSendFeedbackButtonPressed = false;
 
@@ -2704,6 +2707,11 @@ const DuolingoProSettingsBoxHTML = `
 `;
 
 const DuolingoProSettingsBoxCSS = `
+:root {
+    --box-padding: 16px;
+    --gap: 8px;
+}
+
 .DuolingoProSettingsBoxShadow {
     position: fixed;
     display: flex;
@@ -2726,11 +2734,11 @@ const DuolingoProSettingsBoxCSS = `
 .DuolingoProSettingsBoxBackground {
     display: flex;
     width: 500px;
-    padding: 16px;
+    padding: var(--box-padding);
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 8px;
+    gap: var(--gap);
     flex-shrink: 0;
 
     border-radius: 16px;
@@ -2740,9 +2748,10 @@ const DuolingoProSettingsBoxCSS = `
 
 .DuolingoProSettingsBoxLayers {
     display: flex;
+    max-height: 90vh;
     flex-direction: column;
     align-items: flex-start;
-    gap: 8px;
+    gap: var(--gap);
     align-self: stretch;
 }
 
@@ -2791,11 +2800,15 @@ const DuolingoProSettingsBoxCSS = `
 
 .DuolingoProSettingsBoxSectionTwo {
     display: flex;
-    padding-bottom: 8px;
+    padding-bottom: var(--gap);
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
     align-self: stretch;
+    overflow-y: auto;
+    /* Scrollbar repositioning */
+    margin-right: calc(-1*var(--box-padding));
+    padding-right: var(--box-padding);
 }
 
 .DuolingoProSettingsBoxSectionTwoBoxOne {
@@ -2858,7 +2871,7 @@ const DuolingoProSettingsBoxCSS = `
     height: 48px;
     justify-content: center;
     align-items: center;
-    gap: 8px;
+    gap: var(--gap);
 
     border-radius: 8px;
     border: 2px solid rgba(0, 0, 0, 0.20);
@@ -2899,7 +2912,7 @@ const DuolingoProSettingsBoxCSS = `
 .DuolingoProSettingsBoxSectionThree {
     display: flex;
     align-items: flex-start;
-    gap: 8px;
+    gap: var(--gap);
     align-self: stretch;
 }
 
@@ -2909,7 +2922,7 @@ const DuolingoProSettingsBoxCSS = `
     height: 54px;
     justify-content: center;
     align-items: center;
-    gap: 8px;
+    gap: var(--gap);
 
     border-radius: 8px;
     border: 2px solid rgb(var(--color-swan));
@@ -2953,7 +2966,7 @@ const DuolingoProSettingsBoxCSS = `
     padding: 0px 16px;
     justify-content: center;
     align-items: center;
-    gap: 8px;
+    gap: var(--gap);
     flex: 1 0 0;
 
     border-radius: 8px;
@@ -2990,6 +3003,20 @@ const DuolingoProSettingsBoxCSS = `
     -moz-user-select: none; // Firefox
     -webkit-text-select: none; // IOS Safari
     -webkit-user-select: none; // Safari
+}
+
+
+@media screen and (max-width: 699px) {
+    .DuolingoProSettingsBoxBackground {
+        align-self: flex-start;
+        margin-top: calc(var(--app-offset) - var(--box-padding));
+        width: 100vw;
+        border: none;
+        border-radius: 0px;
+    }
+    .DuolingoProSettingsBoxLayers {
+        max-height: calc(100vh - var(--app-offset) - 90px - var(--gap));
+    }
 }
 `;
 
@@ -3187,7 +3214,7 @@ function updateDuolingoProSettingsToggle(element, value) {
 
 
 
-function solving() {
+async function solving() {
     if (solvingIntervalId) {
         clearInterval(solvingIntervalId);
         solvingIntervalId = undefined;
@@ -3196,17 +3223,18 @@ function solving() {
     } else {
         document.getElementById("solveAllButton").innerText = "PAUSE SOLVE";
         isAutoMode = true;
-        solvingIntervalId = setInterval(solve, 500);
+        solvingIntervalId = setInterval(solve, 150);
     }
 }
 
-function solve() {
+async function solve() {
     const selAgain = document.querySelectorAll('[data-test="player-practice-again"]');
     const practiceAgain = document.querySelector('[data-test="player-practice-again"]');
     if (selAgain.length === 1 && isAutoMode) {
         // Make sure it's the `practice again` button
         //if (selAgain[0].innerHTML.toLowerCase() === 'practice again') {
         // Click the `practice again` button
+        if (simulated == true) await sleep(50, 50);
         selAgain[0].click();
         // Terminate
         return;
@@ -3230,159 +3258,234 @@ function solve() {
     if (!window.sol) {
         return;
     }
+
+    if (isSolving == true) {
+        return;
+    }
     let nextButton = document.querySelector('[data-test="player-next"]');
     if (!nextButton) {
         return;
     }
-    if (document.querySelectorAll('[data-test*="challenge-speak"]').length > 0) {
-        if (debug) {
-            document.getElementById("solveAllButton").innerText = 'Challenge Speak';
-        }
-        const buttonSkip = document.querySelector('button[data-test="player-skip"]');
-        if (buttonSkip) {
-            buttonSkip.click();
-        }
-    } else if (window.sol.type === 'listenMatch') {
-        // listen match question
-        if (debug) {
-            document.getElementById("solveAllButton").innerText = 'Listen Match';
-        }
-        const buttonSkip = document.querySelector('button[data-test="player-skip"]');
-        if (buttonSkip) {
-            buttonSkip.click();
-        }
-    } else if (document.querySelectorAll('[data-test="challenge-choice"]').length > 0) {
-        // choice challenge
-        if (debug) {
-            document.getElementById("solveAllButton").innerText = 'Challenge Choice';
-        }
-        // text input (if one exists)
-        if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0) {
+    nextButton.click(); // skips motivational messages
+    if (nextButton.getAttribute('aria-disabled') === 'true') {
+        isSolving = true;
+        if (simulated == true) await sleep(300, 300); // time to read the question
+
+        if (document.querySelectorAll('[data-test*="challenge-speak"]').length > 0) {
             if (debug) {
-                document.getElementById("solveAllButton").innerText = 'Challenge Choice with Text Input';
+                document.getElementById("solveAllButton").innerText = 'Challenge Speak';
+            }
+            waitForElm('button[data-test="player-skip"]').then((skip) => {
+                skip.click();
+            });
+        } else if (window.sol.type === 'listenMatch') {
+            // listen match question
+            if (debug) {
+                document.getElementById("solveAllButton").innerText = 'Listen Match';
+            }
+            waitForElm('button[data-test="player-skip"]').then((skip) => {
+                skip.click();
+            });
+        } else if (document.querySelectorAll('[data-test="challenge-choice"]').length > 0) {
+            // choice challenge
+            if (debug) {
+                document.getElementById("solveAllButton").innerText = 'Challenge Choice';
+            }
+            // text input (if one exists)
+            if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0) {
+                if (debug) {
+                    document.getElementById("solveAllButton").innerText = 'Challenge Choice with Text Input';
+                }
+                let elm = document.querySelectorAll('[data-test="challenge-text-input"]')[0];
+                elm.focus();
+                let answer = window.sol.correctSolutions ? window.sol.correctSolutions[0].split(/(?<=^\S+)\s/)[1] : (window.sol.displayTokens ? window.sol.displayTokens.find(t => t.isBlank).text : window.sol.prompt);
+                if (!answer) return;
+
+                if (simulated == true) await sleep(answer.length*100, 100);
+                let nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+                nativeInputValueSetter.call(elm, simplifyString(answer));
+                let inputEvent = new Event('input', {
+                    bubbles: true
+                });
+
+                elm.dispatchEvent(inputEvent);
+            }
+            // choice
+            if (window.sol.correctTokens !== undefined) {
+                await correctTokensRun();
+            } else if (window.sol.correctIndex !== undefined) {
+                document.querySelectorAll('[data-test="challenge-choice"]')[window.sol.correctIndex].click();
+            } else if (window.sol.correctSolutions !== undefined) {
+                var xpath = `//div[@data-test="challenge-choice" and ./div[@data-test="challenge-judge-text"]/text()="${window.sol.correctSolutions[0].split(/(?<=^\S+)\s/)[0]}"]`;
+                document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue?.click();
+            }
+        } else if (document.querySelectorAll('[data-test$="challenge-tap-token"]').length > 0) {
+            // match correct pairs challenge
+            if (window.sol.pairs !== undefined) {
+                if (debug) {
+                    document.getElementById("solveAllButton").innerText = 'Pairs';
+                }
+                await correctPairsRun();
+            } else if (window.sol.correctTokens !== undefined) {
+                if (debug) {
+                    document.getElementById("solveAllButton").innerText = 'Token Run';
+                }
+                await correctTokensRun();
+            } else if (window.sol.correctIndices !== undefined) {
+                if (debug) {
+                    document.getElementById("solveAllButton").innerText = 'Indices Run';
+                }
+                await correctIndicesRun();
+            }
+        } else if (document.querySelectorAll('[data-test="challenge-tap-token-text"]').length > 0) {
+            if (debug) {
+                document.getElementById("solveAllButton").innerText = 'Challenge Tap Token Text';
+            }
+            // fill the gap challenge
+            await correctIndicesRun();
+        } else if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0) {
+            if (debug) {
+                document.getElementById("solveAllButton").innerText = 'Challenge Text Input';
             }
             let elm = document.querySelectorAll('[data-test="challenge-text-input"]')[0];
+            elm.focus();
+            let answer = window.sol.correctSolutions ? window.sol.correctSolutions[0] : (window.sol.displayTokens ? window.sol.displayTokens.find(t => t.isBlank).text : window.sol.prompt);
+            if (!answer) return;
+
+            if (simulated == true) await sleep(answer.length*100, 100);
             let nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
-            nativeInputValueSetter.call(elm, window.sol.correctSolutions ? window.sol.correctSolutions[0].split(/(?<=^\S+)\s/)[1] : (window.sol.displayTokens ? window.sol.displayTokens.find(t => t.isBlank).text : window.sol.prompt));
+            nativeInputValueSetter.call(elm, simplifyString(answer));
+            let inputEvent = new Event('input', {
+                bubbles: true
+            });
+
+            elm.dispatchEvent(inputEvent);
+        } else if (document.querySelectorAll('[data-test*="challenge-partialReverseTranslate"]').length > 0) {
+            if (debug) {
+                document.getElementById("solveAllButton").innerText = 'Partial Reverse';
+            }
+            let elm = document.querySelector('[data-test*="challenge-partialReverseTranslate"]')?.querySelector("span[contenteditable]");
+            elm.focus();
+            let answer = window.sol?.displayTokens?.filter(t => t.isBlank)?.map(t => t.text)?.join()?.replaceAll(',', '');
+            if (!answer) return;
+
+            if (simulated == true) await sleep(answer.length*100, 100);
+            let nativeInputNodeTextSetter = Object.getOwnPropertyDescriptor(Node.prototype, "textContent").set;
+            nativeInputNodeTextSetter.call(elm, simplifyString(answer));
+            let inputEvent = new Event('input', {
+                bubbles: true
+            });
+
+            elm.dispatchEvent(inputEvent);
+        } else if (document.querySelectorAll('textarea[data-test="challenge-translate-input"]').length > 0) {
+            if (debug) {
+                document.getElementById("solveAllButton").innerText = 'Challenge Translate Input';
+            }
+            const elm = document.querySelector('textarea[data-test="challenge-translate-input"]');
+            elm.focus();
+            let answer = window.sol.correctSolutions ? window.sol.correctSolutions[0] : window.sol.prompt;
+            if (!answer) return;
+
+            if (simulated == true) await sleep(answer.length*100, 100);
+            const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
+            nativeInputValueSetter.call(elm, simplifyString(answer));
+
             let inputEvent = new Event('input', {
                 bubbles: true
             });
 
             elm.dispatchEvent(inputEvent);
         }
-        // choice
-        if (window.sol.correctTokens !== undefined) {
-            correctTokensRun();
-            nextButton.click()
-        } else if (window.sol.correctIndex !== undefined) {
-            document.querySelectorAll('[data-test="challenge-choice"]')[window.sol.correctIndex].click();
-            nextButton.click();
-        } else if (window.sol.correctSolutions !== undefined) {
-            var xpath = `//div[@data-test="challenge-choice" and ./div[@data-test="challenge-judge-text"]/text()="${window.sol.correctSolutions[0].split(/(?<=^\S+)\s/)[0]}"]`;
-            document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click();
-            nextButton.click();
-        }
-    } else if (document.querySelectorAll('[data-test$="challenge-tap-token"]').length > 0) {
-        // match correct pairs challenge
-        if (window.sol.pairs !== undefined) {
-            if (debug) {
-                document.getElementById("solveAllButton").innerText = 'Pairs';
-            }
-            let nl = document.querySelectorAll('[data-test$="challenge-tap-token"]');
-            if (document.querySelectorAll('[data-test="challenge-tap-token-text"]').length
-                === nl.length) {
-                window.sol.pairs?.forEach((pair) => {
-                    for (let i = 0; i < nl.length; i++) {
-                        const nlInnerText = nl[i].querySelector('[data-test="challenge-tap-token-text"]').innerText.toLowerCase().trim();
-                        try {
-                            if (
-                                (
-                                    nlInnerText === pair.transliteration.toLowerCase().trim() ||
-                                    nlInnerText === pair.character.toLowerCase().trim()
-                                )
-                                && !nl[i].disabled
-                            ) {
-                                nl[i].click()
-                            }
-                        } catch (TypeError) {
-                            if (
-                                (
-                                    nlInnerText === pair.learningToken.toLowerCase().trim() ||
-                                    nlInnerText === pair.fromToken.toLowerCase().trim()
-                                )
-                                && !nl[i].disabled
-                            ) {
-                                nl[i].click()
-                            }
-                        }
-                    }
-                })
-            }
-        } else if (window.sol.correctTokens !== undefined) {
-            if (debug) {
-                document.getElementById("solveAllButton").innerText = 'Token Run';
-            }
-            correctTokensRun();
-            nextButton.click()
-        } else if (window.sol.correctIndices !== undefined) {
-            if (debug) {
-                document.getElementById("solveAllButton").innerText = 'Indices Run';
-            }
-            correctIndicesRun();
-        }
-    } else if (document.querySelectorAll('[data-test="challenge-tap-token-text"]').length > 0) {
-        if (debug) {
-            document.getElementById("solveAllButton").innerText = 'Challenge Tap Token Text';
-        }
-        // fill the gap challenge
-        correctIndicesRun();
-    } else if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0) {
-        if (debug) {
-            document.getElementById("solveAllButton").innerText = 'Challenge Text Input';
-        }
-        let elm = document.querySelectorAll('[data-test="challenge-text-input"]')[0];
-        let nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
-        nativeInputValueSetter.call(elm, window.sol.correctSolutions ? window.sol.correctSolutions[0] : (window.sol.displayTokens ? window.sol.displayTokens.find(t => t.isBlank).text : window.sol.prompt));
-        let inputEvent = new Event('input', {
-            bubbles: true
-        });
-
-        elm.dispatchEvent(inputEvent);
-    } else if (document.querySelectorAll('[data-test*="challenge-partialReverseTranslate"]').length > 0) {
-        if (debug) {
-            document.getElementById("solveAllButton").innerText = 'Partial Reverse';
-        }
-        let elm = document.querySelector('[data-test*="challenge-partialReverseTranslate"]')?.querySelector("span[contenteditable]");
-        let nativeInputNodeTextSetter = Object.getOwnPropertyDescriptor(Node.prototype, "textContent").set
-        nativeInputNodeTextSetter.call(elm, window.sol?.displayTokens?.filter(t => t.isBlank)?.map(t => t.text)?.join()?.replaceAll(',', ''));
-        let inputEvent = new Event('input', {
-            bubbles: true
-        });
-
-        elm.dispatchEvent(inputEvent);
-    } else if (document.querySelectorAll('textarea[data-test="challenge-translate-input"]').length > 0) {
-        if (debug) {
-            document.getElementById("solveAllButton").innerText = 'Challenge Translate Input';
-        }
-        const elm = document.querySelector('textarea[data-test="challenge-translate-input"]');
-        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
-        nativeInputValueSetter.call(elm, window.sol.correctSolutions ? window.sol.correctSolutions[0] : window.sol.prompt);
-
-        let inputEvent = new Event('input', {
-            bubbles: true
-        });
-
-        elm.dispatchEvent(inputEvent);
+        await nextButtonClick();
+        nextButtonClick();
     }
-    nextButton.click()
+    isSolving = false;
 }
 
-function correctTokensRun() {
+function waitForElm(selector) {
+    return new Promise(resolve => {
+        if (document.querySelector(selector) && (document.querySelector(selector).getAttribute('aria-disabled') !== 'true')) {
+            return resolve(document.querySelector(selector));
+        }
+
+        const observer = new MutationObserver(mutations => {
+            if (document.querySelector(selector) && (document.querySelector(selector).getAttribute('aria-disabled') !== 'true')) {
+                observer.disconnect();
+                resolve(document.querySelector(selector));
+            }
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    });
+}
+
+
+function simplifyString(str) {
+    return str.replace(/[\p{P}$+<=>^`|~]/gu, '').replace(/\s{2,}/g, ' ').toLowerCase();
+}
+
+function randInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function sleep(ms, tolerance = 0) {
+    /** Sleeps for a random amount of time within the range [ms, ms + tolerance]. */
+    let sleepTime = randInt(ms, ms + tolerance)
+    return new Promise(resolve => setTimeout(resolve, sleepTime));
+}
+
+function sleepProbability(ms, tolerance = 0, probability = 0.05) {
+    /** Has a probability to sleep for ms milliseconds. */
+    if (Math.random() < probability) {
+        return sleep(ms, tolerance)
+    }
+}
+
+function until(conditionFunction) {
+    /**
+     * Utility function to resolve a promise when condition is fulfilled.
+     * Usage: await until(_ => condition == true);
+     */
+    const poll = resolve => {
+        if(conditionFunction()) resolve();
+        else setTimeout(_ => poll(resolve), 150); // callback interval
+    }
+
+    return new Promise(poll);
+}
+
+async function nextButtonClick() {
+    return Promise.race([
+        new Promise(async (resolve) => {
+            let next = await waitForElm('[data-test="player-next"]');
+            await until(_ => isTokenRunning == false);
+            if (simulated == true) await sleep(50, 50);
+            next.click();
+            resolve();
+        }),
+        new Promise(async (resolve) => {
+            setTimeout(() => resolve(), 700); // Maximum wait time until the "next" button shows up
+        })
+    ]);
+}
+
+
+async function correctTokensRun() {
+    isTokenRunning = true;
     const all_tokens = document.querySelectorAll('[data-test$="challenge-tap-token"]');
     const correct_tokens = window.sol.correctTokens;
     const clicked_tokens = [];
-    correct_tokens.forEach(correct_token => {
+    for (const correct_token of correct_tokens) {
         const matching_elements = Array.from(all_tokens).filter(element => element.textContent.trim() === correct_token.trim());
+        if (simulated == true) {
+            await sleepProbability(200, 500, 0.1) // has a small chance to stay idle for a while
+            await sleep(50, 150);
+        }
         if (matching_elements.length > 0) {
             const match_index = clicked_tokens.filter(token => token.textContent.trim() === correct_token.trim()).length;
             if (match_index < matching_elements.length) {
@@ -3392,16 +3495,55 @@ function correctTokensRun() {
                 clicked_tokens.push(matching_elements[0]);
             }
         }
-    });
+    };
+    isTokenRunning = false;
 }
 
-function correctIndicesRun() {
+async function correctIndicesRun() {
+    isTokenRunning = true;
     if (window.sol.correctIndices) {
-        window.sol.correctIndices?.forEach(index => {
+        for (const index of window.sol.correctIndices) {
+            if (simulated == true) await sleep(50, 150);
             document.querySelectorAll('div[data-test="word-bank"] [data-test="challenge-tap-token-text"]')[index].click();
-        });
-        // nextButton.click();
+        };
+        // nextButtonClick();
     }
+    isTokenRunning = false;
+}
+
+async function correctPairsRun() {
+    isTokenRunning = true;
+    let nl = document.querySelectorAll('button[data-test*="challenge-tap-token"]');
+    if (document.querySelectorAll('[data-test*="challenge-tap-token-text"]').length === nl.length) {
+        for (const pair of window.sol.pairs) {
+            for (let i = 0; i < nl.length; i++) {
+                if (simulated == true) await sleep(20, 50);
+                const nlInnerText = nl[i].querySelector('[data-test="challenge-tap-token-text"]').innerText.toLowerCase().trim();
+                try {
+                    if (
+                        (
+                            nlInnerText === pair.transliteration.toLowerCase().trim() ||
+                            nlInnerText === pair.character.toLowerCase().trim()
+                        )
+                        && !nl[i].disabled
+                    ) {
+                        nl[i].click()
+                    }
+                } catch (TypeError) {
+                    if (
+                        (
+                            nlInnerText === pair.learningToken.toLowerCase().trim() ||
+                            nlInnerText === pair.fromToken.toLowerCase().trim()
+                        )
+                        && !nl[i].disabled
+                    ) {
+                        nl[i].click()
+                    }
+                }
+            }
+        }
+    }
+    isTokenRunning = false;
 }
 
 function findSubReact(dom, traverseUp = 0) {
