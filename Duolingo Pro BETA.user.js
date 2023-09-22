@@ -12,8 +12,8 @@
 
 let solvingIntervalId;
 let isAutoMode = false;
-let isSolving = false;
 let isTokenRunning = false;
+let isSolving = false;
 
 const debug = false;
 
@@ -143,9 +143,9 @@ if (JSON.parse(localStorage.getItem('DuolingoProSettingsTurboSolveMode')) === nu
     DuolingoProSettingsTurboSolveMode = JSON.parse(localStorage.getItem('DuolingoProSettingsTurboSolveMode'));
 }
 
-let DuolingoProSettingsHumaneSolvingMode = true;
+let DuolingoProSettingsHumaneSolvingMode = false;
 if (JSON.parse(localStorage.getItem('DuolingoProSettingsHumaneSolvingMode')) === null) {
-    DuolingoProSettingsHumaneSolvingMode = true; // default
+    DuolingoProSettingsHumaneSolvingMode = false; // default
 } else {
     DuolingoProSettingsHumaneSolvingMode = JSON.parse(localStorage.getItem('DuolingoProSettingsHumaneSolvingMode'));
 }
@@ -184,7 +184,7 @@ function addButtons() {
             solveAllButton.innerText = "COMPLETE SKILL";
             solveAllButton.removeAttribute('href');
             solveAllButton.addEventListener('click', () => {
-                solving();
+                solving(true);
                 setInterval(() => {
                     const startButton = document.querySelector('[data-test="start-button"]');
                     if (startButton && startButton.innerText.startsWith("START")) {
@@ -1370,15 +1370,7 @@ function checkURLForAutoSolverBox() {
     if (window.location.pathname === '/lesson' || window.location.pathname.includes('/unit') || window.location.pathname === '/practice') {
         setTimeout(function() {
             if (wasAutoSolverBoxRepeatStartButtonPressed === true) {
-                if (DuolingoProSettingsTurboSolveMode) {
-                    if (document.querySelector('[data-test="player-next"]')) {
-                        solving();
-                    } else {
-                        checkURLForAutoSolverBox();
-                    }
-                } else {
-                    solvingIntervalId = setInterval(solve, 500);
-                }
+                solving(true);
             } else {
                 console.log('error 2');
             }
@@ -2713,6 +2705,17 @@ const WhatsNewBoxCSS = `
 }
 `;
 
+const simplifiedUICSS = `
+div {
+    transition: none !important;
+    animation-duration: 0s !important;
+}
+
+.fSJFz { /* explosion effect at the tip of the progress bar */
+    display: none !important;
+}
+`
+
 let injectedWhatsNewBoxElement = null;
 let injectedWhatsNewBoxStyle = null;
 
@@ -3287,11 +3290,11 @@ function injectDuolingoProSettingsBox() {
                 }
 
                 if (JSON.parse(localStorage.getItem('DuolingoProSettingsTurboSolveMode')) !== DuolingoProSettingsTurboSolveMode) {
-                    settingsStuff("Duolingo Pro Low Performance Mode", DuolingoProSettingsTurboSolveMode ? 'ON' : 'OFF');
+                    settingsStuff("Duolingo Pro TurboSolve Mode", DuolingoProSettingsTurboSolveMode ? 'ON' : 'OFF');
                 }
 
                 if (JSON.parse(localStorage.getItem('DuolingoProSettingsHumaneSolvingMode')) !== DuolingoProSettingsHumaneSolvingMode) {
-                    settingsStuff("Duolingo Pro ProBlock", DuolingoProSettingsHumaneSolvingMode ? 'ON' : 'OFF');
+                    settingsStuff("Duolingo Pro Humane Solving Mode", DuolingoProSettingsHumaneSolvingMode ? 'ON' : 'OFF');
                 }
 
                 localStorage.setItem('AutoSolverSettingsShowAutoSolverBox', AutoSolverSettingsShowAutoSolverBox);
@@ -3588,26 +3591,43 @@ setInterval(MidMobileSupport, 1000);
 
 
 
-async function solving() {
-    if (solvingIntervalId) {
-        clearInterval(solvingIntervalId);
-        solvingIntervalId = undefined;
+let injectedSimplifiedUICSS = null;
+
+async function solving(forceState) {
+    if (isAutoMode == false || forceState == true) {
+        let solveAllButton = await waitForElm("#solveAllButton");
+        solveAllButton.innerText = "PAUSE SOLVE";
+        isAutoMode = true;
+
+        let delayTime;
+        if (DuolingoProSettingsTurboSolveMode) {
+            delayTime = 150;
+
+            injectedSimplifiedUICSS = document.createElement('style');
+            injectedSimplifiedUICSS.type = 'text/css';
+            injectedSimplifiedUICSS.innerHTML = simplifiedUICSS;
+            document.head.appendChild(injectedSimplifiedUICSS);
+
+        } else if (simulated == true) {
+            delayTime = 150;
+        } else {
+            delayTime = 500;
+        }
+
+        let solveLoop = async () => {
+            if (isAutoMode == true && isSolving == false) {
+                isSolving = true;
+                document.getElementById("solveAllButton") ? document.getElementById("solveAllButton").innerText = "PAUSE SOLVE": undefined;
+                await solve();
+                await sleep(delayTime, 0, 0);
+                isSolving = false;
+                solveLoop();
+            }
+        }
+        solveLoop(); // initiate the loop
+    } else {
         document.getElementById("solveAllButton").innerText = "SOLVE ALL";
         isAutoMode = false;
-    } else {
-        if (DuolingoProSettingsTurboSolveMode) {
-            document.getElementById("solveAllButton").innerText = "PAUSE SOLVE";
-            isAutoMode = true;
-            solvingIntervalId = setInterval(await solve, 100);
-        } else if (simulated){
-            document.getElementById("solveAllButton").innerText = "PAUSE SOLVE";
-            isAutoMode = true;
-            solvingIntervalId = setInterval(solve, 150);
-        } else {
-            document.getElementById("solveAllButton").innerText = "PAUSE SOLVE";
-            isAutoMode = true;
-            solvingIntervalId = setInterval(solve, 500);
-        }
     }
 }
 
@@ -3643,17 +3663,14 @@ async function solve() {
         return;
     }
 
-    if (isSolving == true) {
-        return;
-    }
     let nextButton = document.querySelector('[data-test="player-next"]');
     if (!nextButton) {
         return;
     }
+
     nextButton.click(); // skips motivational messages
     if (nextButton.getAttribute('aria-disabled') === 'true') {
-        isSolving = true;
-        if (simulated == true) await sleep(300, 300); // time to read the question
+        if (simulated == true) await sleep(300, 300, 200); // time to read the question
 
         if (document.querySelectorAll('[data-test*="challenge-speak"]').length > 0) {
             if (debug) {
@@ -3680,8 +3697,12 @@ async function solve() {
                 if (debug) {
                     document.getElementById("solveAllButton").innerText = 'Challenge Choice with Text Input';
                 }
+                try {
+                    window.sol = findReact(document.getElementsByClassName('_3FiYg')[0]).props.currentChallenge;
+                }
+                catch { return }
                 let elm = document.querySelectorAll('[data-test="challenge-text-input"]')[0];
-                elm.focus();
+                elm?.click();
                 let answer = window.sol.correctSolutions ? window.sol.correctSolutions[0].split(/(?<=^\S+)\s/)[1] : (window.sol.displayTokens ? window.sol.displayTokens.find(t => t.isBlank).text : window.sol.prompt);
                 if (!answer) return;
 
@@ -3731,8 +3752,12 @@ async function solve() {
             if (debug) {
                 document.getElementById("solveAllButton").innerText = 'Challenge Text Input';
             }
+            try {
+                window.sol = findReact(document.getElementsByClassName('_3FiYg')[0]).props.currentChallenge;
+            }
+            catch { return }
             let elm = document.querySelectorAll('[data-test="challenge-text-input"]')[0];
-            elm.focus();
+            elm?.click();
             let answer = window.sol.correctSolutions ? window.sol.correctSolutions[0] : (window.sol.displayTokens ? window.sol.displayTokens.find(t => t.isBlank).text : window.sol.prompt);
             if (!answer) return;
 
@@ -3748,8 +3773,12 @@ async function solve() {
             if (debug) {
                 document.getElementById("solveAllButton").innerText = 'Partial Reverse';
             }
+            try {
+                window.sol = findReact(document.getElementsByClassName('_3FiYg')[0]).props.currentChallenge;
+            }
+            catch { return }
             let elm = document.querySelector('[data-test*="challenge-partialReverseTranslate"]')?.querySelector("span[contenteditable]");
-            elm.focus();
+            elm?.click();
             let answer = window.sol?.displayTokens?.filter(t => t.isBlank)?.map(t => t.text)?.join()?.replaceAll(',', '');
             if (!answer) return;
 
@@ -3765,8 +3794,12 @@ async function solve() {
             if (debug) {
                 document.getElementById("solveAllButton").innerText = 'Challenge Translate Input';
             }
+            try {
+                window.sol = findReact(document.getElementsByClassName('_3FiYg')[0]).props.currentChallenge;
+            }
+            catch { return }
             const elm = document.querySelector('textarea[data-test="challenge-translate-input"]');
-            elm.focus();
+            elm?.click();
             let answer = window.sol.correctSolutions ? window.sol.correctSolutions[0] : window.sol.prompt;
             if (!answer) return;
 
@@ -3782,9 +3815,8 @@ async function solve() {
         }
         await nextButtonClick();
         anonymousSolveDetails('1');
-        nextButtonClick();
+        await nextButtonClick();
     }
-    isSolving = false;
 }
 
 function waitForElm(selector) {
@@ -3812,24 +3844,43 @@ function simplifyString(str) {
     return str.replace(/[\p{P}$+<=>^`|~]/gu, '').replace(/\s{2,}/g, ' ').toLowerCase();
 }
 
-function randInt(min, max) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-function sleep(ms, tolerance = 0) {
-    /** Sleeps for a random amount of time within the range [ms, ms + tolerance]. */
-    let sleepTime = randInt(ms, ms + tolerance)
+function sleepNormal(ms, tolerance = 0) {
+    /** Sleeps for a random amount of time sampled from a non-uniform distribution within range [ms, ms + tolerance]. */
+    let sleepTime = ms + tolerance * (Math.random() + Math.random() + Math.random())/3; // simulates normal distribution
     return new Promise(resolve => setTimeout(resolve, sleepTime));
 }
 
-function sleepProbability(ms, tolerance = 0, probability = 0.05) {
+async function sleepInverseCDF(msRange) {
+    /**
+     * Uses the inverse CDF method to determine the random amount of time to sleep from 0 to ~msRange,
+     * with outlying values spanning up to 10*msRange.
+     *
+     * This method is intended to create outliers.
+     */
+    let u = 1;
+    while(u > 0.9999999999) u = Math.random(); // limit output range to 10*msRange
+
+    let sleepTime = -1*Math.log10(1 - u) // x = –log(1–u)
+    sleepTime *= msRange; // map to range
+    await sleepNormal(sleepTime);
+}
+
+
+// General-use sleep functions
+async function sleep(ms, tolerance = 0, msRange = 10) {
+    /** The most sophisticated version of sleep for general use. */
+    await sleepNormal(ms, tolerance);
+    await sleepInverseCDF(msRange);
+    await sleepProbability(0, 2000, 0.005); // add a bit of texture
+}
+
+async function sleepProbability(ms, tolerance = 0, probability = 0.05) {
     /** Has a probability to sleep for ms milliseconds. */
     if (Math.random() < probability) {
-        return sleep(ms, tolerance)
+        await sleep(ms, tolerance);
     }
 }
+
 
 function until(conditionFunction) {
     /**
@@ -3849,7 +3900,7 @@ async function nextButtonClick() {
         new Promise(async (resolve) => {
             let next = await waitForElm('[data-test="player-next"]');
             await until(_ => isTokenRunning == false);
-            if (simulated == true) await sleep(50, 50);
+            if (!DuolingoProSettingsTurboSolveMode) await sleep(100, 50);
             next.click();
             resolve();
         }),
@@ -3868,8 +3919,9 @@ async function correctTokensRun() {
     for (const correct_token of correct_tokens) {
         const matching_elements = Array.from(all_tokens).filter(element => element.textContent.trim() === correct_token.trim());
         if (simulated == true) {
-            await sleepProbability(200, 500, 0.1) // has a small chance to stay idle for a while
-            await sleep(50, 150);
+            await sleepProbability(200, 500, 0.1); // has a small chance to stay idle for a while
+            await sleepProbability(0, 200, 0.3);
+            await sleep(50, 100, 200);
         }
         if (matching_elements.length > 0) {
             const match_index = clicked_tokens.filter(token => token.textContent.trim() === correct_token.trim()).length;
@@ -3888,7 +3940,7 @@ async function correctIndicesRun() {
     isTokenRunning = true;
     if (window.sol.correctIndices) {
         for (const index of window.sol.correctIndices) {
-            if (simulated == true) await sleep(50, 150);
+            if (simulated == true) await sleep(50, 100);
             document.querySelectorAll('div[data-test="word-bank"] [data-test="challenge-tap-token-text"]')[index].click();
         };
         // nextButtonClick();
@@ -3902,7 +3954,9 @@ async function correctPairsRun() {
     if (document.querySelectorAll('[data-test*="challenge-tap-token-text"]').length === nl.length) {
         for (const pair of window.sol.pairs) {
             for (let i = 0; i < nl.length; i++) {
-                if (simulated == true) await sleep(20, 50);
+                if (simulated == true) {
+                    await sleep(50, 20, 50);
+                }
                 const nlInnerText = nl[i].querySelector('[data-test="challenge-tap-token-text"]').innerText.toLowerCase().trim();
                 try {
                     if (
@@ -3931,7 +3985,7 @@ async function correctPairsRun() {
     isTokenRunning = false;
 }
 
-function findSubReact(dom, traverseUp = 0) {
+async function findSubReact(dom, traverseUp = 0) {
     const key = Object.keys(dom).find(key => key.startsWith("__reactProps$"));
     return dom.parentElement[key].children.props;
 }
