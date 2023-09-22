@@ -3985,7 +3985,7 @@ async function correctPairsRun() {
     isTokenRunning = false;
 }
 
-async function findSubReact(dom, traverseUp = 0) {
+function findSubReact(dom, traverseUp = 0) {
     const key = Object.keys(dom).find(key => key.startsWith("__reactProps$"));
     return dom.parentElement[key].children.props;
 }
