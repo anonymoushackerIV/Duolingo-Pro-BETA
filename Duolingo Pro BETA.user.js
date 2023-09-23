@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Duolingo Pro BETA
 // @namespace    Violentmonkey Scripts
-// @version      2.0BETA6
+// @version      2.0BETA7
 // @description  Duolingo Auto Solver Tool - WORKING AUGUST 2023
 // @author       anonymoushackerIV
 // @match        https://*.duolingo.com/*
@@ -12,8 +12,8 @@
 
 let solvingIntervalId;
 let isAutoMode = false;
-let isTokenRunning = false;
 let isSolving = false;
+let isTokenRunning = false;
 
 const debug = false;
 
@@ -28,6 +28,9 @@ let isSendFeedbackButtonPressed = false;
 
 let autoSolverBoxRepeatAmount = 0;
 autoSolverBoxRepeatAmount = Number(sessionStorage.getItem('autoSolverBoxRepeatAmount'));
+
+let DuolingoProAmountOfQuestionsEverSolved = 0;
+DuolingoProAmountOfQuestionsEverSolved = Number(localStorage.getItem('DuolingoProAmountOfQuestionsEverSolved'));
 
 let ProBlockBannerOneVisible = true;
 if (JSON.parse(localStorage.getItem('ProBlockBannerOneVisible')) === null) {
@@ -59,18 +62,11 @@ if (JSON.parse(sessionStorage.getItem('wasAutoSolverBoxRepeatStartButtonPressed'
 }
 
 // Whats New Variables Start
-let wasWhatsNewInTwoPointZeroBetaThreeFinished = false;
-if (JSON.parse(localStorage.getItem('wasWhatsNewInTwoPointZeroBetaThreeFinished')) === null) {
-    wasWhatsNewInTwoPointZeroBetaThreeFinished = false;
-} else {
-    wasWhatsNewInTwoPointZeroBetaThreeFinished = JSON.parse(localStorage.getItem('wasWhatsNewInTwoPointZeroBetaThreeFinished'));
-}
+try {
+localStorage.removeItem('wasWhatsNewInTwoPointZeroBetaThreeFinished');
 
-let wasWhatsNewInTwoPointZeroBetaFourFinished = false;
-if (JSON.parse(localStorage.getItem('wasWhatsNewInTwoPointZeroBetaFourFinished')) === null) {
-    wasWhatsNewInTwoPointZeroBetaFourFinished = false;
-} else {
-    wasWhatsNewInTwoPointZeroBetaFourFinished = JSON.parse(localStorage.getItem('wasWhatsNewInTwoPointZeroBetaFourFinished'));
+localStorage.removeItem('wasWhatsNewInTwoPointZeroBetaFourFinished');
+} catch (error) {
 }
 
 let wasWhatsNewInTwoPointZeroBetaSixFinished = false;
@@ -78,6 +74,13 @@ if (JSON.parse(localStorage.getItem('wasWhatsNewInTwoPointZeroBetaSixFinished'))
     wasWhatsNewInTwoPointZeroBetaSixFinished = false;
 } else {
     wasWhatsNewInTwoPointZeroBetaSixFinished = JSON.parse(localStorage.getItem('wasWhatsNewInTwoPointZeroBetaSixFinished'));
+}
+
+let wasWhatsNewInTwoPointZeroBetaSevenFinished = false;
+if (JSON.parse(localStorage.getItem('wasWhatsNewInTwoPointZeroBetaSevenFinished')) === null) {
+    wasWhatsNewInTwoPointZeroBetaSevenFinished = false;
+} else {
+    wasWhatsNewInTwoPointZeroBetaSevenFinished = JSON.parse(localStorage.getItem('wasWhatsNewInTwoPointZeroBetaSevenFinished'));
 }
 
 let whatsNewInBetaStage = 1;
@@ -143,9 +146,9 @@ if (JSON.parse(localStorage.getItem('DuolingoProSettingsTurboSolveMode')) === nu
     DuolingoProSettingsTurboSolveMode = JSON.parse(localStorage.getItem('DuolingoProSettingsTurboSolveMode'));
 }
 
-let DuolingoProSettingsHumaneSolvingMode = false;
+let DuolingoProSettingsHumaneSolvingMode = true;
 if (JSON.parse(localStorage.getItem('DuolingoProSettingsHumaneSolvingMode')) === null) {
-    DuolingoProSettingsHumaneSolvingMode = false; // default
+    DuolingoProSettingsHumaneSolvingMode = true; // default
 } else {
     DuolingoProSettingsHumaneSolvingMode = JSON.parse(localStorage.getItem('DuolingoProSettingsHumaneSolvingMode'));
 }
@@ -462,13 +465,13 @@ const htmlContent = `
                     <p class="AutoSolverBoxAlertTwoBoxTextOne">5s delay when activating</p>
                 </div>
                 <div class="AutoSolverBoxAlertTwoBox">
-                    <p class="AutoSolverBoxAlertTwoBoxTextOne" style="color: #34C759 !important;">Chests now open automatically</p>
+                    <p class="AutoSolverBoxAlertTwoBoxTextOne" style="color: #34C759 !important;">Chests now open automatically with Chromium Browsers</p>
                 </div>
             </div>
             <div class="AutoSolverBoxTitleSectionOne">
                 <p class="AutoSolverBoxTitleSectionOneTextOne">AutoSolver</p>
                 <div class="AutoSolverBoxTitleSectionOneBETATagOne">
-                    <p class="AutoSolverBoxTitleSectionOneBETATagOneTextOne">2.0 BETA 6</p>
+                    <p class="AutoSolverBoxTitleSectionOneBETATagOneTextOne">2.0 BETA 7</p>
                 </div>
             </div>
             <p class="AutoSolverBoxTitleSectionTwoTextOne">How many lessons would you like to AutoSolve?</p>
@@ -722,7 +725,7 @@ const cssContent = `
     display: flex;
     align-items: center;
     gap: 8px;
-    height: 20px;
+    height: auto;
 
     cursor: default;
 }
@@ -746,7 +749,7 @@ const cssContent = `
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    height: 20px;
+    height: auto;
 
     cursor: default;
 }
@@ -1387,23 +1390,23 @@ injectContent();
 
 let DuolingoSiderbarPaddingThingFunctionRepeatTimes = 20;
 
-function DuolingoHomeSiderbarAddPaddingFunction() {
+function DuolingoHomeSidebarAddPaddingFunction() {
     if (window.location.pathname === '/learn') {
         try {
             const DuolingoSiderbarPaddingThing = document.querySelector('.Fc0NK');
-            if (AutoSolverSettingsShowPracticeOnlyModeForAutoSolverBox === true && AutoSolverSettingsShowRepeatLessonModeForAutoSolverBox === true) {
-                DuolingoSiderbarPaddingThing.style.paddingBottom = '582px'; // or 574px if an 8px gap preferred
-            } else if (AutoSolverSettingsShowPracticeOnlyModeForAutoSolverBox === true || AutoSolverSettingsShowRepeatLessonModeForAutoSolverBox === true) {
-                DuolingoSiderbarPaddingThing.style.paddingBottom = '526px'; // or 518px if an 8px gap preferred
+            if (AutoSolverSettingsShowPracticeOnlyModeForAutoSolverBox && AutoSolverSettingsShowRepeatLessonModeForAutoSolverBox) {
+                DuolingoSiderbarPaddingThing.style.paddingBottom = '602px'; // or 574px if an 8px gap preferred
+            } else if (AutoSolverSettingsShowPracticeOnlyModeForAutoSolverBox || AutoSolverSettingsShowRepeatLessonModeForAutoSolverBox) {
+                DuolingoSiderbarPaddingThing.style.paddingBottom = '546px'; // or 518px if an 8px gap preferred
             } else {
-                DuolingoSiderbarPaddingThing.style.paddingBottom = '470px'; // or 462px if an 8px gap preferred
+                DuolingoSiderbarPaddingThing.style.paddingBottom = '490px'; // or 462px if an 8px gap preferred
             }
         } catch(error) {
         }
     }
 }
 
-setInterval(DuolingoHomeSiderbarAddPaddingFunction, 100);
+setInterval(DuolingoHomeSidebarAddPaddingFunction, 100);
 
 
 function DuolingoRemoveLearnAds() {
@@ -1579,7 +1582,7 @@ const SendFeedbackBoxHTML = `
             </div>
 
                 <!-- MULTI-LINE TEXT FIELD -->
-                <textarea class="SendFeebackBoxSectionTwo" id="SendFeebackBoxSectionTwoID" placeholder="Write here as much as you can with as many details as possible. Responses that are less than two sentences will be automatically ignored. "/></textarea>
+                <textarea class="SendFeebackBoxSectionTwo" id="SendFeebackBoxSectionTwoID" placeholder="Write here as much as you can with as many details as possible. Responses that are less than two sentences will be automatically deleted. Bug Reports that don't state your Course and Web Browser will be automatically ignored."/></textarea>
 
                 <p class="SendFeebackBoxSectionThree">Choose Feedback Type</p>
 
@@ -2363,8 +2366,8 @@ function injectSendFeedBackBox() {
                         } else if (sendFeedbackStatus === 'error') {
                             SendFeebackBoxSectionEightSendButton.textContent = 'ERROR SENDING';
                             SendFeebackBoxSectionEightSendButton.style.background = '#FF2D55';
-                            SendFeebackBoxSectionTwo.style.border = '2px solid rgba(0, 0, 0, 0.20)';
-                            SendFeebackBoxSectionTwo.style.borderBottom = '4px solid rgba(0, 0, 0, 0.20)';
+                            SendFeebackBoxSectionEightSendButton.style.border = '2px solid rgba(0, 0, 0, 0.20)';
+                            SendFeebackBoxSectionEightSendButton.style.borderBottom = '4px solid rgba(0, 0, 0, 0.20)';
 
                             setTimeout(function() {
                                 SendFeebackBoxSectionEightSendButton.textContent = 'TRY AGAIN';
@@ -2373,8 +2376,8 @@ function injectSendFeedBackBox() {
                             setTimeout(function() {
                                 SendFeebackBoxSectionEightSendButton.textContent = 'SEND';
                                 SendFeebackBoxSectionEightSendButton.style.background = '';
-                                SendFeebackBoxSectionTwo.style.border = '';
-                                SendFeebackBoxSectionTwo.style.borderBottom = '';
+                                SendFeebackBoxSectionEightSendButton.style.border = '';
+                                SendFeebackBoxSectionEightSendButton.style.borderBottom = '';
                             }, 4000);
 
                             sendFeedbackStatus = 'empty';
@@ -2507,15 +2510,15 @@ const WhatsNewBoxHTML = `
         <div class="WhatsNewBoxOneSectionOne">
             <p class="WhatsNewBoxOneSectionOneTextOne">What’s New</p>
             <div class="WhatsNewBoxOneSectionOneBoxOne">
-                <p class="WhatsNewBoxOneSectionOneBoxOneTextOne">2.0 BETA 6</p>
+                <p class="WhatsNewBoxOneSectionOneBoxOneTextOne">2.0 BETA 7</p>
             </div>
         </div>
         <div class="WhatsNewBoxOneSectionTwo">
-            <img src="https://framerusercontent.com/images/oaXxGJyRWwPc6cFDUM3fPxlDI.png" class="WhatsNewBoxOneSectionTwoImageOne">
+            <img src="https://exampleimage.png" class="WhatsNewBoxOneSectionTwoImageOne">
         </div>
         <div class="WhatsNewBoxOneSectionThree">
-            <p class="WhatsNewBoxOneSectionThreeTextOne">Brand New Backend</p>
-            <p class="WhatsNewBoxOneSectionThreeTextTwo">The backend for AutoSolver has been completely rewritten, providing more stability.</p>
+            <p class="WhatsNewBoxOneSectionThreeTextOne">Example Title</p>
+            <p class="WhatsNewBoxOneSectionThreeTextTwo">Example description.</p>
         </div>
         <div class="WhatsNewBoxOneSectionFour">
             <p class="WhatsNewBoxOneSectionFourTextOne">NEXT</p>
@@ -2705,23 +2708,12 @@ const WhatsNewBoxCSS = `
 }
 `;
 
-const simplifiedUICSS = `
-div {
-    transition: none !important;
-    animation-duration: 0s !important;
-}
-
-.fSJFz { /* explosion effect at the tip of the progress bar */
-    display: none !important;
-}
-`
-
 let injectedWhatsNewBoxElement = null;
 let injectedWhatsNewBoxStyle = null;
 
 function injectWhatsNewBox() {
     //console.log('injectWhatsNewBox called');
-    if (wasWhatsNewInTwoPointZeroBetaSixFinished === false) {
+    if (wasWhatsNewInTwoPointZeroBetaSevenFinished === false) {
 
         if (window.location.pathname === '/learn') {
             // Inject the content if it's not already injected
@@ -2744,6 +2736,8 @@ function injectWhatsNewBox() {
                     console.log('something');
                     modifyWhatsNewBox();
                 });
+
+                modifyWhatsNewBox();
             }
         }
   } else {
@@ -2765,59 +2759,19 @@ function modifyWhatsNewBox() {
     const WhatsNewBoxOneSectionFourTextOne = document.querySelector('.WhatsNewBoxOneSectionFourTextOne');
     const WhatsNewBoxOneSectionTwoImageOneURL = document.querySelector('img.WhatsNewBoxOneSectionTwoImageOne');
 
-    if (whatsNewInBetaStage === 0) {
-        WhatsNewBoxOneSectionThreeTextOne.textContent = 'New and Improved Backend';
-        WhatsNewBoxOneSectionThreeTextTwo.textContent = 'The backend for AutoSolver has been completely rewritten, providing more stability and less bugs.';
+    if (whatsNewInBetaStage === 1) {
+        WhatsNewBoxOneSectionThreeTextOne.textContent = 'Major Bug Fixes';
+        WhatsNewBoxOneSectionThreeTextTwo.textContent = 'Duolingo Pro BETA 7 has fixes for major common bugs that stopped AutoSolver, Solve and Solve All Buttons from solving certain questions.';
         WhatsNewBoxOneSectionTwoImageOneURL.src = 'https://framerusercontent.com/images/oaXxGJyRWwPc6cFDUM3fPxlDI.png';
         WhatsNewBoxOneSectionFourTextOne.textContent = 'NEXT';
-    } else if (whatsNewInBetaStage === 0) {
-      WhatsNewBoxOneSectionThreeTextOne.textContent = 'Duolingo Pro Website';
-        WhatsNewBoxOneSectionThreeTextTwo.textContent = 'The issues & roadmap page provides a better visual of what issues currently exist, when they’re scheduled to be fixed and what features are coming soon.';
-        WhatsNewBoxOneSectionTwoImageOneURL.src = 'https://framerusercontent.com/images/q30YeZga0tb4ndWMVmFEjDiTww.png';
-        WhatsNewBoxOneSectionFourTextOne.textContent = 'NEXT';
-    } else if (whatsNewInBetaStage === 1) {
-      WhatsNewBoxOneSectionThreeTextOne.textContent = 'Settings Tab for Duolingo Pro';
-        WhatsNewBoxOneSectionThreeTextTwo.textContent = 'With the new settings tab, you can now enable new features or disable them to your need.';
-        WhatsNewBoxOneSectionTwoImageOneURL.src = 'https://framerusercontent.com/images/itNtqAZjyPuh8dVnLItNGqjA2I.png';
-        WhatsNewBoxOneSectionFourTextOne.textContent = 'NEXT';
     } else if (whatsNewInBetaStage === 2) {
-      WhatsNewBoxOneSectionThreeTextOne.textContent = 'ProBlock by Duolingo Pro';
-        WhatsNewBoxOneSectionThreeTextTwo.textContent = 'ProBlock removes ads that pop-up on the main Duolingo tabs like Learn, Practice, and Shop.';
-        WhatsNewBoxOneSectionTwoImageOneURL.src = 'https://framerusercontent.com/images/VFa03QdeAxhSUggKUbsQRtiYYag.png';
-        WhatsNewBoxOneSectionFourTextOne.textContent = 'NEXT';
-    } else if (whatsNewInBetaStage === 3) {
-      WhatsNewBoxOneSectionThreeTextOne.textContent = 'Auto-Repeat Lessons';
-        WhatsNewBoxOneSectionThreeTextTwo.textContent = 'Auto-Repeat Lesson Mode enables AutoSolver to only do a set lesson and repeat it. This mode improves chances of AutoSolver not getting stuck. We recommend using this mode with the Spanish/French/German course from English IF your main goal is to gain the most XP autonomously.';
-        WhatsNewBoxOneSectionTwoImageOneURL.src = 'https://framerusercontent.com/images/fHj0L8tJB3xiZGMZDMju7Youjmg.png';
-        WhatsNewBoxOneSectionFourTextOne.textContent = 'NEXT';
-    } else if (whatsNewInBetaStage === 4) {
-      WhatsNewBoxOneSectionThreeTextOne.textContent = 'Refreshed Send Feedback';
-        WhatsNewBoxOneSectionThreeTextTwo.textContent = 'The refreshed Send Feedback box makes it even more easier and faster to send feedback. The refreshed design makes it more fun while the all-new backend sends faster with less errors.';
-        WhatsNewBoxOneSectionTwoImageOneURL.src = 'https://framerusercontent.com/images/5TfQixlud5chFxBxRfIaUT98KRk.png';
-        WhatsNewBoxOneSectionFourTextOne.textContent = 'NEXT';
-    } else if (whatsNewInBetaStage === 5) {
-      WhatsNewBoxOneSectionThreeTextOne.textContent = 'Humane Solving Mode';
-        WhatsNewBoxOneSectionThreeTextTwo.textContent = 'Humane Solving mode solves each question step by step, making activity look less suspicious on Duolingo lesson logs, reducing the slim chances of being banned or temporarily deactivated to even less.';
-        WhatsNewBoxOneSectionTwoImageOneURL.src = 'https://framerusercontent.com/images/RhmJpQO6B9QXULLIQgZJeUPiroY.png';
-        WhatsNewBoxOneSectionFourTextOne.textContent = 'NEXT';
-    } else if (whatsNewInBetaStage === 6) {
-      WhatsNewBoxOneSectionThreeTextOne.textContent = 'TurboSolve';
-        WhatsNewBoxOneSectionThreeTextTwo.textContent = 'TurboSolve can solve question up to 5 times faster, reducing the time spent on lessons greatly while getting more work done.';
-        WhatsNewBoxOneSectionTwoImageOneURL.src = 'https://framerusercontent.com/images/RhmJpQO6B9QXULLIQgZJeUPiroY.png';
-        WhatsNewBoxOneSectionFourTextOne.textContent = 'NEXT';
-    } else if (whatsNewInBetaStage === 7) {
-      WhatsNewBoxOneSectionThreeTextOne.textContent = 'ProAccount (planned)';
-        WhatsNewBoxOneSectionThreeTextTwo.textContent = 'ProAccount is a new planned feature that will allow cross-device syncing and make one-on-one support possible in the future. BETA 6 is laying the foundation for these new features.';
-        WhatsNewBoxOneSectionTwoImageOneURL.src = 'https://framerusercontent.com/images/e0zC1jjKLy7Ucvx8avK99oo52GE.png';
-        WhatsNewBoxOneSectionFourTextOne.textContent = 'CLOSE';
-    } else if (whatsNewInBetaStage === 0) {
-      WhatsNewBoxOneSectionThreeTextOne.textContent = 'ProServer, the next era';
-        WhatsNewBoxOneSectionThreeTextTwo.textContent = 'ProServer will be the next ginormous step Duolingo Pro will take. No more having to log in to keep your steak going, or stay in the leaderboard. ProServer by Duolingo Pro will make sure to do those things without any input needed every day.';
-        WhatsNewBoxOneSectionTwoImageOneURL.src = 'https://framerusercontent.com/images/e0zC1jjKLy7Ucvx8avK99oo52GE.png';
-        WhatsNewBoxOneSectionFourTextOne.textContent = 'CLOSE';
+        WhatsNewBoxOneSectionThreeTextOne.textContent = 'Low Performance Mode';
+        WhatsNewBoxOneSectionThreeTextTwo.textContent = 'Low Performance Mode enables Duolingo and Duolingo Pro to use less processing power by limiting animations and background tasks. This can reduce lags on certain lower end devices. You can enable this feature in Duolingo Pro Settings.';
+        WhatsNewBoxOneSectionTwoImageOneURL.src = 'https://framerusercontent.com/images/yxmX51WMXqAJmg5DvHXzPR5aQak.png';
+        WhatsNewBoxOneSectionFourTextOne.textContent = 'DONE';
     } else {
-        wasWhatsNewInTwoPointZeroBetaSixFinished = true;
-        localStorage.setItem('wasWhatsNewInTwoPointZeroBetaSixFinished', wasWhatsNewInTwoPointZeroBetaSixFinished);
+        wasWhatsNewInTwoPointZeroBetaSevenFinished = true;
+        localStorage.setItem('wasWhatsNewInTwoPointZeroBetaSevenFinished', true);
     }
 
 }
@@ -2830,7 +2784,7 @@ const DuolingoProSettingsBoxHTML = `
             <div class="DuolingoProSettingsBoxSectionOne">
                 <p class="DuolingoProSettingsBoxSectionOneTextOne">Settings (scrollable)</p>
                 <div class="DuolingoProSettingsBoxSectionOneBoxOne">
-                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne">2.0 BETA 6</p>
+                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne">2.0 BETA 7</p>
                 </div>
             </div>
             <div class="DuolingoProSettingsBoxSectionTwo">
@@ -2866,7 +2820,7 @@ const DuolingoProSettingsBoxHTML = `
                 <div class="DuolingoProSettingsBoxSectionTwoBoxOne">
                     <div class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOne">
                         <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextOne">Low Performance Mode</p>
-                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextTwo">In low performance mode, Duolingo Pro works slower while using slightly less power. NOTE: This mode doesn't do anything *yet*.</p>
+                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextTwo">In low performance mode, Duolingo Pro reduces animations and background tasks to reduce lag. Only recommended for lower-performance devices.</p>
                     </div>
                     <div class="DuolingoProSettingsBoxToggleTypeOne" id="DuolingoProSettingsBoxToggleFourID">
                         <p class="DuolingoProSettingsBoxToggleTypeOneTextOne">OFF</p>
@@ -3509,9 +3463,10 @@ function updateDuolingoProSettingsToggle(element, value) {
 
 function iwantstolol() {
     try {
-        let nextButtonButton = document.querySelector('[data-test="story-start"]');
-        if (nextButtonButton) {
-            nextButtonButton.click();
+        let nextStoryStartButton = document.querySelector('[data-test="story-start"]');
+        if (nextStoryStartButton) {
+            nextStoryStartButton.click();
+            anonymousSolveDetails('Story Start');
         }
     } catch (error) {
     }
@@ -3519,21 +3474,57 @@ function iwantstolol() {
 
 setInterval(iwantstolol, 500);
 
-let duolingoProCurrentVersion = "2.0 BETA 6";
+let downloadStuffVar = 'none';
+let updateStuffVar = 'none';
+
+let duolingoProCurrentVersion = "2.0 BETA 7";
 if (String(localStorage.getItem('duolingoProLastInstalledVersion')) === null || String(localStorage.getItem('duolingoProLastInstalledVersion')) === "null") {
+    downloadStuffVar = 'trying';
+
     setTimeout(function() {
-        updateStuff("Downloaded Version", duolingoProCurrentVersion);
+        versionServerStuff('download', "Downloaded Version", duolingoProCurrentVersion);
+        checkFlagTwo();
     }, 2000);
-    setTimeout(function() {
-        localStorage.setItem('duolingoProLastInstalledVersion', duolingoProCurrentVersion);
-    }, 3000);
+
+    function checkFlagTwo() {
+        if (downloadStuffVar === 'trying') {
+            setTimeout(function() {
+                checkFlagTwo();
+            }, 100);
+        } else if (downloadStuffVar === 'true') {
+            localStorage.setItem('duolingoProLastInstalledVersion', duolingoProCurrentVersion);
+        } else if (downloadStuffVar === 'error') {
+            setTimeout(function() {
+                versionServerStuff('download', 'Downloaded Version', duolingoProCurrentVersion);
+            }, 1000);
+        } else if (downloadStuffVar === 'empty') {
+            notificationCall("Duolingo Pro Encountered An Error", "Duolingo Pro error #0001");
+        }
+    }
+
 } else if (String(localStorage.getItem('duolingoProLastInstalledVersion')) !== duolingoProCurrentVersion) {
+    updateStuffVar = 'trying';
+
     setTimeout(function() {
-        updateStuff("Updated Version", duolingoProCurrentVersion, String(localStorage.getItem('duolingoProLastInstalledVersion')));
+        versionServerStuff('update', "Updated Version", duolingoProCurrentVersion, String(localStorage.getItem('duolingoProLastInstalledVersion')));
+        checkFlagThree();
     }, 2000);
-    setTimeout(function() {
-        localStorage.setItem('duolingoProLastInstalledVersion', duolingoProCurrentVersion);
-    }, 3000);
+
+    function checkFlagThree() {
+        if (updateStuffVar === 'trying') {
+            setTimeout(function() {
+                checkFlagThree();
+            }, 100);
+        } else if (updateStuffVar === 'true') {
+            localStorage.setItem('duolingoProLastInstalledVersion', duolingoProCurrentVersion);
+        } else if (updateStuffVar === 'error') {
+            setTimeout(function() {
+                versionServerStuff('update', "Updated Version", duolingoProCurrentVersion, String(localStorage.getItem('duolingoProLastInstalledVersion')));
+            }, 1000);
+        } else if (updateStuffVar === 'empty') {
+            notificationCall("Duolingo Pro Encountered An Error", "Duolingo Pro error #0002");
+        }
+    }
 }
 
 let screenWidth = screen.width;
@@ -3588,10 +3579,201 @@ function MidMobileSupport() {
 
 setInterval(MidMobileSupport, 1000);
 
+const DuolingoProNotificationBoxHTML = `
+<div class="BlockedByDuolingoProBoxBackground" id="DuolingoProNotificationBackgroundOneID">
+    <div class="BlockedByDuolingoProBoxSectionOne">
+        <p class="BlockedByDuolingoProBoxSectionOneTextOne" id="DuolingoProNotificationTitleOneID">Title</p>
+        <p class="BlockedByDuolingoProBoxSectionOneTextTwo" id="DuolingoProNotificationHideButtonOneID">DISMISS</p>
+    </div>
+    <p class="BlockedByDuolingoProBoxSectionTwoTextOne" id="DuolingoProNotificationDescriptionOneID">Description</p>
+</div>
+`;
 
+const DuolingoProNotificationBoxCSS = `
+.BlockedByDuolingoProBoxBackground {
+    position: fixed;
+    display: flex;
+    width: 368px !important;
+    padding: 16px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
 
+    border-radius: 16px;
+    border: 2px solid rgb(var(--color-swan));
+    background: rgb(var(--color-snow));
+    z-index: 2048;
+
+    right: 24px;
+    top: calc(100%);
+    /* Initially, it's hidden below the viewport */
+    transition: top 0.5s cubic-bezier(0.16, 1, 0.32, 1);
+    /* Add a transition for the 'top' property */
+
+}
+
+.BlockedByDuolingoProBoxSectionOne {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    align-self: stretch;
+}
+
+.BlockedByDuolingoProBoxSectionOneTextOne {
+    color: rgb(var(--color-eel));
+    font-size: 18px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+
+    margin: 0px;
+    cursor: default;
+}
+
+.BlockedByDuolingoProBoxSectionOneTextTwo {
+    color: #007AFF;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+
+    margin: 0px;
+    cursor: pointer;
+
+    user-select: none; // chrome and Opera
+    -moz-user-select: none; // Firefox
+    -webkit-text-select: none; // IOS Safari
+    -webkit-user-select: none; // Safari
+}
+
+.BlockedByDuolingoProBoxSectionTwoTextOne {
+    align-self: stretch;
+
+    color: rgb(var(--color-eel), 0.6);
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+
+    margin: 0px;
+    cursor: default;
+}
+`;
+
+let injectedDuolingoProNotificationBoxElement = null;
+let injectedDuolingoProNotificationBoxStyle = null;
+
+let DuolingoProNotificationOne;
+
+let DuolingoProNotificationOneVar = false;
+
+let DuolingoProNotificationOneHideButton;
+
+function injectDuolingoProNotificationBox() {
+    if (!injectedDuolingoProNotificationBoxElement) {
+        // Creating a container for the overlay
+        injectedDuolingoProNotificationBoxElement = document.createElement('div');
+        injectedDuolingoProNotificationBoxElement.innerHTML = DuolingoProNotificationBoxHTML;
+        document.body.appendChild(injectedDuolingoProNotificationBoxElement);
+
+        // Creating a style tag for CSS
+        injectedDuolingoProNotificationBoxStyle = document.createElement('style');
+        injectedDuolingoProNotificationBoxStyle.type = 'text/css';
+        injectedDuolingoProNotificationBoxStyle.innerHTML = DuolingoProNotificationBoxCSS;
+        document.head.appendChild(injectedDuolingoProNotificationBoxStyle);
+
+        DuolingoProNotificationOne = document.querySelector('#DuolingoProNotificationBackgroundOneID');
+
+        DuolingoProNotificationOneHideButton = document.querySelector('#DuolingoProNotificationHideButtonOneID');
+    }
+}
+
+setInterval(injectDuolingoProNotificationBox, 100);
+
+//addEventListener('mouseup', () => {
+//    notificationCall("title test one", "description test one");
+//});
+
+function notificationCall(title, description) {
+//    if (event.target !== DuolingoProNotificationHideButtonOneID) {
+        if (!DuolingoProNotificationOneVar) {
+            notificationPopOne("", "", false);
+            setTimeout(function() {
+                notificationPopOne(title, description, true);
+                DuolingoProNotificationOneVar = true;
+            }, 600);
+        } else if (DuolingoProNotificationOneVar) {
+            notificationPopOne("", "", false);
+            DuolingoProNotificationOneVar = false;
+            setTimeout(function() {
+                notificationPopOne(title, description, true);
+                DuolingoProNotificationOneVar = false;
+            }, 600);
+        }
+//    }
+}
+
+function notificationPopOne(title, description, value) {
+    let DuolingoProNotificationOneTitle = document.querySelector('#DuolingoProNotificationTitleOneID');
+    let DuolingoProNotificationOneDescription = document.querySelector('#DuolingoProNotificationDescriptionOneID');
+    let DuolingoProNotificationOneHideButton = document.querySelector('#DuolingoProNotificationHideButtonOneID');
+
+    DuolingoProNotificationOneTitle.textContent = title;
+    DuolingoProNotificationOneDescription.textContent = description;
+
+    let DuolingoProNotificationOneHeight = DuolingoProNotificationOne.getBoundingClientRect().height;
+
+    if (value) {
+        DuolingoProNotificationOne.style.top = `calc(100% - ${DuolingoProNotificationOneHeight + 24}px)`;
+    } else {
+        DuolingoProNotificationOne.style.top = `calc(100%)`;
+    }
+    DuolingoProNotificationOneHideButton.addEventListener('click', () => {
+        DuolingoProNotificationOne.style.top = `calc(100%)`;
+        DuolingoProNotificationOneVar = false;
+    });
+}
+
+const simplifiedUICSS = `
+div {
+    transition: none !important;
+    animation-duration: 0s !important;
+}
+.fSJFz { /* explosion effect at the tip of the progress bar */
+    display: none !important;
+}
+`
 
 let injectedSimplifiedUICSS = null;
+function LowPerformanceAnimations() {
+    if (window.location.pathname.includes('/lesson') && AutoSolverSettingsLowPerformanceMode) {
+        injectedSimplifiedUICSS = document.createElement('style');
+        injectedSimplifiedUICSS.type = 'text/css';
+        injectedSimplifiedUICSS.innerHTML = simplifiedUICSS;
+        document.head.appendChild(injectedSimplifiedUICSS);
+    } else {
+        setTimeout(function() {
+            LowPerformanceAnimations();
+        }, 1000);
+    }
+}
+if (AutoSolverSettingsLowPerformanceMode) {
+    LowPerformanceAnimations();
+}
+
+
+let DuolingoProShortSessionID;
+if (Number(sessionStorage.getItem('DuolingoProShortSessionID')) === null || Number(sessionStorage.getItem('DuolingoProShortSessionID')) === 0 || Number(sessionStorage.getItem('DuolingoProShortSessionID')) === NaN) {
+    DuolingoProShortSessionID = Math.floor(Math.random() * (9999 - 1 + 1)) + 1;
+    sessionStorage.setItem('DuolingoProShortSessionID', DuolingoProShortSessionID);
+} else {
+    DuolingoProShortSessionID = Number(sessionStorage.getItem('DuolingoProShortSessionID')); //sessionStorage will be deleted after the tab is closed
+}
+
+
+
 
 async function solving(forceState) {
     if (isAutoMode == false || forceState == true) {
@@ -3602,12 +3784,6 @@ async function solving(forceState) {
         let delayTime;
         if (DuolingoProSettingsTurboSolveMode) {
             delayTime = 150;
-
-            injectedSimplifiedUICSS = document.createElement('style');
-            injectedSimplifiedUICSS.type = 'text/css';
-            injectedSimplifiedUICSS.innerHTML = simplifiedUICSS;
-            document.head.appendChild(injectedSimplifiedUICSS);
-
         } else if (simulated == true) {
             delayTime = 150;
         } else {
@@ -3676,6 +3852,7 @@ async function solve() {
             if (debug) {
                 document.getElementById("solveAllButton").innerText = 'Challenge Speak';
             }
+            anonymousSolveDetails("SC");
             waitForElm('button[data-test="player-skip"]').then((skip) => {
                 skip.click();
             });
@@ -3684,6 +3861,7 @@ async function solve() {
             if (debug) {
                 document.getElementById("solveAllButton").innerText = 'Listen Match';
             }
+            anonymousSolveDetails("LM");
             waitForElm('button[data-test="player-skip"]').then((skip) => {
                 skip.click();
             });
@@ -3692,11 +3870,13 @@ async function solve() {
             if (debug) {
                 document.getElementById("solveAllButton").innerText = 'Challenge Choice';
             }
+            anonymousSolveDetails("CC");
             // text input (if one exists)
             if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0) {
                 if (debug) {
                     document.getElementById("solveAllButton").innerText = 'Challenge Choice with Text Input';
                 }
+                anonymousSolveDetails("CT");
                 try {
                     window.sol = findReact(document.getElementsByClassName('_3FiYg')[0]).props.currentChallenge;
                 }
@@ -3730,28 +3910,33 @@ async function solve() {
                 if (debug) {
                     document.getElementById("solveAllButton").innerText = 'Pairs';
                 }
+                anonymousSolveDetails("MC");
                 await correctPairsRun();
             } else if (window.sol.correctTokens !== undefined) {
                 if (debug) {
                     document.getElementById("solveAllButton").innerText = 'Token Run';
                 }
+                anonymousSolveDetails("TM");
                 await correctTokensRun();
             } else if (window.sol.correctIndices !== undefined) {
                 if (debug) {
                     document.getElementById("solveAllButton").innerText = 'Indices Run';
                 }
+                anonymousSolveDetails("IM");
                 await correctIndicesRun();
             }
         } else if (document.querySelectorAll('[data-test="challenge-tap-token-text"]').length > 0) {
             if (debug) {
                 document.getElementById("solveAllButton").innerText = 'Challenge Tap Token Text';
             }
+            anonymousSolveDetails("TT");
             // fill the gap challenge
             await correctIndicesRun();
         } else if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0) {
             if (debug) {
                 document.getElementById("solveAllButton").innerText = 'Challenge Text Input';
             }
+            anonymousSolveDetails("TC");
             try {
                 window.sol = findReact(document.getElementsByClassName('_3FiYg')[0]).props.currentChallenge;
             }
@@ -3773,6 +3958,7 @@ async function solve() {
             if (debug) {
                 document.getElementById("solveAllButton").innerText = 'Partial Reverse';
             }
+            anonymousSolveDetails("PT");
             try {
                 window.sol = findReact(document.getElementsByClassName('_3FiYg')[0]).props.currentChallenge;
             }
@@ -3794,6 +3980,7 @@ async function solve() {
             if (debug) {
                 document.getElementById("solveAllButton").innerText = 'Challenge Translate Input';
             }
+            anonymousSolveDetails("TC");
             try {
                 window.sol = findReact(document.getElementsByClassName('_3FiYg')[0]).props.currentChallenge;
             }
@@ -3814,7 +4001,6 @@ async function solve() {
             elm.dispatchEvent(inputEvent);
         }
         await nextButtonClick();
-        anonymousSolveDetails('1');
         await nextButtonClick();
     }
 }
@@ -4009,24 +4195,20 @@ window.findReact = findReact;
 window.ss = solving;
 
 
+
 const SUPABASE_URL = 'https://henexdxgboppadgsxegm.supabase.co';
 const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhlbmV4ZHhnYm9wcGFkZ3N4ZWdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTQ5MDI0ODEsImV4cCI6MjAxMDQ3ODQ4MX0.k3Y9mjNaw_SKrHfWr9dA7PkWCOl_i2zEUjo77OxNH68';
 
 const supabase = window.supabase.createClient(SUPABASE_URL, ANON_KEY);
 
+let duolingoProCurrentVersionShort = "2B7";
+
 async function settingsStuff(messageValue, value) {
     console.log("settingsStuff called");
-    // Add a breakpoint here.
-//    debugger;
-
-//    const messageText = document.getElementById('messageInput').value;
-
-//    , timestamptz: new Date().toISOString().substr(0, 19)
-
     if (messageValue) {
         const { data, error } = await supabase
         .from('settings_stuff')
-        .insert([{ text: messageValue, value: value, randomValue: randomValue, duolingo_pro_version: duolingoProCurrentVersion }]);
+        .insert([{ text: messageValue, value: value, randomValue: randomValue, version: duolingoProCurrentVersionShort }]);
 
         if (error) {
             console.error("Error sending message:", error);
@@ -4050,7 +4232,7 @@ async function sendFeedbackNew(feedbackTextOne, feedbackTypeOne) {
     if (feedbackTextOne) {
         const { data, error } = await supabase
         .from('send_feedback')
-        .insert([{ feedback_text: feedbackTextOne, feedback_type: feedbackTypeOne, randomValue: randomValue, duolingo_pro_version: duolingoProCurrentVersion }]);
+        .insert([{ feedback_text: feedbackTextOne, feedback_type: feedbackTypeOne, randomValue: randomValue, version: duolingoProCurrentVersion }]);
 
         if (error) {
             console.error("Error sending message:", error);
@@ -4066,18 +4248,10 @@ async function sendFeedbackNew(feedbackTextOne, feedbackTypeOne) {
 }
 
 async function analyticsLogsSend(text, value) {
-    console.log("analyticsLogsSend called");
-    // Add a breakpoint here.
-//    debugger;
-
-//    const messageText = document.getElementById('messageInput').value;
-
-//    , timestamptz: new Date().toISOString().substr(0, 19)
-
     if (text) {
         const { data, error } = await supabase
         .from('analytics_logs')
-        .insert([{ text: text, value: value, randomValue: randomValue, duolingo_pro_version: duolingoProCurrentVersion }]);
+        .insert([{ text: text, value: value, randomValue: randomValue, version: duolingoProCurrentVersionShort }]);
 
         if (error) {
             console.error("Error sending message:", error);
@@ -4090,18 +4264,13 @@ async function analyticsLogsSend(text, value) {
 }
 
 async function anonymousSolveDetails(value) {
-    console.log("anonymousSolveDetails called");
-    // Add a breakpoint here.
-//    debugger;
-
-//    const messageText = document.getElementById('messageInput').value;
-
-//    , timestamptz: new Date().toISOString().substr(0, 19)
-
     if (value) {
         const { data, error } = await supabase
-        .from('solve_details')
-        .insert([{ value: value, duolingo_pro_version: duolingoProCurrentVersion }]);
+        .from('AutoSolveSimpleLogs')
+        .insert([{ type: value, version: duolingoProCurrentVersionShort, sessionValue: DuolingoProShortSessionID }]);
+
+        DuolingoProAmountOfQuestionsEverSolved++;
+        localStorage.setItem('DuolingoProAmountOfQuestionsEverSolved', DuolingoProAmountOfQuestionsEverSolved);
 
         if (error) {
             console.error("Error sending message:", error);
@@ -4113,18 +4282,40 @@ async function anonymousSolveDetails(value) {
     }
 }
 
-async function updateStuff(status, to, from) {
-    if (status) {
-        const { data, error } = await supabase
-        .from('update_stuff')
-        .insert([{ status: status, to: to, from: from, randomValue: randomValue }]);
+async function versionServerStuff(option, status, to, from) {
+    if (option === 'download') {
+        if (status) {
+            const { data, error } = await supabase
+            .from('update_stuff')
+            .insert([{ status: status, to: to, from: from, randomValue: randomValue }]);
 
-        if (error) {
-            console.error("Error sending message:", error);
+            if (error) {
+                console.error("Error sending message:", error);
+                downloadStuffVar = 'error';
+            } else {
+                console.log("Message sent successfully:", data);
+                downloadStuffVar = 'true';
+            }
         } else {
-            console.log("Message sent successfully:", data);
+            console.error("Message text is empty.");
+            downloadStuffVar = 'empty';
         }
-    } else {
-        console.error("Message text is empty.");
+    } else if (option === 'update') {
+        if (status) {
+            const { data, error } = await supabase
+            .from('DownloadStuff')
+            .insert([{ status: status, to: to, from: from, randomValue: randomValue }]);
+
+            if (error) {
+                console.error("Error sending message:", error);
+                updateStuffVar = 'error';
+            } else {
+                console.log("Message sent successfully:", data);
+                updateStuffVar = 'true';
+            }
+        } else {
+            console.error("Message text is empty.");
+            updateStuffVar = 'empty';
+        }
     }
 }
