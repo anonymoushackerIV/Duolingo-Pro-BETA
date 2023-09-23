@@ -1216,7 +1216,11 @@ function initializeAutoSolverBoxButtonInteractiveness() {
         if (autoSolverBoxRepeatAmount > 0) {
             sessionStorage.setItem('autoSolverBoxRepeatAmount', autoSolverBoxRepeatAmount);
 
-            openChestThingyFunction();
+            try {
+                const openChestThingy = document.querySelector("button[aria-label='Open chest']");
+                openChestThingy.click();
+            } catch (error) {
+            }
 
             setTimeout(function() {
                 if (wasAutoSolverBoxRepeatStartButtonPressed === true && autoSolverBoxRepeatAmount > 0) {
@@ -1352,14 +1356,6 @@ function initializeAutoSolverBoxButtonInteractiveness() {
             oppsiteElement.style.color = 'rgb(var(--color-eel))';
         }
         } catch(error) {
-        }
-    }
-
-    function openChestThingyFunction() {
-        try {
-            const openChestThingy = document.querySelector("button[aria-label='Open chest']");
-            openChestThingy.click();
-        } catch (error) {
         }
     }
 
