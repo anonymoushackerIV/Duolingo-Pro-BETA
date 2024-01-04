@@ -1,13 +1,15 @@
 // ==UserScript==
 // @name         Duolingo Pro BETA
 // @namespace    Violentmonkey Scripts
-// @version      2.0BETA9.1
+// @version      2.0BETA9.2
 // @description  Duolingo Auto Solver Tool - WORKING DECEMBER 2023
 // @author       anonymoushackerIV
 // @match        https://*.duolingo.com/*
 // @grant        none
 // @license      MIT
 // @require      https://unpkg.com/@supabase/supabase-js@2.12.1
+// @downloadURL https://update.greasyfork.org/scripts/473310/Duolingo%20Pro%20BETA.user.js
+// @updateURL https://update.greasyfork.org/scripts/473310/Duolingo%20Pro%20BETA.meta.js
 // ==/UserScript==
 
 let solvingIntervalId;
@@ -17,8 +19,8 @@ let isTokenRunning = false;
 
 const debug = false;
 
-let duolingoProCurrentVersionShort = "2.0B9.1";
-let duolingoProCurrentVersion = "2.0 BETA 9.1";
+let duolingoProCurrentVersionShort = "2.0B9.2";
+let duolingoProCurrentVersion = "2.0 BETA 9.2";
 
 let simulated;
 if (JSON.parse(localStorage.getItem('DuolingoProSettingsHumaneSolvingMode')) === null) {
@@ -504,7 +506,7 @@ const htmlContent = `
             <div class="AutoSolverBoxTitleSectionOne">
                 <p class="AutoSolverBoxTitleSectionOneTextOne">AutoSolver</p>
                 <div class="AutoSolverBoxTitleSectionOneBETATagOne">
-                    <p class="AutoSolverBoxTitleSectionOneBETATagOneTextOne">2.0 BETA 9.1</p>
+                    <p class="AutoSolverBoxTitleSectionOneBETATagOneTextOne">2.0 BETA 9.2</p>
                 </div>
             </div>
             <p class="AutoSolverBoxTitleSectionTwoTextOne">How many lessons would you like to AutoSolve?</p>
@@ -2563,7 +2565,7 @@ const WhatsNewBoxHTML = `
         <div class="WhatsNewBoxOneSectionOne">
             <p class="WhatsNewBoxOneSectionOneTextOne">What’s New</p>
             <div class="WhatsNewBoxOneSectionOneBoxOne">
-                <p class="WhatsNewBoxOneSectionOneBoxOneTextOne">2.0 BETA 9.1</p>
+                <p class="WhatsNewBoxOneSectionOneBoxOneTextOne">2.0 BETA 9.2</p>
             </div>
         </div>
         <div class="WhatsNewBoxOneSectionTwo">
@@ -2873,7 +2875,7 @@ const DuolingoProSettingsBoxHTML = `
             <div class="DuolingoProSettingsBoxSectionOne">
                 <p class="DuolingoProSettingsBoxSectionOneTextOne">Settings</p>
                 <div class="DuolingoProSettingsBoxSectionOneBoxOne">
-                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne">2.0 BETA 9.1</p>
+                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne">2.0 BETA 9.2</p>
                 </div>
             </div>
             <div class="DuolingoProSettingsBoxSectionTwo">
@@ -4886,7 +4888,7 @@ function solving() {
     } else {
         document.getElementById("solveAllButton").innerText = "PAUSE SOLVE";
         isAutoMode = true;
-        solvingIntervalId = setInterval(solve, 600);
+        solvingIntervalId = setInterval(solve, 800);
     }
 }
 
@@ -5013,7 +5015,7 @@ function solve() {
         } else if (window.sol.correctSolutions !== undefined) {
             //notificationCall("third", "third");
             try {
-                var xpath = `//div[@data-test="challenge-choice" and ./div[@data-test="challenge-judge-text"]/text()="${window.sol.correctSolutions[0].split(/(?<=^\S+)\s/)[0]}"]`;
+                var xpath = `//*[@data-test="challenge-choice" and ./*[@data-test="challenge-judge-text"]/text()="${window.sol.correctSolutions[0].split(/(?<=^\S+)\s/)[0]}"]`;
                 document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click();
                 nextButton.click();
             } catch (error) {
