@@ -202,38 +202,37 @@ if (JSON.parse(localStorage.getItem('DuolingoProSettingsSolveIntervalValue')) ==
 // Duolingo Pro Settings Variables End
 
 
-function addButtons() {
-    if (window.location.pathname === '/learn') {
-        let button = document.querySelector('a[data-test="global-practice"]');
-        if (button) {
-            return;
-        }
-    }
+function createButton(id, text, styleClass, eventHandlers) {
+    const button = document.createElement('button');
+    button.id = id;
+    button.innerText = text;
+    button.className = styleClass;
+    Object.keys(eventHandlers).forEach(event => {
+        button.addEventListener(event, eventHandlers[event]);
+    });
+    return button;
+}
 
-    const solveAllButton = document.getElementById("solveAllButton");
-    if (solveAllButton !== null) {
+function addButtons() {
+    if (window.location.pathname === '/learn' && document.querySelector('a[data-test="global-practice"]')) {
         return;
     }
 
-    const original = document.querySelectorAll('[data-test="player-next"]')[0];
+    if (document.querySelector("#solveAllButton")) {
+        return;
+    }
 
-    const storiesContinue = document.querySelectorAll('[data-test="stories-player-continue"]')[0];
+    const original = document.querySelector('[data-test="player-next"]');
+    const storiesContinue = document.querySelector('[data-test="stories-player-continue"]');
+    const target = original || storiesContinue;
 
-    if (original === undefined) {
-
-        if (storiesContinue === undefined) {
-            const startButton = document.querySelector('[data-test="start-button"]');
-            console.log(`Wrapper line: ${startButton}`);
-            if (startButton === null) {
-                return;
-            }
-            const wrapper = startButton.parentNode;
-            const solveAllButton = document.createElement('a');
-            solveAllButton.className = startButton.className;
-            solveAllButton.id = "solveAllButton";
-            solveAllButton.innerText = "COMPLETE SKILL";
-            solveAllButton.removeAttribute('href');
-            solveAllButton.addEventListener('click', () => {
+    if (!target) {
+        const startButton = document.querySelector('[data-test="start-button"]');
+        if (!startButton) {
+            return;
+        }
+        const solveAllButton = createButton("solveAllButton", "COMPLETE SKILL", "solve-all-btn", {
+            'click': () => {
                 solving(true);
                 setInterval(() => {
                     const startButton = document.querySelector('[data-test="start-button"]');
@@ -242,237 +241,89 @@ function addButtons() {
                     }
                 }, 1000);
                 startButton.click();
-            });
-            wrapper.appendChild(solveAllButton);
-        } else {
-//        const wrapper = document.getElementsByClassName('_10vOG')[0];
-        const wrapper = document.querySelector('._10vOG, ._2L_r0');
-        wrapper.style.display = "flex";
-
-        //
-
-        const solveCopy = document.createElement('button');
-
-        const presssolveCopy1 = () => {
-            solveCopy.style.borderBottom = '0px';
-            solveCopy.style.marginBottom = '4px';
-            solveCopy.style.top = '4px';
-        };
-
-        // Function to revert the border-bottom when the button is released
-        const releasesolveCopy1 = () => {
-            solveCopy.style.borderBottom = '4px solid #2b70c9';
-            solveCopy.style.marginBottom = '0px';
-            solveCopy.style.top = '0px';
-        };
-
-        // Add event listeners for mousedown, mouseup, and mouseleave
-        solveCopy.addEventListener('mousedown', presssolveCopy1);
-        solveCopy.addEventListener('mouseup', releasesolveCopy1);
-        solveCopy.addEventListener('mouseleave', releasesolveCopy1);
-
-
-        const pauseCopy = document.createElement('button');
-
-        const presspauseCopy2 = () => {
-            pauseCopy.style.borderBottom = '0px';
-            pauseCopy.style.marginBottom = '4px';
-            pauseCopy.style.top = '4px';
-        };
-
-        // Function to revert the border-bottom when the button is released
-        const releasepauseCopy2 = () => {
-            pauseCopy.style.borderBottom = '4px solid #ff9600';
-            pauseCopy.style.marginBottom = '0px';
-            pauseCopy.style.top = '0px';
-        };
-
-        // Add event listeners for mousedown, mouseup, and mouseleave
-        pauseCopy.addEventListener('mousedown', presspauseCopy2);
-        pauseCopy.addEventListener('mouseup', releasepauseCopy2);
-        pauseCopy.addEventListener('mouseleave', releasepauseCopy2);
-
-
-        solveCopy.id = 'solveAllButton';
-        solveCopy.innerHTML = solvingIntervalId ? 'PAUSE SOLVE' : 'SOLVE ALL';
-        solveCopy.disabled = false;
-        pauseCopy.innerHTML = 'SOLVE';
-
-        const solveCopyStyle = `
-        position: relative;
-        min-width: 150px;
-        font-size: 17px;
-        border: none;
-        border-bottom: 4px solid #2b70c9;
-        border-radius: 16px;
-        padding: 13px 16px;
-        transform: translateZ(0);
-        transition: filter .0s;
-        font-weight: 700;
-        letter-spacing: .8px;
-        background: #1cb0f6;
-        color: rgb(var(--color-snow));
-        margin-left: 20px;
-        cursor: pointer;
-        `;
-
-        const pauseCopyStyle = `
-        position: relative;
-        min-width: 100px;
-        font-size: 17px;
-        border: none;
-        border-bottom: 4px solid #ff9600;
-        border-radius: 16px;
-        padding: 13px 16px;
-        transform: translateZ(0);
-        transition: filter .0s;
-        font-weight: 700;
-        letter-spacing: .8px;
-        background: #ffc800;
-        color: rgb(var(--color-snow));
-        margin-left: 20px;
-        cursor: pointer;
-        `;
-
-        solveCopy.style.cssText = solveCopyStyle;
-        pauseCopy.style.cssText = pauseCopyStyle;
-
-        [solveCopy, pauseCopy].forEach(button => {
-            button.addEventListener("mousemove", () => {
-                button.style.filter = "brightness(1.1)";
-            });
+            }
         });
-
-        [solveCopy, pauseCopy].forEach(button => {
-            button.addEventListener("mouseleave", () => {
-                button.style.filter = "none";
-            });
-        });
-
-        storiesContinue.parentElement.appendChild(pauseCopy);
-        storiesContinue.parentElement.appendChild(solveCopy);
-
-        solveCopy.addEventListener('click', solving);
-        pauseCopy.addEventListener('click', solve);
-
-        //solving();
-        }
+        startButton.parentNode.appendChild(solveAllButton);
     } else {
-//        const wrapper = document.getElementsByClassName('_10vOG')[0];
         const wrapper = document.querySelector('._10vOG, ._2L_r0');
         wrapper.style.display = "flex";
 
-        //
 
-        const solveCopy = document.createElement('button');
+        const buttonsCSS = document.createElement('style');
+        buttonsCSS.innerHTML = `
+        .solve-btn {
+            position: relative;
+            min-width: 150px;
+            font-size: 17px;
+            border: none;
+            border-bottom: 4px solid #2b70c9;
+            border-radius: 16px;
+            padding: 13px 16px;
+            transform: translateZ(0);
+            transition: filter .0s;
+            font-weight: 700;
+            letter-spacing: .8px;
+            background: #1cb0f6;
+            color: rgb(var(--color-snow));
+            margin-left: 20px;
+            cursor: pointer;
+        }
 
-        const presssolveCopy1 = () => {
-            solveCopy.style.borderBottom = '0px';
-            solveCopy.style.marginBottom = '4px';
-            solveCopy.style.top = '4px';
-        };
+        .pause-btn {
+            position: relative;
+            min-width: 100px;
+            font-size: 17px;
+            border: none;
+            border-bottom: 4px solid #ff9600;
+            border-radius: 16px;
+            padding: 13px 16px;
+            transform: translateZ(0);
+            transition: filter .0s;
+            font-weight: 700;
+            letter-spacing: .8px;
+            background: #ffc800;
+            color: rgb(var(--color-snow));
+            margin-left: 20px;
+            cursor: pointer;
+        }
 
-        // Function to revert the border-bottom when the button is released
-        const releasesolveCopy1 = () => {
-            solveCopy.style.borderBottom = '4px solid #2b70c9';
-            solveCopy.style.marginBottom = '0px';
-            solveCopy.style.top = '0px';
-        };
+        .hover {
+            filter: brightness(1.1);
+        }
 
-        // Add event listeners for mousedown, mouseup, and mouseleave
-        solveCopy.addEventListener('mousedown', presssolveCopy1);
-        solveCopy.addEventListener('mouseup', releasesolveCopy1);
-        solveCopy.addEventListener('mouseleave', releasesolveCopy1);
-
-
-        const pauseCopy = document.createElement('button');
-
-        const presspauseCopy2 = () => {
-            pauseCopy.style.borderBottom = '0px';
-            pauseCopy.style.marginBottom = '4px';
-            pauseCopy.style.top = '4px';
-        };
-
-        // Function to revert the border-bottom when the button is released
-        const releasepauseCopy2 = () => {
-            pauseCopy.style.borderBottom = '4px solid #ff9600';
-            pauseCopy.style.marginBottom = '0px';
-            pauseCopy.style.top = '0px';
-        };
-
-        // Add event listeners for mousedown, mouseup, and mouseleave
-        pauseCopy.addEventListener('mousedown', presspauseCopy2);
-        pauseCopy.addEventListener('mouseup', releasepauseCopy2);
-        pauseCopy.addEventListener('mouseleave', releasepauseCopy2);
-
-
-        solveCopy.id = 'solveAllButton';
-        solveCopy.innerHTML = solvingIntervalId ? 'PAUSE SOLVE' : 'SOLVE ALL';
-        solveCopy.disabled = false;
-        pauseCopy.innerHTML = 'SOLVE';
-
-        const solveCopyStyle = `
-        position: relative;
-        min-width: 150px;
-        font-size: 17px;
-        border: none;
-        border-bottom: 4px solid #2b70c9;
-        border-radius: 16px;
-        padding: 13px 16px;
-        transform: translateZ(0);
-        transition: filter .0s;
-        font-weight: 700;
-        letter-spacing: .8px;
-        background: #1cb0f6;
-        color: rgb(var(--color-snow));
-        margin-left: 20px;
-        cursor: pointer;
+        .pressed {
+            border-bottom: 0px;
+            margin-bottom: 4px;
+            top: 4px;
+        }
         `;
+        document.head.appendChild(buttonsCSS);
 
-        const pauseCopyStyle = `
-        position: relative;
-        min-width: 100px;
-        font-size: 17px;
-        border: none;
-        border-bottom: 4px solid #ff9600;
-        border-radius: 16px;
-        padding: 13px 16px;
-        transform: translateZ(0);
-        transition: filter .0s;
-        font-weight: 700;
-        letter-spacing: .8px;
-        background: #ffc800;
-        color: rgb(var(--color-snow));
-        margin-left: 20px;
-        cursor: pointer;
-        `;
 
-        solveCopy.style.cssText = solveCopyStyle;
-        pauseCopy.style.cssText = pauseCopyStyle;
-
-        [solveCopy, pauseCopy].forEach(button => {
-            button.addEventListener("mousemove", () => {
-                button.style.filter = "brightness(1.1)";
-            });
+        const solveCopy = createButton('solveAllButton', solvingIntervalId ? 'PAUSE SOLVE' : 'SOLVE ALL', 'solve-btn', {
+            'mousedown': () => solveCopy.classList.add('pressed'),
+            'mouseup': () => solveCopy.classList.remove('pressed'),
+            'mouseleave': () => solveCopy.classList.remove('pressed'),
+            'mousemove': () => solveCopy.classList.add('hover'),
+            'mouseleave': () => solveCopy.classList.remove('hover'),
+            'click': solving
         });
 
-        [solveCopy, pauseCopy].forEach(button => {
-            button.addEventListener("mouseleave", () => {
-                button.style.filter = "none";
-            });
+        const pauseCopy = createButton('', 'SOLVE', 'pause-btn', {
+            'mousedown': () => pauseCopy.classList.add('pressed'),
+            'mouseup': () => pauseCopy.classList.remove('pressed'),
+            'mouseleave': () => pauseCopy.classList.remove('pressed'),
+            'mousemove': () => pauseCopy.classList.add('hover'),
+            'mouseleave': () => pauseCopy.classList.remove('hover'),
+            'click': solve
         });
 
-        original.parentElement.appendChild(pauseCopy);
-        original.parentElement.appendChild(solveCopy);
-
-        solveCopy.addEventListener('click', solving);
-        pauseCopy.addEventListener('click', solve);
-
-        //solving();
+        target.parentElement.appendChild(pauseCopy);
+        target.parentElement.appendChild(solveCopy);
     }
 }
 
-setInterval(addButtons, 100);
+setInterval(addButtons, 500);
 
 
 const htmlContent = `
@@ -4879,36 +4730,20 @@ function CurrentIssuesPopUpFunction(status) {
 
 
 
-function solving() {
-    if (solvingIntervalId) {
-        clearInterval(solvingIntervalId);
-        solvingIntervalId = undefined;
-        document.getElementById("solveAllButton").innerText = "SOLVE ALL";
-        isAutoMode = false;
-    } else {
-        document.getElementById("solveAllButton").innerText = "PAUSE SOLVE";
-        isAutoMode = true;
-        solvingIntervalId = setInterval(solve, 800);
-    }
+function updateSolveButtonText(text) {
+    document.getElementById("solveAllButton").innerText = text;
 }
+
+function solving() {
+    isAutoMode = !isAutoMode;
+    updateSolveButtonText(isAutoMode ? "PAUSE SOLVE" : "SOLVE ALL");
+    solvingIntervalId = isAutoMode ? setInterval(solve, 800) : clearInterval(solvingIntervalId);
+}
+
 
 function solve() {
     const selAgain = document.querySelectorAll('[data-test="player-practice-again"]');
     const practiceAgain = document.querySelector('[data-test="player-practice-again"]');
-
-    function nextClickFunc() {
-        if (isAutoMode) {
-            setTimeout(function() {
-                try {
-                    let next = document.querySelector('[data-test="player-next"]');
-                    if (next) {
-                        next.click();
-                    }
-                    return;
-                } catch (error) {}
-            }, 50);
-        }
-    }
 
     try {
         let noideatwo = document.querySelector('[data-test="practice-hub-ad-no-thanks-button"]');
@@ -4959,35 +4794,73 @@ function solve() {
         return;
     }
 
+    let challengeType = determineChallengeType();
+    if (challengeType) {
+        if (debug) {
+            document.getElementById("solveAllButton").innerText = challengeType;
+        }
+        handleChallenge(challengeType);
+        nextClickFunc();
+    }
+    nextButton.click()
+}
+
+
+function nextClickFunc() {
+    if (isAutoMode) {
+        setTimeout(function() {
+            try {
+                let next = document.querySelector('[data-test="player-next"]');
+                if (next) {
+                    next.click();
+                }
+                return;
+            } catch (error) {}
+        }, 50);
+    }
+}
+
+function determineChallengeType() {
     if (document.querySelectorAll('[data-test*="challenge-speak"]').length > 0) {
-        if (debug) {
-            document.getElementById("solveAllButton").innerText = 'Challenge Speak';
-        }
-        const buttonSkip = document.querySelector('button[data-test="player-skip"]');
-        if (buttonSkip) {
-            buttonSkip.click();
-        }
-        nextClickFunc();
+        return 'Challenge Speak';
     } else if (window.sol.type === 'listenMatch') {
-        // listen match question
-        if (debug) {
-            document.getElementById("solveAllButton").innerText = 'Listen Match';
-        }
-        const buttonSkip = document.querySelector('button[data-test="player-skip"]');
-        if (buttonSkip) {
-            buttonSkip.click();
-        }
-        nextClickFunc();
+        return 'Listen Match';
     } else if (document.querySelectorAll('[data-test="challenge-choice"]').length > 0) {
-        // choice challenge (TODO)
-        if (debug) {
-            document.getElementById("solveAllButton").innerText = 'Challenge Choice';
-        }
-        // text input (if one exists)
         if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0) {
-            if (debug) {
-                document.getElementById("solveAllButton").innerText = 'Challenge Choice with Text Input';
-            }
+            return 'Challenge Choice with Text Input';
+        } else {
+            return 'Challenge Choice';
+        }
+    } else if (document.querySelectorAll('[data-test$="challenge-tap-token"]').length > 0) {
+        if (window.sol.pairs !== undefined) {
+            return 'Pairs';
+        } else if (window.sol.correctTokens !== undefined) {
+            return 'Tokens Run';
+        } else if (window.sol.correctIndices !== undefined) {
+            return 'Indices Run';
+        }
+    } else if (document.querySelectorAll('[data-test="challenge-tap-token-text"]').length > 0) {
+        return 'Fill in the Gap';
+    } else if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0) {
+        return 'Challenge Text Input';
+    } else if (document.querySelectorAll('[data-test*="challenge-partialReverseTranslate"]').length > 0) {
+        return 'Partial Reverse';
+    } else if (document.querySelectorAll('textarea[data-test="challenge-translate-input"]').length > 0) {
+        return 'Challenge Translate Input';
+    }
+
+    // Add other challenge types as needed
+}
+
+function handleChallenge(challengeType) {
+    // Implement logic to handle different challenge types
+    // This function should encapsulate the logic for each challenge type
+    if (challengeType === 'Challenge Speak' || challengeType === 'Listen Match') {
+        const buttonSkip = document.querySelector('button[data-test="player-skip"]');
+        buttonSkip?.click();
+    } else if (challengeType === 'Challenge Choice' || challengeType === 'Challenge Choice with Text Input') {
+        // Text input
+        if (challengeType === 'Challenge Choice with Text Input') {
             let elm = document.querySelectorAll('[data-test="challenge-text-input"]')[0];
             let nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
             nativeInputValueSetter.call(elm, window.sol.correctSolutions ? window.sol.correctSolutions[0].split(/(?<=^\S+)\s/)[1] : (window.sol.displayTokens ? window.sol.displayTokens.find(t => t.isBlank).text : window.sol.prompt));
@@ -4997,104 +4870,59 @@ function solve() {
 
             elm.dispatchEvent(inputEvent);
         }
-        // choice
-        if (window.sol.correctTokens !== undefined) {
-            try {
-                correctTokensRun();
-                nextButton.click()
-            } catch (error) {
-                notificationCall("first error", "first error");
-            }
-        } else if (window.sol.correctIndex !== undefined) {
-            try {
-                document.querySelectorAll('[data-test="challenge-choice"]')[window.sol.correctIndex].click();
-                nextButton.click();
-            } catch (error) {
-                notificationCall("second error", "second error");
-            }
-        } else if (window.sol.correctSolutions !== undefined) {
-            //notificationCall("third", "third");
-            try {
-                var xpath = `//*[@data-test="challenge-choice" and ./*[@data-test="challenge-judge-text"]/text()="${window.sol.correctSolutions[0].split(/(?<=^\S+)\s/)[0]}"]`;
-                document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click();
-                nextButton.click();
-            } catch (error) {
-                //notificationCall("third error", "third error");
-                try {
-                    document.querySelectorAll('[data-test="challenge-choice"]')[window.sol.correctIndex].click();
-                    nextButton.click();
-                } catch (error) {
-                    //notificationCall("third error - attempt fail", "third error fix attempt failed");
-                    try {
-                        correctTokensRun();
-                    } catch (error) {
-                        //notificationCall("Third Error - Second Fix Attempt Fail", "Third error fix secondattempt failed");
-                    }
-                }
-            }
-            console.error('third 3');
-        }
-        nextClickFunc();
-    } else if (document.querySelectorAll('[data-test$="challenge-tap-token"]').length > 0) {
-        // match correct pairs challenge
-        if (window.sol.pairs !== undefined) {
-            if (debug) {
-                document.getElementById("solveAllButton").innerText = 'Pairs';
-            }
-            let nl = document.querySelectorAll('[data-test$="challenge-tap-token"]');
-            if (document.querySelectorAll('[data-test="challenge-tap-token-text"]').length === nl.length) {
-                window.sol.pairs?.forEach((pair) => {
-                    for (let i = 0; i < nl.length; i++) {
-                        const nlInnerText = nl[i].querySelector('[data-test="challenge-tap-token-text"]').innerText.toLowerCase().trim();
 
-                        try {
-                            if (
-                                (
-                                    nlInnerText === pair.transliteration.toLowerCase().trim() ||
-                                    nlInnerText === pair.character.toLowerCase().trim()
-                                )
-                                && !nl[i].disabled
-                            ) {
-                                nl[i].click()
-                            }
-                        } catch (TypeError) {
-                            if (
-                                (
-                                    nlInnerText === pair.learningToken.toLowerCase().trim() ||
-                                    nlInnerText === pair.fromToken.toLowerCase().trim()
-                                )
-                                && !nl[i].disabled
-                            ) {
-                                nl[i].click()
-                            }
+        // Choice
+        if (window.sol.correctTokens !== undefined) {
+            correctTokensRun();
+        } else if (window.sol.correctIndex !== undefined) {
+            document.querySelectorAll('[data-test="challenge-choice"]')[window.sol.correctIndex].click();
+        } else if (window.sol.correctSolutions !== undefined) {
+            let xpath = `//*[@data-test="challenge-choice" and ./*[@data-test="challenge-judge-text"]/text()="${window.sol.correctSolutions[0].split(/(?<=^\S+)\s/)[0]}"]`;
+            document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue?.click();
+        }
+
+    } else if (challengeType === 'Pairs') {
+        let nl = document.querySelectorAll('[data-test$="challenge-tap-token"]');
+        if (document.querySelectorAll('[data-test="challenge-tap-token-text"]').length === nl.length) {
+            window.sol.pairs?.forEach((pair) => {
+                for (let i = 0; i < nl.length; i++) {
+                    const nlInnerText = nl[i].querySelector('[data-test="challenge-tap-token-text"]').innerText.toLowerCase().trim();
+
+                    try {
+                        if (
+                            (
+                                nlInnerText === pair.transliteration.toLowerCase().trim() ||
+                                nlInnerText === pair.character.toLowerCase().trim()
+                            )
+                            && !nl[i].disabled
+                        ) {
+                            nl[i].click()
+                        }
+                    } catch (TypeError) {
+                        if (
+                            (
+                                nlInnerText === pair.learningToken.toLowerCase().trim() ||
+                                nlInnerText === pair.fromToken.toLowerCase().trim()
+                            )
+                            && !nl[i].disabled
+                        ) {
+                            nl[i].click()
                         }
                     }
-                })
-            }
-        } else if (window.sol.correctTokens !== undefined) {
-            if (debug) {
-                document.getElementById("solveAllButton").innerText = 'Token Run';
-            }
-            correctTokensRun();
-            nextButton.click()
-        } else if (window.sol.correctIndices !== undefined) {
-            if (debug) {
-                document.getElementById("solveAllButton").innerText = 'Indices Run';
-            }
-            correctIndicesRun();
+                }
+            })
         }
-        nextClickFunc();
-    } else if (document.querySelectorAll('[data-test="challenge-tap-token-text"]').length > 0) {
-        if (debug) {
-            document.getElementById("solveAllButton").innerText = 'Challenge Tap Token Text';
-        }
-        // fill the gap challenge
+
+    } else if (challengeType === 'Tokens Run') {
+        correctTokensRun();
+
+    } else if (challengeType === 'Indices Run') {
         correctIndicesRun();
-        nextClickFunc();
-    } else if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0) {
-        if (debug) {
-            document.getElementById("solveAllButton").innerText = 'Challenge Text Input';
-        }
+
+    } else if (challengeType === 'Fill in the Gap') {
+        correctIndicesRun();
+
+    } else if (challengeType === 'Challenge Text Input') {
         let elm = document.querySelectorAll('[data-test="challenge-text-input"]')[0];
         let nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
         nativeInputValueSetter.call(elm, window.sol.correctSolutions ? window.sol.correctSolutions[0] : (window.sol.displayTokens ? window.sol.displayTokens.find(t => t.isBlank).text : window.sol.prompt));
@@ -5103,11 +4931,8 @@ function solve() {
         });
 
         elm.dispatchEvent(inputEvent);
-        nextClickFunc();
-    } else if (document.querySelectorAll('[data-test*="challenge-partialReverseTranslate"]').length > 0) {
-        if (debug) {
-            document.getElementById("solveAllButton").innerText = 'Partial Reverse';
-        }
+
+    } else if (challengeType === 'Partial Reverse') {
         let elm = document.querySelector('[data-test*="challenge-partialReverseTranslate"]')?.querySelector("span[contenteditable]");
         let nativeInputNodeTextSetter = Object.getOwnPropertyDescriptor(Node.prototype, "textContent").set
         nativeInputNodeTextSetter.call(elm, window.sol?.displayTokens?.filter(t => t.isBlank)?.map(t => t.text)?.join()?.replaceAll(',', ''));
@@ -5116,11 +4941,8 @@ function solve() {
         });
 
         elm.dispatchEvent(inputEvent);
-        nextClickFunc();
-    } else if (document.querySelectorAll('textarea[data-test="challenge-translate-input"]').length > 0) {
-        if (debug) {
-            document.getElementById("solveAllButton").innerText = 'Challenge Translate Input';
-        }
+
+    } else if (challengeType === 'Challenge Translate Input') {
         const elm = document.querySelector('textarea[data-test="challenge-translate-input"]');
         const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
         nativeInputValueSetter.call(elm, window.sol.correctSolutions ? window.sol.correctSolutions[0] : window.sol.prompt);
@@ -5130,15 +4952,14 @@ function solve() {
         });
 
         elm.dispatchEvent(inputEvent);
-        nextClickFunc();
     }
-    nextButton.click()
 }
 
 function correctTokensRun() {
     const all_tokens = document.querySelectorAll('[data-test$="challenge-tap-token"]');
     const correct_tokens = window.sol.correctTokens;
     const clicked_tokens = [];
+
     correct_tokens.forEach(correct_token => {
         const matching_elements = Array.from(all_tokens).filter(element => element.textContent.trim() === correct_token.trim());
         if (matching_elements.length > 0) {
@@ -5153,12 +4974,12 @@ function correctTokensRun() {
     });
 }
 
+
 function correctIndicesRun() {
     if (window.sol.correctIndices) {
         window.sol.correctIndices?.forEach(index => {
             document.querySelectorAll('div[data-test="word-bank"] [data-test="challenge-tap-token-text"]')[index].click();
         });
-        // nextButton.click();
     }
 }
 
@@ -5178,7 +4999,7 @@ function findReact(dom, traverseUp = 0) {
     } else {
         return dom?.parentElement?.[reactProps]?.children[0]?._owner?.stateNode;
     }
-    //return dom?.parentElement?.[reactProps]?.children[0]?._owner?.stateNode;
+    // return dom?.parentElement?.[reactProps]?.children[0]?._owner?.stateNode;
 }
 
 window.findReact = findReact;
