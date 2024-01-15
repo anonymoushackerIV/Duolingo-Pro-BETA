@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Duolingo Pro BETA
 // @namespace    Violentmonkey Scripts
-// @version      2.0BETA9.3
-// @description  Duolingo Auto Solver Tool - WORKING JANUARY 2024
+// @version      2.0BETA9.3.1
+// @description  Duolingo Auto Solver Tool - Working JANUARY 2024
 // @author       anonymoushackerIV
 // @match        https://*.duolingo.com/*
 // @grant        none
@@ -22,13 +22,13 @@ let duolingoProCurrentVersion = "2.0 BETA 9.3";
 let duolingoProFormalCurrentVersion = "2.0BETA9.3";
 
 let solveSpeed;
-if (parseInt(localStorage.getItem('DLPautoSolverSolveSpeed')) === undefined) {
+if (localStorage.getItem('DLPautoSolverSolveSpeed') === null) {
     solveSpeed = 3;
 } else {
     solveSpeed = parseInt(localStorage.getItem('DLPautoSolverSolveSpeed'));
 }
 let simulated;
-if (JSON.parse(localStorage.getItem('DuolingoProSettingsHumaneSolvingMode')) === null) {
+if (localStorage.getItem('DuolingoProSettingsHumaneSolvingMode') === null) {
     simulated = false;
 } else {
     simulated = JSON.parse(localStorage.getItem('DuolingoProSettingsHumaneSolvingMode'));
@@ -43,7 +43,7 @@ let DuolingoProAmountOfQuestionsEverSolved = 0;
 DuolingoProAmountOfQuestionsEverSolved = Number(localStorage.getItem('DuolingoProAmountOfQuestionsEverSolved'));
 
 let ProBlockBannerOneVisible = false;
-if (JSON.parse(localStorage.getItem('ProBlockBannerOneVisible')) === null) {
+if (localStorage.getItem('ProBlockBannerOneVisible') === null) {
     ProBlockBannerOneVisible = false;
 } else {
     ProBlockBannerOneVisible = JSON.parse(localStorage.getItem('ProBlockBannerOneVisible'));
@@ -52,12 +52,12 @@ if (JSON.parse(localStorage.getItem('ProBlockBannerOneVisible')) === null) {
 
 let autoSolverBoxPracticeOnlyMode;
 let autoSolverBoxRepeatLessonMode;
-if (JSON.parse(sessionStorage.getItem('autoSolverBoxPracticeOnlyMode')) === null) {
+if (sessionStorage.getItem('autoSolverBoxPracticeOnlyMode') === null) {
     autoSolverBoxPracticeOnlyMode = true;
 } else {
     autoSolverBoxPracticeOnlyMode = JSON.parse(sessionStorage.getItem('autoSolverBoxPracticeOnlyMode'));
 }
-if (JSON.parse(sessionStorage.getItem('autoSolverBoxRepeatLessonMode')) === null) {
+if (sessionStorage.getItem('autoSolverBoxRepeatLessonMode') === null) {
     autoSolverBoxRepeatLessonMode = false;
 } else {
     autoSolverBoxRepeatLessonMode = JSON.parse(sessionStorage.getItem('autoSolverBoxRepeatLessonMode'));
@@ -408,6 +408,29 @@ const DLPuniversalCSS = `
     margin-top: 2px;
     border-bottom: 2px solid rgba(0, 0, 0, 0.20);
 }
+.DPLPrimaryButtonDisabledStyleT1 {
+    display: flex;
+
+    height: 52px;
+    margin-top: 2px;
+
+    padding: 16px;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    flex: 1 0 0;
+
+    border-radius: 8px;
+    border: 2px solid rgba(0, 0, 0, 0.20);
+    opacity: 0.5;
+    background: rgb(var(--DLP-blue));
+
+    color: #fff;
+    font-weight: 700;
+
+    transition: .1s;
+    cursor: pointer;
+}
 
 .DPLSecondaryButtonStyleT1 {
     display: flex;
@@ -538,14 +561,8 @@ const DLPuniversalCSS = `
 .DLPSettingsToggleT2B1T1 {
     color: #FFF;
     text-align: center;
-    font-family: SF Pro Rounded;
     font-size: 16px;
     font-weight: 700;
-
-    user-select: none;
-    -moz-user-select: none;
-    -webkit-text-select: none;
-    -webkit-user-select: none;
 }
 
 .DLPSettingsToggleT3 {
@@ -725,6 +742,9 @@ const htmlContent = `
                         </div>
                     </div>
                 </div>
+
+                <p class="AutoSolverBoxTitleSectionTwoTextOne" style="margin-top: 4px; margin-bottom: 8px;">Turn off both to use Path Mode.</p>
+
                 <button class="AutoSolverBoxRepeatAmountButton" id="DPASBsB1" style="width: 100%;">START</button>
             </div>
         </div>
@@ -742,29 +762,6 @@ const cssContent = `
     bottom: 24px;
     right: 24px;
     z-index: 2;
-}
-
-.SendFeedbackButtonAndSettingsButtonBox {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    align-self: stretch;
-    justify-content: flex-end;
-}
-
-.SendFeedbackButtonTextOne {
-    font-size: 16px;
-    font-weight: 700;
-    text-align: center;
-    line-height: normal;
-    color: #fff;
-
-    margin: 0px;
-
-    user-select: none;
-    -moz-user-select: none;
-    -webkit-text-select: none;
-    -webkit-user-select: none;
 }
 
 .AutoSolverBoxBackground {
@@ -900,7 +897,6 @@ const cssContent = `
 .AutoSolverBoxTitleSectionTwoTextOne {
     color: rgb(var(--color-eel), 0.8);
 
-    height: 44px;
     font-weight: 700;
     font-size: 16px;
     margin: 0px;
@@ -1148,6 +1144,7 @@ function initializeDuolingoProSystemButtons() {
             localStorage.setItem('AutoSolverSettingsShowAutoSolverBox', AutoSolverSettingsShowAutoSolverBox);
 
             document.querySelector('.AutoSolverBoxLayers').style.transform = 'scaleY(1.0)';
+            AutoSolverBoxBackground.style.filter = 'blur(0)';
 
             fornow1a = document.querySelector('.AutoSolverBoxBackground').offsetHeight;
             AutoSolverBoxBackground.style.height = `${fornow1a}px`;
@@ -1156,6 +1153,7 @@ function initializeDuolingoProSystemButtons() {
                 AutoSolverBoxBackground.style.opacity = '0';
 
                 document.querySelector('.AutoSolverBoxLayers').style.transform = 'scaleY(0)';
+                AutoSolverBoxBackground.style.filter = 'blur(16px)';
                 setTimeout(function() {
                 }, 500);
             }, 50);
@@ -1168,12 +1166,14 @@ function initializeDuolingoProSystemButtons() {
             localStorage.setItem('AutoSolverSettingsShowAutoSolverBox', AutoSolverSettingsShowAutoSolverBox);
 
             document.querySelector('.AutoSolverBoxLayers').style.transform = 'scaleY(0)';
+            AutoSolverBoxBackground.style.filter = 'blur(16px)';
 
             setTimeout(function() {
                 AutoSolverBoxBackground.style.height = `${fornow1a}px`;
                 AutoSolverBoxBackground.style.opacity = '';
 
                 document.querySelector('.AutoSolverBoxLayers').style.transform = 'scaleY(1.0)';
+                AutoSolverBoxBackground.style.filter = 'blur(0)';
                 setTimeout(function() {
                     AutoSolverBoxBackground.style.height = '';
                 }, 500);
@@ -1757,15 +1757,6 @@ const SendFeedbackBoxCSS = `
     gap: 8px;
 
     width: 100%;
-}
-
-form {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
 }
 
 .SendFeebackBoxSectionOneTextOne {
@@ -2421,8 +2412,8 @@ setInterval(SendFeedbackTextAreaStuff, 100);
 
 
 const DuolingoProSettingsBoxHTML = `
-<div class="DuolingoProSettingsBoxShadow">
-    <div class="DuolingoProSettingsBoxBackground">
+<div class="DPLBoxShadowStyleT1" id="DuolingoProSettingsBoxShadow">
+    <div class="DPLBoxStyleT1" id="DuolingoProSettingsBoxBackground" style="overflow-y: visible; overflow: hidden; padding: 0; padding-right: 16px; padding-left: 16px;">
         <div class="DuolingoProSettingsBoxLayers">
             <div class="DuolingoProSettingsBoxSectionOne">
                 <p class="DuolingoProSettingsBoxSectionOneTextOne">Settings</p>
@@ -2437,12 +2428,12 @@ const DuolingoProSettingsBoxHTML = `
                         <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextOne">Show AutoSolver Box</p>
                         <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextTwo">AutoSolver Box makes it easier to binge solve questions automatically.</p>
                     </div>
-                    <div id="DuolingoProSettingsBoxToggleT1ID1" class="DLPSettingsToggleT1 DLPSettingsToggleT1ON">
-                        <div class="DLPSettingsToggleT1B1 DLPSettingsToggleT1ONB1">
-                            <svg class="DLPSettingsToggleT1B1I1" style="display: ;" "16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <div id="DuolingoProSettingsBoxToggleT1ID1" class="DLPSettingsToggleT1 DLPSettingsToggleT1ON DLPSettingsToggleRmElement">
+                        <div class="DLPSettingsToggleT1B1 DLPSettingsToggleT1ONB1 DLPSettingsToggleRmElement">
+                            <svg class="DLPSettingsToggleT1B1I1 DLPSettingsToggleRmElement" style="display: ;" "16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M6.41406 13.9453C5.91406 13.9453 5.53906 13.7656 5.20312 13.3672L1.17188 8.48438C0.890625 8.16406 0.789062 7.875 0.789062 7.54688C0.789062 6.8125 1.33594 6.27344 2.09375 6.27344C2.53125 6.27344 2.84375 6.42969 3.13281 6.77344L6.375 10.7969L12.7656 0.71875C13.0781 0.226562 13.3984 0.0390625 13.9141 0.0390625C14.6641 0.0390625 15.2109 0.570312 15.2109 1.30469C15.2109 1.57812 15.125 1.86719 14.9219 2.17969L7.64062 13.3125C7.35938 13.7422 6.94531 13.9453 6.41406 13.9453Z" fill="white"/>
                             </svg>
-                            <svg class="DLPSettingsToggleT1B1I2" style="display: none; transform: scale(0);" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <svg class="DLPSettingsToggleT1B1I2 DLPSettingsToggleRmElement" style="display: none; transform: scale(0);" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M0.867188 12.9922C0.414062 12.5469 0.429688 11.7578 0.851562 11.3359L5.32031 6.86719L0.851562 2.41406C0.429688 1.98438 0.414062 1.20312 0.867188 0.75C1.32031 0.289062 2.10938 0.304688 2.53125 0.734375L6.99219 5.19531L11.4531 0.734375C11.8906 0.296875 12.6562 0.296875 13.1094 0.75C13.5703 1.20312 13.5703 1.96875 13.125 2.41406L8.67188 6.86719L13.125 11.3281C13.5703 11.7734 13.5625 12.5312 13.1094 12.9922C12.6641 13.4453 11.8906 13.4453 11.4531 13.0078L6.99219 8.54688L2.53125 13.0078C2.10938 13.4375 1.32812 13.4453 0.867188 12.9922Z" fill="white"/>
                             </svg>
                         </div>
@@ -2455,9 +2446,9 @@ const DuolingoProSettingsBoxHTML = `
                         <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextOne">Question Solve Delay</p>
                         <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextTwo">Adjust how many seconds it takes for each question to get solved. A lower number will solve faster, and a higher number will solve slower. Do not use 0.6 if your computer is slow or AutoSolver answers incorrectly.</p>
                     </div>
-                    <div id="DuolingoProSettingsBoxToggleT2ID2" class="DLPSettingsToggleT2">
-                        <div class="DLPSettingsToggleT2B1">
-                            <p class="DLPSettingsToggleT2B1T1" style="margin: 0;">0.6</p>
+                    <div id="DuolingoProSettingsBoxToggleT2ID2" class="DLPSettingsToggleT2 DLPSettingsToggleRmElement">
+                        <div class="DLPSettingsToggleT2B1 DLPSettingsToggleRmElement">
+                            <p class="DLPSettingsToggleT2B1T1 DLPSettingsToggleRmElement noSelect" style="margin: 0;">0.6</p>
                         </div>
                     </div>
 
@@ -2488,51 +2479,6 @@ const DuolingoProSettingsBoxHTML = `
 `;
 
 const DuolingoProSettingsBoxCSS = `
-.DuolingoProSettingsBoxShadow {
-    position: fixed;
-    display: flex;
-    width: 100%;
-    height: 100vh;
-    justify-content: center;
-    align-items: center;
-    flex-shrink: 0;
-
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(8px);
-    opacity: 0;
-    transition: .2s;
-
-    z-index: 2;
-    top: 0px;
-    bottom: 0px;
-    right: 0px;
-    left: 0px;
-}
-
-.DuolingoProSettingsBoxBackground {
-    display: flex;
-
-    max-height: 80vh;
-    width: 80%;
-    max-width: 544px;
-    min-width: 368px;
-    padding-right: 16px;
-    padding-left: 16px;
-    margin-bottom: 16px;
-    overflow-y: visible;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
-
-    border-radius: 16px;
-    border: 2px solid rgb(var(--color-swan));
-    background: rgb(var(--color-snow));
-
-    overflow: hidden;
-}
-
 .DuolingoProSettingsBoxLayers {
     display: flex;
     flex-direction: column;
@@ -2677,14 +2623,14 @@ function injectDuolingoProSettingsBox() {
             injectedDuolingoProSettingsBoxStyle.innerHTML = DuolingoProSettingsBoxCSS;
             document.head.appendChild(injectedDuolingoProSettingsBoxStyle);
 
-            let DuolingoProSettingsBoxWholeDiv = document.querySelector('.DuolingoProSettingsBoxShadow');
+            let DuolingoProSettingsBoxWholeDiv = document.querySelector('#DuolingoProSettingsBoxShadow');
             setTimeout(function() {
                 DuolingoProSettingsBoxWholeDiv.style.opacity = '1';
             }, 50);
 
             const DuolingoProSettingsBoxCancelButton = document.querySelector('#DuolingoProSettingsBoxCancelButton');
             DuolingoProSettingsBoxCancelButton.addEventListener('click', () => {
-                let DuolingoProSettingsBoxWholeDiv = document.querySelector('.DuolingoProSettingsBoxShadow');
+                let DuolingoProSettingsBoxWholeDiv = document.querySelector('#DuolingoProSettingsBoxShadow');
                 setTimeout(function() {
                     DuolingoProSettingsBoxWholeDiv.style.opacity = '0';
                 }, 50);
@@ -2746,6 +2692,32 @@ function injectDuolingoProSettingsBox() {
                 solveSpeed = (solveSpeed % 4) + 1;
                 updateDuolingoProSettingsToggle(2, DuolingoProSettingsBoxToggleT2ID2, solveSpeed);
             });
+
+            function slideEventForT22() {
+                var startX = null;
+                var startY = null;
+                var pressed = false;
+
+                document.addEventListener('mousedown', function(event) {
+                    if (event.target.classList.contains('DLPSettingsToggleRmElement')) {
+                        startX = event.clientX;
+                        startY = event.clientY;
+                        pressed = true;
+                    }
+                });
+
+                document.addEventListener('mouseup', function(event) {
+                    if (pressed) {
+                        let currentX = event.clientX;
+                        let currentY = event.clientY;
+                        pressed = false;
+                        if (Math.abs(currentX - startX) > 20 || Math.abs(currentY - startY) > 20) {
+                            notificationCall("Try clicking instead of swiping", "Click on the toggle instead of swiping.");
+                        }
+                    }
+                });
+            }
+            slideEventForT22();
 
             function updateDuolingoProSettingsToggleAll() {
                 updateDuolingoProSettingsToggle(1, DuolingoProSettingsBoxToggleT1ID1, AutoSolverSettingsShowAutoSolverBox);
@@ -2945,8 +2917,8 @@ const DuolingoProShadeHTML = `
         <p class="BlockBoxOneSectionOneTextTwo">AntiStuck Protection is <a style="color: #007AFF;">active</a></p>
     </div>
     <div class="BlockBoxOneSectionTwo">
-        <div class="BlockBoxOneSectionTwoBoxOne">END LESSON</div>
-        <div class="BlockBoxOneSectionTwoBoxTwo">SHOW LESSON</div>
+        <div class="BlockBoxOneSectionTwoBoxOne noSelect">END LESSON</div>
+        <div class="BlockBoxOneSectionTwoBoxTwo noSelect">SHOW LESSON</div>
     </div>
 </div>
 `;
@@ -3037,11 +3009,6 @@ const DuolingoProShadeCSS = `
 
     cursor: pointer;
     transition: .1s;
-
-    user-select: none;
-    -moz-user-select: none;
-    -webkit-text-select: none;
-    -webkit-user-select: none;
 }
 
 .BlockBoxOneSectionTwoBoxOne:hover {
@@ -3078,11 +3045,6 @@ const DuolingoProShadeCSS = `
 
     cursor: pointer;
     transition: .1s;
-
-    user-select: none;
-    -moz-user-select: none;
-    -webkit-text-select: none;
-    -webkit-user-select: none;
 }
 
 .BlockBoxOneSectionTwoBoxTwo:hover {
@@ -3176,7 +3138,7 @@ function SimpleAntiStuckProtectionTimerFunction() {
 
 
 const DuolingoProSolveJustThisBoxButtonHTML = `
-<div class="DPJustSolveThisLessonButtonOne">AUTOSOLVE LESSON</div>
+<div class="DPJustSolveThisLessonButtonOne noSelect">AUTOSOLVE LESSON</div>
 `;
 
 const DuolingoProSolveJustThisBoxButtonCSS = `
@@ -3204,11 +3166,6 @@ const DuolingoProSolveJustThisBoxButtonCSS = `
     font-weight: 700;
     text-align: center;
     color: #fff;
-
-    user-select: none;
-    -moz-user-select: none;
-    -webkit-text-select: none;
-    -webkit-user-select: none;
 }
 .DPJustSolveThisLessonButtonOne:hover {
     filter: brightness(0.95);
@@ -3306,7 +3263,7 @@ const DuolingoProNotificationBoxHTML = `
 <div class="BlockedByDuolingoProBoxBackground" id="DuolingoProNotificationBackgroundOneID">
     <div class="BlockedByDuolingoProBoxSectionOne">
         <p class="BlockedByDuolingoProBoxSectionOneTextOne" id="DuolingoProNotificationTitleOneID">Title</p>
-        <p class="BlockedByDuolingoProBoxSectionOneTextTwo" id="DuolingoProNotificationHideButtonOneID">DISMISS</p>
+        <p class="BlockedByDuolingoProBoxSectionOneTextTwo noSelect" id="DuolingoProNotificationHideButtonOneID">DISMISS</p>
     </div>
     <p class="BlockedByDuolingoProBoxSectionTwoTextOne" id="DuolingoProNotificationDescriptionOneID">Description</p>
 </div>
@@ -3368,11 +3325,6 @@ const DuolingoProNotificationBoxCSS = `
 
     margin: 0px;
     cursor: pointer;
-
-    user-select: none;
-    -moz-user-select: none;
-    -webkit-text-select: none;
-    -webkit-user-select: none;
 
     transition: .1s;
 }
@@ -3570,9 +3522,9 @@ const UpdateAvailablePopUpHTML = `
         </div>
         <div style="position: absolute; bottom: 16px; display: flex; width: 512px; justify-content: center; align-items: center; gap: 8px;">
             <a href="https://greasyfork.org/en/scripts/473310-duolingo-pro-beta" target="_blank">
-		    <div class="BPUDPUB1BN1" id="BPUDPUB1BN1ON1">MANUALLY UPDATE</div>
+		    <div class="BPUDPUB1BN1 noSelect" id="BPUDPUB1BN1ON1">MANUALLY UPDATE</div>
             </a>
-			<div class="BPUDPUB1BN1" id="BPUDPUB1BN1DS">OK</div>
+			<div class="BPUDPUB1BN1 noSelect" id="BPUDPUB1BN1DS">OK</div>
 		</div>
     </div>
 </div>
@@ -3659,11 +3611,6 @@ const UpdateAvailablePopUpCSS = `
 	margin: 0px;
 	cursor: pointer;
 	transition: .1s;
-
-    user-select: none;
-    -moz-user-select: none;
-    -webkit-text-select: none;
-    -webkit-user-select: none;
 }
 .BPUDPUB1BN1:hover {
     filter: brightness(0.95);
@@ -3729,7 +3676,7 @@ const DPAutoServerButtonMainMenuHTML = `
             </clipPath>
         </defs>
     </svg>
-    <p class="DPAutoServerElementsMenu" style="flex: 1 0 0; color: #007AFF; font-size: 16px; font-style: normal; font-weight: 700; line-height: normal; margin: 0px; user-select: none; -moz-user-select: none; -webkit-text-select: none; -webkit-user-select: none;">AutoServer</p>
+    <p class="DPAutoServerElementsMenu noSelect" style="flex: 1 0 0; color: #007AFF; font-size: 16px; font-style: normal; font-weight: 700; line-height: normal; margin: 0px;">AutoServer</p>
     <svg class="DPAutoServerElementsMenu" style="visibility: hidden;" width="9" height="16" viewBox="0 0 9 16" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M8.57031 7.85938C8.57031 8.24219 8.4375 8.5625 8.10938 8.875L2.20312 14.6641C1.96875 14.8984 1.67969 15.0156 1.33594 15.0156C0.648438 15.0156 0.0859375 14.4609 0.0859375 13.7734C0.0859375 13.4219 0.226562 13.1094 0.484375 12.8516L5.63281 7.85156L0.484375 2.85938C0.226562 2.60938 0.0859375 2.28906 0.0859375 1.94531C0.0859375 1.26562 0.648438 0.703125 1.33594 0.703125C1.67969 0.703125 1.96875 0.820312 2.20312 1.05469L8.10938 6.84375C8.42969 7.14844 8.57031 7.46875 8.57031 7.85938Z" fill="#007AFF"/>
     </svg>
@@ -3892,59 +3839,34 @@ setInterval(DuolingoProCounterOneFunction, 100);
 
 
 const CurrentIssuesPopUpHTML = `
-<div class="DPIPUShadowThing">
-    <div class="DPIPUB1">
-        <div class="DPIPUL1">
-            <h2 class="DPIPUL1T1">Active Issues</h2>
-            <p class="DPIPUL1T2" id="DPIPUL1T2DATE">Loading...</p>
-        </div>
-        <div class="DPIPUL2">
+<div class="DPLBoxShadowStyleT1" id="SeeActiveIssuesBoxShadow">
+    <div class="DPLBoxStyleT1" id="SendFeebackBoxBackground">
+        <div class="DPIPUB1">
+            <div class="DPIPUL1">
+                <h2 class="DPIPUL1T1">Active Issues</h2>
+                <p class="DPIPUL1T2" id="DPIPUL1T2DATE">Loading...</p>
+            </div>
+            <div class="DPIPUL2">
 
-        </div>
-        <div class="DPIPUL3" style="display: flex; justify-content: center; align-items: flex-start; gap: 8px; align-self: stretch;">
-            <div class="DPIPUL3B1">SEE FIXES</div>
-            <div class="DPIPUL3B1" id="DPIPUL3BDissmissID">OK</div>
+            </div>
+            <div class="DPIPUL3" style="display: flex; justify-content: center; align-items: flex-start; gap: 8px; align-self: stretch;">
+                <div class="DPIPUL3B1 noSelect">SEE FIXES</div>
+                <div class="DPIPUL3B1 noSelect" id="DPIPUL3BDissmissID">OK</div>
+            </div>
         </div>
     </div>
 </div>
 `;
 
 const CurrentIssuesPopUpCSS = `
-.DPIPUShadowThing {
-	display: flex;
-	width: 100%;
-	height: 100vh;
-	justify-content: center;
-	align-items: center;
-	flex-shrink: 0;
-
-	position: fixed;
-	top: 0px;
-	bottom: 0px;
-	right: 0px;
-	left: 0px;
-    z-index: 2;
-
-	background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(8px);
-    opacity: 0;
-    transition: .2s;
-}
-
 .DPIPUB1 {
-	display: flex;
-	width: 544px;
-	max-height: 544px;
-	padding: 16px;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-	gap: 16px;
-	flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
 
-	border-radius: 16px;
-	border: 2px solid rgb(var(--color-swan));
-	background: rgb(var(--color-snow));
+    width: 100%;
 }
 
 .DPIPUL1 {
@@ -4057,11 +3979,6 @@ const CurrentIssuesPopUpCSS = `
 
 	cursor: pointer;
 	transition: .1s;
-
-	user-select: none;
-    -moz-user-select: none;
-    -webkit-text-select: none;
-    -webkit-user-select: none;
 }
 .DPIPUL3B1:hover {
     filter: brightness(0.95);
@@ -4089,7 +4006,7 @@ function CurrentIssuesPopUpFunction(status) {
             document.body.insertAdjacentHTML('beforeend', CurrentIssuesPopUpHTML);
 
             setTimeout(function() {
-                let djhsafjkds = document.querySelector('.DPIPUShadowThing');
+                let djhsafjkds = document.querySelector('#SeeActiveIssuesBoxShadow');
                 djhsafjkds.style.opacity = '1';
             }, 50);
 
@@ -4205,7 +4122,7 @@ function CurrentIssuesPopUpFunction(status) {
             updateWarningsFromURL('https://raw.githubusercontent.com/anonymoushackerIV/anonymoushackerIV.github.io/main/duolingopro/status.json', duolingoProFormalCurrentVersion);
 
         } else {
-            let djhsafjkds = document.querySelector('.DPIPUShadowThing');
+            let djhsafjkds = document.querySelector('#SeeActiveIssuesBoxShadow');
             djhsafjkds.style.opacity = '0';
 
             setTimeout(function() {
