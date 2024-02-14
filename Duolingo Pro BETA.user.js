@@ -1,13 +1,14 @@
 // ==UserScript==
 // @name         Duolingo Pro BETA
 // @namespace    Violentmonkey Scripts
-// @version      2.0BETA9.3.1
-// @description  Duolingo Auto Solver Tool - Working JANUARY 2024
+// @version      2.0BETA9.5.1
+// @description  Duolingo Auto Solver Tool - Working February 2024
 // @author       anonymoushackerIV
 // @match        https://*.duolingo.com/*
 // @grant        none
 // @license      MIT
 // @require      https://unpkg.com/@supabase/supabase-js@2.12.1
+// @icon         https://github.com/anonymoushackerIV/Duolingo-Pro-2-BETA/raw/main/assets/DuolingoProIcon.png
 // ==/UserScript==
 
 let solvingIntervalId;
@@ -17,21 +18,18 @@ let isTokenRunning = false;
 
 const debug = false;
 
-let duolingoProCurrentVersionShort = "2.0B9.3";
-let duolingoProCurrentVersion = "2.0 BETA 9.3";
-let duolingoProFormalCurrentVersion = "2.0BETA9.3";
+let ASB969 = false;
+let ASTL464 = false;
+let duolingoProCurrentVersionShort = "2.0B9.5";
+let duolingoProCurrentVersion = "2.0 BETA 9.5";
+let duolingoProFormalCurrentVersion = "2.0BETA9.5";
 
 let solveSpeed;
-if (localStorage.getItem('DLPautoSolverSolveSpeed') === null) {
+if (!parseInt(localStorage.getItem('DLPautoSolverSolveSpeed'))) {
     solveSpeed = 3;
+    localStorage.setItem('DLPautoSolverSolveSpeed', solveSpeed);
 } else {
     solveSpeed = parseInt(localStorage.getItem('DLPautoSolverSolveSpeed'));
-}
-let simulated;
-if (localStorage.getItem('DuolingoProSettingsHumaneSolvingMode') === null) {
-    simulated = false;
-} else {
-    simulated = JSON.parse(localStorage.getItem('DuolingoProSettingsHumaneSolvingMode'));
 }
 
 let isSendFeedbackButtonPressed = false;
@@ -43,7 +41,7 @@ let DuolingoProAmountOfQuestionsEverSolved = 0;
 DuolingoProAmountOfQuestionsEverSolved = Number(localStorage.getItem('DuolingoProAmountOfQuestionsEverSolved'));
 
 let ProBlockBannerOneVisible = false;
-if (localStorage.getItem('ProBlockBannerOneVisible') === null) {
+if (JSON.parse(localStorage.getItem('ProBlockBannerOneVisible')) === null) {
     ProBlockBannerOneVisible = false;
 } else {
     ProBlockBannerOneVisible = JSON.parse(localStorage.getItem('ProBlockBannerOneVisible'));
@@ -52,17 +50,23 @@ if (localStorage.getItem('ProBlockBannerOneVisible') === null) {
 
 let autoSolverBoxPracticeOnlyMode;
 let autoSolverBoxRepeatLessonMode;
-if (sessionStorage.getItem('autoSolverBoxPracticeOnlyMode') === null) {
+if (JSON.parse(sessionStorage.getItem('autoSolverBoxPracticeOnlyMode')) === null) {
     autoSolverBoxPracticeOnlyMode = true;
 } else {
     autoSolverBoxPracticeOnlyMode = JSON.parse(sessionStorage.getItem('autoSolverBoxPracticeOnlyMode'));
 }
-if (sessionStorage.getItem('autoSolverBoxRepeatLessonMode') === null) {
+if (JSON.parse(sessionStorage.getItem('autoSolverBoxRepeatLessonMode')) === null) {
     autoSolverBoxRepeatLessonMode = false;
 } else {
     autoSolverBoxRepeatLessonMode = JSON.parse(sessionStorage.getItem('autoSolverBoxRepeatLessonMode'));
 }
 
+let DLPpromotionBubbleVisibility;
+if (JSON.parse(localStorage.getItem('DLP4Uz53cm6wjnOG7tY')) === null) {
+    DLPpromotionBubbleVisibility = true;
+} else {
+    DLPpromotionBubbleVisibility = JSON.parse(localStorage.getItem('DLP4Uz53cm6wjnOG7tY'));
+}
 
 let wasAutoSolverBoxRepeatStartButtonPressed = false;
 if (JSON.parse(sessionStorage.getItem('wasAutoSolverBoxRepeatStartButtonPressed')) === null) {
@@ -91,6 +95,7 @@ try {
 try {
     localStorage.removeItem('wasWhatsNewInTwoPointZeroBetaSevenFinished');
 } catch (error) {}
+// DuolingoProSettingsHumaneSolvingMode
 // Whats New Variables End
 
 let wasDuolingoProSettingsButtonOnePressed = false;
@@ -110,7 +115,6 @@ if (JSON.parse(localStorage.getItem('AutoSolverSettingsShowAutoSolverBox')) === 
 
     AutoSolverSettingsShowPracticeOnlyModeForAutoSolverBox = false;
     localStorage.setItem('AutoSolverSettingsShowPracticeOnlyModeForAutoSolverBox', AutoSolverSettingsShowPracticeOnlyModeForAutoSolverBox);
-
 } else {
     AutoSolverSettingsShowAutoSolverBox = JSON.parse(localStorage.getItem('AutoSolverSettingsShowAutoSolverBox'));
 }
@@ -138,13 +142,6 @@ if (JSON.parse(localStorage.getItem('DuolingoProSettingsTurboSolveMode')) === nu
     DuolingoProSettingsTurboSolveMode = false;
 } else {
     DuolingoProSettingsTurboSolveMode = JSON.parse(localStorage.getItem('DuolingoProSettingsTurboSolveMode'));
-}
-
-let DuolingoProSettingsHumaneSolvingMode = true;
-if (JSON.parse(localStorage.getItem('DuolingoProSettingsHumaneSolvingMode')) === null) {
-    DuolingoProSettingsHumaneSolvingMode = true;
-} else {
-    DuolingoProSettingsHumaneSolvingMode = JSON.parse(localStorage.getItem('DuolingoProSettingsHumaneSolvingMode'));
 }
 
 let DuolingoProSettingsNeverEndMode = false;
@@ -240,7 +237,6 @@ function addButtons() {
             border-bottom: 4px solid #2b70c9;
             border-radius: 16px;
             padding: 13px 16px;
-            transform: translateZ(0);
             transition: filter .0s;
             font-weight: 700;
             letter-spacing: .8px;
@@ -257,7 +253,6 @@ function addButtons() {
             border-bottom: 4px solid #ff9600;
             border-radius: 16px;
             padding: 13px 16px;
-            transform: translateZ(0);
             transition: filter .0s;
             font-weight: 700;
             letter-spacing: .8px;
@@ -266,10 +261,10 @@ function addButtons() {
             margin-left: 20px;
             cursor: pointer;
         }
-        .hover {
+        .auto-solver-btn:hover {
             filter: brightness(1.1);
         }
-        .pressed {
+        .auto-solver-btn:active {
             border-bottom: 0px;
             margin-bottom: 4px;
             top: 4px;
@@ -277,21 +272,11 @@ function addButtons() {
         `;
         document.head.appendChild(buttonsCSS);
 
-        const solveCopy = createButton('solveAllButton', solvingIntervalId ? 'PAUSE SOLVE' : 'SOLVE ALL', 'solve-btn', {
-            'mousedown': () => solveCopy.classList.add('pressed'),
-            'mouseup': () => solveCopy.classList.remove('pressed'),
-            'mouseleave': () => solveCopy.classList.remove('pressed'),
-            'mousemove': () => solveCopy.classList.add('hover'),
-            'mouseleave': () => solveCopy.classList.remove('hover'),
+        const solveCopy = createButton('solveAllButton', solvingIntervalId ? 'PAUSE SOLVE' : 'SOLVE ALL', 'auto-solver-btn solve-btn', {
             'click': solving
         });
 
-        const pauseCopy = createButton('', 'SOLVE', 'pause-btn', {
-            'mousedown': () => pauseCopy.classList.add('pressed'),
-            'mouseup': () => pauseCopy.classList.remove('pressed'),
-            'mouseleave': () => pauseCopy.classList.remove('pressed'),
-            'mousemove': () => pauseCopy.classList.add('hover'),
-            'mouseleave': () => pauseCopy.classList.remove('hover'),
+        const pauseCopy = createButton('', 'SOLVE', 'auto-solver-btn pause-btn', {
             'click': solve
         });
 
@@ -300,7 +285,6 @@ function addButtons() {
     }
 }
 setInterval(addButtons, 500);
-
 
 const DLPuniversalCSS = `
 :root {
@@ -648,11 +632,9 @@ function DLPuniversalCSSfunc() {
 }
 DLPuniversalCSSfunc();
 
-
-
 const htmlContent = `
 <div class="AutoSolverBoxFirst">
-    <div id="HideAutoSolverBoxButtonOneID" class="AutoSolverBoxAlertOneBox" style="transition: margin-bottom .5s, all .1s; backdrop-filter: blur(32px); background: rgba(0, 122, 255, 0.60); padding: 8px; border-radius: 8px; align-self: end;">
+    <div id="HideAutoSolverBoxButtonOneID" class="AutoSolverBoxAlertOneBox" style="backdrop-filter: blur(32px); border: 2px solid rgba(0, 0, 0, 0.10); background: rgba(0, 122, 255, 0.60); padding: 8px; border-radius: 8px; align-self: end;">
         <svg id="HideAutoSolverBoxButtonOneIconOneID" width="23" height="15" viewBox="0 0 23 15" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M11.4297 14.1562C5.05469 14.1562 0.75 8.95312 0.75 7.375C0.75 5.78906 5.05469 0.59375 11.4297 0.59375C17.8984 0.59375 22.1172 5.78906 22.1172 7.375C22.1172 8.95312 17.9062 14.1562 11.4297 14.1562ZM11.4375 11.5078C13.7266 11.5078 15.5938 9.61719 15.5938 7.375C15.5938 5.07812 13.7266 3.24219 11.4375 3.24219C9.13281 3.24219 7.27344 5.07031 7.27344 7.375C7.28125 9.61719 9.13281 11.5078 11.4375 11.5078ZM11.4297 9C10.5312 9 9.80469 8.26562 9.80469 7.38281C9.80469 6.49219 10.5312 5.75 11.4297 5.75C12.3281 5.75 13.0625 6.49219 13.0625 7.38281C13.0625 8.26562 12.3281 9 11.4297 9Z" fill="rgba(255, 255, 255, 0.80)"/>
         </svg>
@@ -705,7 +687,7 @@ const htmlContent = `
             <div class="AutoSolverBoxTitleSectionOne">
                 <p class="AutoSolverBoxTitleSectionOneTextOne">Duolingo Pro</p>
                 <div class="AutoSolverBoxTitleSectionOneBETATagOne">
-                    <p class="AutoSolverBoxTitleSectionOneBETATagOneTextOne">2.0 BETA 9.3</p>
+                    <p class="AutoSolverBoxTitleSectionOneBETATagOneTextOne">2.0 BETA 9.5</p>
                 </div>
             </div>
             <p class="AutoSolverBoxTitleSectionTwoTextOne">How many lessons would you like to AutoSolve?</p>
@@ -743,7 +725,7 @@ const htmlContent = `
                     </div>
                 </div>
 
-                <p class="AutoSolverBoxTitleSectionTwoTextOne" style="margin-top: 4px; margin-bottom: 8px;">Turn off both to use Path Mode.</p>
+                <p class="AutoSolverBoxTitleSectionTwoTextOne" style="margin-top: 4px; margin-bottom: 8px;">Turn off both to use Path Mode</p>
 
                 <button class="AutoSolverBoxRepeatAmountButton" id="DPASBsB1" style="width: 100%;">START</button>
             </div>
@@ -787,7 +769,8 @@ const cssContent = `
     display: flex;
     width: 100%;
     flex-direction: column;
-    align-items: flex-start;
+    justify-content: center;
+    align-items: center;
     gap: 8px;
 
     transition: .5s;
@@ -815,7 +798,7 @@ const cssContent = `
     align-self: stretch;
 
     cursor: pointer;
-    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .AutoSolverBoxAlertOneBox:hover {
     filter: brightness(0.9);
@@ -1046,8 +1029,22 @@ const cssContent = `
 }
 `;
 
+let bannedViewHTML = `
+<div class="AutoSolverBoxLayers" style="padding: 16px;">
+    <svg style="margin: 8px;" width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M30.7812 25.7188L27.8125 22.7344C28.8125 20.9688 29.3906 18.9219 29.3906 16.7188C29.3906 9.85938 23.8594 4.32812 16.9844 4.32812C14.7969 4.32812 12.75 4.90625 10.9844 5.90625L8 2.9375C10.5938 1.21875 13.6875 0.21875 17 0.21875C26.0469 0.21875 33.5 7.67188 33.5 16.7188C33.5 20.0312 32.5 23.125 30.7812 25.7188ZM30.8281 32.4219L1.29688 2.89062C0.796875 2.40625 0.796875 1.53125 1.29688 1.04688C1.8125 0.515625 2.65625 0.53125 3.17188 1.04688L32.6875 30.5469C33.2031 31.0625 33.1875 31.8906 32.6875 32.4062C32.1875 32.9219 31.3438 32.9219 30.8281 32.4219ZM23 27.5469L25.9844 30.5312C23.3906 32.2344 20.3125 33.2344 17 33.2344C7.95312 33.2344 0.5 25.7812 0.5 16.7188C0.5 13.4062 1.5 10.3125 3.21875 7.71875L6.20312 10.7031C5.1875 12.4688 4.60938 14.5312 4.60938 16.7188C4.60938 23.5938 10.125 29.125 17 29.125C19.1875 29.125 21.2344 28.5469 23 27.5469Z" fill="#FF2D55"/>
+    </svg>
+    <p style="padding: 8px; margin: 0; align-self: stretch; color: rgba(0, 0, 0, 0.9); text-align: center; font-size: 24px; font-weight: 700;">You've Been Banned</p>
+    <p style="margin: 0; align-self: stretch; color: rgba(0, 0, 0, 0.5); text-align: center; font-size: 16px; font-weight: 700;">You’ve been banned from using Duolingo Pro because of abusing the Feedback feature. </p>
+    <p style="margin: 0; align-self: stretch; color: rgba(0, 0, 0, 0.5); text-align: center; font-size: 16px; font-weight: 700;">All features of Duolingo Pro are blocked except basic functions such as Solve buttons in lessons. </p>
+    <p id="bannedRebuttalButtonID" style="cursor: pointer;margin: 0; align-self: stretch; color: #007AFF; text-align: center; font-size: 16px; font-weight: 700;">How can I fix this?</p>
+</div>
+`;
+
 let injectedContainer = null;
 let injectedStyleElement = null;
+
+let bannedViewElement = null;
 
 function injectContent() {
     if (window.location.pathname === '/learn') {
@@ -1063,6 +1060,13 @@ function injectContent() {
 
             initializeDuolingoProSystemButtons();
             checkForUpdatesVersion();
+            let banned = false;
+            if (banned) {
+                document.querySelector('.AutoSolverBoxLayers').remove();
+                bannedViewElement = document.createElement('div');
+                bannedViewElement.innerHTML = bannedViewHTML;
+                document.querySelector('.AutoSolverBoxBackground').appendChild(bannedViewElement);
+            }
 
             try {
                 let AutoSolverBoxSectionThreeBoxSectionTwoIDOneForHiding = document.querySelector('#AutoSolverBoxSectionThreeBoxSectionTwoIDOne');
@@ -1464,7 +1468,9 @@ function checkURLForAutoSolverBox() {
     if (window.location.pathname === '/lesson' || window.location.pathname.includes('/unit') || window.location.pathname === '/practice') {
         let jfgsdodhgsf = document.querySelector('#solveAllButton');
         if (jfgsdodhgsf) {
-            if (wasAutoSolverBoxRepeatStartButtonPressed === true) {
+            if (window.location.pathname === '/practice' && wasAutoSolverBoxRepeatStartButtonPressed === true) {
+                solving();
+            } else if (wasAutoSolverBoxRepeatStartButtonPressed === true) {
                 autoSolverBoxRepeatAmount--;
                 sessionStorage.setItem('autoSolverBoxRepeatAmount', autoSolverBoxRepeatAmount);
                 solving();
@@ -1646,6 +1652,17 @@ const SendFeedbackBoxHTML = `
         <div class="SendFeebackBoxLayers">
 
             <p class="selfFill paragraphText noSelect" style="font-size: 24px; line-height: 32px;">Send Feedback for Duolingo Pro</p>
+
+            <div style="display: flex; padding: 16px; flex-direction: column; justify-content: center; align-items: flex-start; gap: 8px; align-self: stretch; border-radius: 8px; border: 2px solid rgba(0, 122, 255, 0.10); background: rgba(0, 122, 255, 0.10);">
+                <div style="display: flex; align-items: center; gap: 8px; align-self: stretch;">
+                    <svg width="21" height="17" viewBox="0 0 21 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M17.5088 1.84C16.1708 1.214 14.7402 0.759052 13.2446 0.5C13.0609 0.832095 12.8463 1.27877 12.6983 1.6341C11.1084 1.39499 9.53312 1.39499 7.97243 1.6341C7.8245 1.27877 7.60503 0.832095 7.4197 0.5C5.92243 0.759052 4.49018 1.21567 3.15222 1.84331C0.453554 5.92136 -0.278011 9.89811 0.0877725 13.8184C1.87767 15.155 3.6123 15.967 5.31766 16.4984C5.73872 15.9189 6.11425 15.3028 6.43776 14.6536C5.82162 14.4195 5.23149 14.1306 4.67389 13.7952C4.82182 13.6856 4.96652 13.571 5.10632 13.4531C8.50728 15.0438 12.2025 15.0438 15.5628 13.4531C15.7043 13.571 15.849 13.6856 15.9953 13.7952C15.436 14.1322 14.8443 14.4211 14.2281 14.6553C14.5517 15.3028 14.9256 15.9205 15.3482 16.5C17.0552 15.9687 18.7915 15.1567 20.5814 13.8184C21.0106 9.27378 19.8482 5.33355 17.5088 1.84ZM6.90109 11.4075C5.88016 11.4075 5.04291 10.4543 5.04291 9.2937C5.04291 8.13305 5.86228 7.17831 6.90109 7.17831C7.93993 7.17831 8.77715 8.13138 8.75928 9.2937C8.76089 10.4543 7.93993 11.4075 6.90109 11.4075ZM13.7681 11.4075C12.7471 11.4075 11.9099 10.4543 11.9099 9.2937C11.9099 8.13305 12.7292 7.17831 13.7681 7.17831C14.8069 7.17831 15.6441 8.13138 15.6263 9.2937C15.6263 10.4543 14.8069 11.4075 13.7681 11.4075Z" fill="#5865F2"/>
+                    </svg>
+                    <p class="paragraphText noSelect" style="flex: 1 0 0; color: #5865F2;">Join our new Discord community, give feedback faster</p>
+                </div>
+                <p class="paragraphText noSelect" style="align-self: stretch; color: rgba(88, 101, 242, 0.50);">Our new Discord server is a great place to give feedback, as well as get up-to-date with the newest updates. <a href="https://discord.gg/r8xQ7K59Mt" target="_blank" rel="noopener noreferrer" class="DuolingoProFeedbackBoxPromotionLinkPurple">Join here</a></p>
+            </div>
+
             <textarea class="DLPFeedbackTextFieldT1" id="SendFeebackBoxSectionTwoID" style="resize: vertical; height: 128px;" placeholder="Write here as much as you can with as many details as possible."/></textarea>
 
             <p class="selfFill paragraphText noSelect" style="line-height: 32px;">Choose Feedback Type</p>
@@ -1663,7 +1680,7 @@ const SendFeedbackBoxHTML = `
             <p class="selfFill paragraphText noSelect" style="line-height: 32px;">Upload Photo <a style="color: rgb(var(--color-eel), 0.5)">- Optional</a></p>
             <input type="file" accept="image/png, image/jpeg" class="loldonttouchthisbit" id="SendFeedbackFileUploadButtonIDOne" onchange="showFileName()"/>
 
-            <p class="selfFill paragraphText" style="line-height: 32px;">Email <a style="color: rgb(var(--color-eel), 0.5)">- Optional, can help us reach back</a></p>
+            <p class="selfFill paragraphText noSelect" style="line-height: 32px;">Email <a style="color: rgb(var(--color-eel), 0.5)">- Optional, can help us reach back</a></p>
             <input class="DLPFeedbackTextFieldT1" id="DLPFeedbackTextField2" type="email" style="resize: none; height: 54px;" placeholder="Email address">
 
             <div class="SendFeedbackBoxSectionEight">
@@ -1677,6 +1694,15 @@ const SendFeedbackBoxHTML = `
 `;
 
 const SendFeedbackBoxCSS = `
+.DuolingoProFeedbackBoxPromotionLinkPurple {
+    color: rgba(88, 101, 242, 0.50);
+    text-decoration-line: underline;
+    transition: .1s;
+}
+.DuolingoProFeedbackBoxPromotionLinkPurple:hover {
+    color: #5865F2;
+}
+
 .loldonttouchthisbit {
     display: flex;
     height: 54px;
@@ -2246,9 +2272,11 @@ function injectSendFeedBackBox() {
 
             const SendFeebackBoxSectionTwo = document.querySelector('.SendFeebackBoxSectionTwo');
 
+            let _283b = false;
             const SendFeebackBoxSectionEightSendButton = document.querySelector('#SendFeebackBoxSectionEightSendButton');
             SendFeebackBoxSectionEightSendButton.addEventListener('click', () => {
-                if (isSendFeebackBoxSectionEightSendButtonEnabled) {
+                if (isSendFeebackBoxSectionEightSendButtonEnabled && !_283b) {
+                    _283b = true;
                     SendFeedbackTextAreaValue = TextAreaOneOne.value;
                     emailContactValue = TextAreaTwoOne.value;
                     sendFeedbackServer(SendFeedbackTextAreaValue, idktype, emailContactValue);
@@ -2281,12 +2309,14 @@ function injectSendFeedBackBox() {
                                 SendFeebackBoxSectionEightSendButton.style.background = '';
                                 SendFeebackBoxSectionEightSendButton.style.border = '';
                                 SendFeebackBoxSectionEightSendButton.style.borderBottom = '';
+                                _283b = false;
                             }, 4000);
 
                             sendFeedbackStatus = 'empty';
                         } else if (sendFeedbackStatus === 'empty') {
                             setTimeout(function() {
                                 checkFlag();
+                                _283b = false;
                             }, 100);
                         }
                     }
@@ -2418,7 +2448,7 @@ const DuolingoProSettingsBoxHTML = `
             <div class="DuolingoProSettingsBoxSectionOne">
                 <p class="DuolingoProSettingsBoxSectionOneTextOne">Settings</p>
                 <div class="DuolingoProSettingsBoxSectionOneBoxOne">
-                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne">2.0 BETA 9.3</p>
+                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne">2.0 BETA 9.5</p>
                 </div>
             </div>
             <div class="DuolingoProSettingsBoxSectionTwo">
@@ -2468,6 +2498,16 @@ const DuolingoProSettingsBoxHTML = `
                     </div>
                 </div>
 
+                <div style="display: flex; padding: 16px; flex-direction: column; justify-content: center; align-items: flex-start; gap: 8px; align-self: stretch; border-radius: 8px; border: 2px solid rgba(0, 122, 255, 0.10); background: rgba(0, 122, 255, 0.10);">
+                    <div style="display: flex; align-items: center; gap: 8px; align-self: stretch;">
+                        <svg width="18" height="17" viewBox="0 0 18 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9 16.9766C8.57812 16.9766 8.24219 16.6719 8.15625 16.2188C7.35156 11.0156 6.70312 10.3984 1.66406 9.70312C1.21094 9.64062 0.882812 9.29688 0.882812 8.85938C0.882812 8.42188 1.21875 8.0625 1.67188 8.00781C6.71875 7.44531 7.4375 6.71094 8.15625 1.5C8.22656 1.05469 8.57031 0.742188 9 0.742188C9.42188 0.742188 9.76562 1.05469 9.83594 1.5C10.625 6.71094 11.3047 7.38281 16.3359 8.00781C16.7812 8.07031 17.1172 8.42188 17.1172 8.85938C17.1172 9.29688 16.7812 9.64844 16.3281 9.70312C11.2812 10.2734 10.5547 11.0078 9.83594 16.2188C9.77344 16.6641 9.42969 16.9766 9 16.9766Z" fill="#007AFF"/>
+                        </svg>
+                        <p class="paragraphText noSelect" style="flex: 1 0 0; color: #007AFF;">Contributors</p>
+                    </div>
+                    <p class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);"><a href="https://github.com/surebrec" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">surebrec</a>, <a href="https://github.com/anonymoushackerIV" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">anonymoushackerIV</a>, <a href="https://github.com/SicariusBlack" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">SicariusBlack</a></p>
+                </div>
+
             </div>
             <div class="DuolingoProSettingsBoxSectionThree">
                 <button class="DPLSecondaryButtonStyleT1" id="DuolingoProSettingsBoxCancelButton">CANCEL</button>
@@ -2513,7 +2553,7 @@ const DuolingoProSettingsBoxCSS = `
 
 .DuolingoProSettingsBoxSectionOneBoxOne {
     display: flex;
-    width: 98px;
+    //width: 98px;
     height: 36px;
     flex-direction: column;
     justify-content: center;
@@ -2522,6 +2562,9 @@ const DuolingoProSettingsBoxCSS = `
     border-radius: 8px;
     border: 2px solid rgba(0, 0, 0, 0.20);
     background: #FF2D55;
+
+    padding-left: 8px;
+    padding-right: 8px;
 }
 
 .DuolingoProSettingsBoxSectionOneBoxOneTextOne {
@@ -2537,7 +2580,6 @@ const DuolingoProSettingsBoxCSS = `
 
 .DuolingoProSettingsBoxSectionTwo {
     display: flex;
-    padding-bottom: 8px;
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
@@ -2604,6 +2646,15 @@ const DuolingoProSettingsBoxCSS = `
     align-items: flex-start;
     gap: 8px;
     align-self: stretch;
+}
+
+.DuolingoProSettingsBoxContributorsLink {
+    color: rgba(0, 122, 255, 0.50);
+    text-decoration-line: underline;
+    transition: .1s;
+}
+.DuolingoProSettingsBoxContributorsLink:hover {
+    color: #007AFF;
 }
 `;
 
@@ -2833,6 +2884,9 @@ if (String(localStorage.getItem('duolingoProLastInstalledVersion')) === null || 
 } else if (String(localStorage.getItem('duolingoProLastInstalledVersion')) !== duolingoProCurrentVersion) {
     updateStuffVar = 'trying';
 
+    localStorage.setItem('DLP4Uz53cm6wjnOG7tY', "true");
+    getDatacBcutPZB();
+
     setTimeout(function() {
         versionServerStuff('update', "Updated Version", duolingoProCurrentVersion, String(localStorage.getItem('duolingoProLastInstalledVersion')));
         checkFlagThree();
@@ -2939,7 +2993,7 @@ const DuolingoProShadeCSS = `
     align-self: stretch;
     display: flex;
 
-    z-index: 1920;
+    z-index: 512;
 }
 
 .BlockBoxOneSectionOne {
@@ -3117,23 +3171,22 @@ setInterval(injectDuolingoProShade, 100);
 
 
 let antiStuckProtectionTimerVariable = 0;
-
 if (window.location.pathname.includes('/lesson') && DuolingoProAntiStuckProtectionMode && wasAutoSolverBoxRepeatStartButtonPressed) {
     SimpleAntiStuckProtectionTimerFunction();
 }
-
 function SimpleAntiStuckProtectionTimerFunction() {
     setTimeout(function() {
         if (isAutoMode) {
             antiStuckProtectionTimerVariable = antiStuckProtectionTimerVariable + 0.1;
         }
+        if (antiStuckProtectionTimerVariable >= 30) {
+            autoSolverBoxRepeatAmount++;
+            sessionStorage.setItem('autoSolverBoxRepeatAmount', autoSolverBoxRepeatAmount);
+            location.reload();
+        } else {
+            SimpleAntiStuckProtectionTimerFunction();
+        }
     }, 100);
-
-    if (antiStuckProtectionTimerVariable >= 30) {
-        autoSolverBoxRepeatAmount++;
-        sessionStorage.setItem('autoSolverBoxRepeatAmount', autoSolverBoxRepeatAmount);
-        location.reload();
-    }
 }
 
 
@@ -3213,8 +3266,9 @@ function DuolingoProSolveJustThisBoxExtraButtonFunction() {
         }
     } catch(error) {}
 }
-
-setInterval(DuolingoProSolveJustThisBoxExtraButtonFunction, 100);
+if (ASTL464) {
+    setInterval(DuolingoProSolveJustThisBoxExtraButtonFunction, 100);
+}
 
 if (wasDuolingoProJustSolveThisLessonButtonOnePressed) {
     setTimeout(function() {
@@ -3795,45 +3849,59 @@ function DPAutoServerButtonMainMenuFunction() {
     } catch(error) {}
 }
 
-DPAutoServerButtonMainMenuFunction();
+if (ASB969) {
+    DPAutoServerButtonMainMenuFunction();
+}
 
 
 const DuolingoProCounterOneHTML = `
-<div class="DPCOBlockBoxOneSectionThree" style="transition: all 0.5s cubic-bezier(0.16, 1, 0.32, 1); position: fixed; top: 16px; right: 16px; z-index: 1024; display: inline-flex; padding: 8px 12px; flex-direction: column; justify-content: center; align-items: center; border-radius: 32px; border: 2px solid rgb(var(--color-swan), 0.84); background: rgb(var(--color-snow), 0.84); box-shadow: 0px 0px 16px 0px rgba(0, 0, 0, 0.08); backdrop-filter: blur(16px); color: rgb(var(--color-eel), 0.64); font-size: 16px; font-weight: 700; z-index: 1984;">Left</div>
+<div class="DuolingoProCounterBoxOneClass" style="display: inline-flex; justify-content: center; align-items: center; gap: 8px; position: fixed; top: 16px; right: 16px; z-index: 1024;">
+    <div class="DuolingoProCounterOneClass" style="transition: all 0.5s cubic-bezier(0.16, 1, 0.32, 1); padding: 8px 12px; gap: 8px; display: inline-flex; justify-content: center; align-items: center; border-radius: 32px; border: 2px solid rgb(var(--color-swan), 0.84); background: rgb(var(--color-snow), 0.84); box-shadow: 0px 0px 16px 0px rgba(0, 0, 0, 0.08); backdrop-filter: blur(16px); color: rgb(var(--color-eel), 0.64); font-size: 16px; font-weight: 700; z-index: 1984;">Left</div>
+</div>
 `;
 
 let injectedDuolingoProCounterOneElement = null;
 
 function DuolingoProCounterOneFunction() {
-    // || window.location.pathname.includes('/practice')
-    if (window.location.pathname.includes('/lesson') && wasAutoSolverBoxRepeatStartButtonPressed) {
+    if (window.location.pathname.includes('/lesson') && wasAutoSolverBoxRepeatStartButtonPressed || window.location.pathname.includes('/practice') && wasAutoSolverBoxRepeatStartButtonPressed) {
         if (!injectedDuolingoProCounterOneElement) {
             document.body.insertAdjacentHTML('beforeend', DuolingoProCounterOneHTML);
             injectedDuolingoProCounterOneElement = DuolingoProCounterOneHTML;
-
-            let DuolingoProShadeStatusOne = document.querySelector('.DPCOBlockBoxOneSectionThree');
-            if (DuolingoProSettingsNeverEndMode) {
-                DuolingoProShadeStatusOne.textContent = '∞';
+        }
+        let DLPCE728 = document.querySelector('.DuolingoProCounterOneClass');
+        if (DuolingoProSettingsNeverEndMode) {
+            DLPCE728.textContent = '∞';
+        } else if (window.location.pathname === '/practice') {
+            if (autoSolverBoxRepeatAmount === 2) {
+                DLPCE728.textContent = '1 Practice Left';
             } else if (autoSolverBoxRepeatAmount === 1) {
-                DuolingoProShadeStatusOne.textContent = '1 Lesson Left';
+                DLPCE728.textContent = 'Last Practice';
             } else if (autoSolverBoxRepeatAmount === 0) {
-                DuolingoProShadeStatusOne.textContent = 'Last Lesson';
+                DLPCE728.textContent = 'Finishing Up...';
             } else if (autoSolverBoxRepeatAmount) {
-                DuolingoProShadeStatusOne.textContent = String(autoSolverBoxRepeatAmount + ' Lessons Left');
+                DLPCE728.textContent = String(autoSolverBoxRepeatAmount + ' Practices Left');
+            }
+        } else {
+            if (autoSolverBoxRepeatAmount === 1) {
+                DLPCE728.textContent = '1 Lesson Left';
+            } else if (autoSolverBoxRepeatAmount === 0) {
+                DLPCE728.textContent = 'Last Lesson';
+            } else if (autoSolverBoxRepeatAmount) {
+                DLPCE728.textContent = String(autoSolverBoxRepeatAmount + ' Lessons Left');
             }
         }
     } else {
         if (injectedDuolingoProCounterOneElement) {
-            let DuolingoProShadeStatusOne = document.querySelector('.DPCOBlockBoxOneSectionThree');
+            let DuolingoProShadeStatusOne = document.querySelector('.DuolingoProCounterOneClass');
             if (DuolingoProShadeStatusOne) {
                 DuolingoProShadeStatusOne.remove();
             }
-            injectedDuolingoProShadeElement = null;
+            injectedDuolingoProCounterOneElement = null;
         }
     }
 }
 
-setInterval(DuolingoProCounterOneFunction, 100);
+setInterval(DuolingoProCounterOneFunction, 500);
 
 
 
@@ -4015,41 +4083,13 @@ function CurrentIssuesPopUpFunction(status) {
                 CurrentIssuesPopUpFunction(false);
             });
 
-            let HighWarningComponent1 = `
-<div class="DPIPUL2TI1">
-                <svg width="18" height="16" viewBox="0 0 18 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M2.96094 15.5469C1.53125 15.5469 0.59375 14.4688 0.59375 13.1797C0.59375 12.7812 0.695312 12.375 0.914062 11.9922L6.92969 1.47656C7.38281 0.695312 8.17188 0.289062 8.97656 0.289062C9.77344 0.289062 10.5547 0.6875 11.0156 1.47656L17.0312 11.9844C17.25 12.3672 17.3516 12.7812 17.3516 13.1797C17.3516 14.4688 16.4141 15.5469 14.9844 15.5469H2.96094ZM8.98438 9.96094C9.52344 9.96094 9.83594 9.65625 9.86719 9.09375L9.99219 5.72656C10.0234 5.14062 9.59375 4.73438 8.97656 4.73438C8.35156 4.73438 7.92969 5.13281 7.96094 5.72656L8.08594 9.10156C8.10938 9.65625 8.42969 9.96094 8.98438 9.96094ZM8.98438 12.7812C9.60156 12.7812 10.0859 12.3906 10.0859 11.7891C10.0859 11.2031 9.60938 10.8047 8.98438 10.8047C8.35938 10.8047 7.875 11.2031 7.875 11.7891C7.875 12.3906 8.35938 12.7812 8.98438 12.7812Z" fill="#FF2D55"/>
-                </svg>
-    <p id="DPIPUL2TI1T1ID" class="DPIPUL2TI1T1 DPIPUL2TI1T1R">Warning Title</p>
-</div>
-`;
+            let HighWarningComponent1 = `<div class="DPIPUL2TI1"><svg width="18" height="16" viewBox="0 0 18 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.96094 15.5469C1.53125 15.5469 0.59375 14.4688 0.59375 13.1797C0.59375 12.7812 0.695312 12.375 0.914062 11.9922L6.92969 1.47656C7.38281 0.695312 8.17188 0.289062 8.97656 0.289062C9.77344 0.289062 10.5547 0.6875 11.0156 1.47656L17.0312 11.9844C17.25 12.3672 17.3516 12.7812 17.3516 13.1797C17.3516 14.4688 16.4141 15.5469 14.9844 15.5469H2.96094ZM8.98438 9.96094C9.52344 9.96094 9.83594 9.65625 9.86719 9.09375L9.99219 5.72656C10.0234 5.14062 9.59375 4.73438 8.97656 4.73438C8.35156 4.73438 7.92969 5.13281 7.96094 5.72656L8.08594 9.10156C8.10938 9.65625 8.42969 9.96094 8.98438 9.96094ZM8.98438 12.7812C9.60156 12.7812 10.0859 12.3906 10.0859 11.7891C10.0859 11.2031 9.60938 10.8047 8.98438 10.8047C8.35938 10.8047 7.875 11.2031 7.875 11.7891C7.875 12.3906 8.35938 12.7812 8.98438 12.7812Z" fill="#FF2D55"/></svg><p id="DPIPUL2TI1T1ID" class="DPIPUL2TI1T1 DPIPUL2TI1T1R">Warning Title</p></div>`;
 
-            let MediumWarningComponent1 = `
-<div class="DPIPUL2TI1">
-                <svg width="17" height="18" viewBox="0 0 17 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8.64844 17.1172C4.125 17.1172 0.398438 13.3906 0.398438 8.85938C0.398438 4.33594 4.11719 0.609375 8.64844 0.609375C13.1719 0.609375 16.8984 4.33594 16.8984 8.85938C16.8984 13.3906 13.1797 17.1172 8.64844 17.1172ZM8.65625 10.0312C9.19531 10.0312 9.50781 9.72656 9.53906 9.16406L9.66406 5.79688C9.69531 5.21094 9.26562 4.80469 8.64844 4.80469C8.02344 4.80469 7.60156 5.20312 7.63281 5.79688L7.75781 9.17188C7.78125 9.72656 8.10156 10.0312 8.65625 10.0312ZM8.65625 12.8516C9.27344 12.8516 9.75 12.4609 9.75 11.8594C9.75 11.2734 9.28125 10.875 8.65625 10.875C8.03125 10.875 7.54688 11.2734 7.54688 11.8594C7.54688 12.4609 8.03125 12.8516 8.65625 12.8516Z" fill="#FF9500"/>
-                </svg>
-    <p id="DPIPUL2TI1T1ID" class="DPIPUL2TI1T1 DPIPUL2TI1T1O">Warning Title</p>
-</div>
-`;
+            let MediumWarningComponent1 = `<div class="DPIPUL2TI1"><svg width="17" height="18" viewBox="0 0 17 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.64844 17.1172C4.125 17.1172 0.398438 13.3906 0.398438 8.85938C0.398438 4.33594 4.11719 0.609375 8.64844 0.609375C13.1719 0.609375 16.8984 4.33594 16.8984 8.85938C16.8984 13.3906 13.1797 17.1172 8.64844 17.1172ZM8.65625 10.0312C9.19531 10.0312 9.50781 9.72656 9.53906 9.16406L9.66406 5.79688C9.69531 5.21094 9.26562 4.80469 8.64844 4.80469C8.02344 4.80469 7.60156 5.20312 7.63281 5.79688L7.75781 9.17188C7.78125 9.72656 8.10156 10.0312 8.65625 10.0312ZM8.65625 12.8516C9.27344 12.8516 9.75 12.4609 9.75 11.8594C9.75 11.2734 9.28125 10.875 8.65625 10.875C8.03125 10.875 7.54688 11.2734 7.54688 11.8594C7.54688 12.4609 8.03125 12.8516 8.65625 12.8516Z" fill="#FF9500"/></svg><p id="DPIPUL2TI1T1ID" class="DPIPUL2TI1T1 DPIPUL2TI1T1O">Warning Title</p></div>`;
 
-            let LowWarningComponent1 = `
-<div class="DPIPUL2TI1">
-    <svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M8.64844 16.6172C4.125 16.6172 0.398438 12.8906 0.398438 8.35938C0.398438 3.83594 4.11719 0.109375 8.64844 0.109375C13.1719 0.109375 16.8984 3.83594 16.8984 8.35938C16.8984 12.8906 13.1797 16.6172 8.64844 16.6172Z" fill="rgb(var(--color-eel))"/>
-    </svg>
-    <p id="DPIPUL2TI1T1ID" class="DPIPUL2TI1T1 DPIPUL2TI1T1B">Warning Title</p>
-</div>
-`;
+            let LowWarningComponent1 = `<div class="DPIPUL2TI1"><svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.64844 16.6172C4.125 16.6172 0.398438 12.8906 0.398438 8.35938C0.398438 3.83594 4.11719 0.109375 8.64844 0.109375C13.1719 0.109375 16.8984 3.83594 16.8984 8.35938C16.8984 12.8906 13.1797 16.6172 8.64844 16.6172Z" fill="rgb(var(--color-eel))"/></svg><p id="DPIPUL2TI1T1ID" class="DPIPUL2TI1T1 DPIPUL2TI1T1B">Warning Title</p></div>`;
 
-            let FixedWarningComponent1 = `
-<div class="DPIPUL2TI1">
-                <svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8.64844 16.6172C4.125 16.6172 0.398438 12.8906 0.398438 8.35938C0.398438 3.83594 4.11719 0.109375 8.64844 0.109375C13.1719 0.109375 16.8984 3.83594 16.8984 8.35938C16.8984 12.8906 13.1797 16.6172 8.64844 16.6172ZM7.78906 12.2812C8.125 12.2812 8.42969 12.1094 8.63281 11.8125L12.2578 6.26562C12.3984 6.0625 12.4766 5.85156 12.4766 5.65625C12.4766 5.17188 12.0469 4.82812 11.5781 4.82812C11.2734 4.82812 11.0156 4.99219 10.8125 5.32031L7.76562 10.1641L6.40625 8.48438C6.19531 8.23438 5.97656 8.125 5.69531 8.125C5.21875 8.125 4.82812 8.50781 4.82812 8.99219C4.82812 9.21875 4.89844 9.41406 5.07812 9.63281L6.91406 11.8203C7.16406 12.125 7.4375 12.2812 7.78906 12.2812Z" fill="#34C759"/>
-                </svg>
-    <p id="DPIPUL2TI1T1ID" class="DPIPUL2TI1T1 DPIPUL2TI1T1G">Warning Title</p>
-</div>
-`;
+            let FixedWarningComponent1 = `<div class="DPIPUL2TI1"><svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.64844 16.6172C4.125 16.6172 0.398438 12.8906 0.398438 8.35938C0.398438 3.83594 4.11719 0.109375 8.64844 0.109375C13.1719 0.109375 16.8984 3.83594 16.8984 8.35938C16.8984 12.8906 13.1797 16.6172 8.64844 16.6172ZM7.78906 12.2812C8.125 12.2812 8.42969 12.1094 8.63281 11.8125L12.2578 6.26562C12.3984 6.0625 12.4766 5.85156 12.4766 5.65625C12.4766 5.17188 12.0469 4.82812 11.5781 4.82812C11.2734 4.82812 11.0156 4.99219 10.8125 5.32031L7.76562 10.1641L6.40625 8.48438C6.19531 8.23438 5.97656 8.125 5.69531 8.125C5.21875 8.125 4.82812 8.50781 4.82812 8.99219C4.82812 9.21875 4.89844 9.41406 5.07812 9.63281L6.91406 11.8203C7.16406 12.125 7.4375 12.2812 7.78906 12.2812Z" fill="#34C759"/></svg><p id="DPIPUL2TI1T1ID" class="DPIPUL2TI1T1 DPIPUL2TI1T1G">Warning Title</p></div>`;
 
             function createWarningElement(warning) {
                 let htmlContent = '';
@@ -4112,15 +4152,13 @@ function CurrentIssuesPopUpFunction(status) {
                         document.querySelector('#DPIPUL1T2DATE').textContent = "Last Updated: " + String(lastUpdated);
                         document.querySelector('.DPIPUL2').insertAdjacentHTML('beforeend', NextUpdateTrackerComponent1);
                     } else {
-                        alert(`Warnings not found for version: ${duolingoProFormalCurrentVersion}`);
+                        alert(`Warnings not found for Duolingo Pro ${duolingoProFormalCurrentVersion}, this version may be deprecated. `);
                     }
                 } catch (error) {
-                    alert(`Error fetching or parsing data: ${error.message}`);
+                    alert(`Error getting data: ${error.message}`);
                 }
             }
-
             updateWarningsFromURL('https://raw.githubusercontent.com/anonymoushackerIV/anonymoushackerIV.github.io/main/duolingopro/status.json', duolingoProFormalCurrentVersion);
-
         } else {
             let djhsafjkds = document.querySelector('#SeeActiveIssuesBoxShadow');
             djhsafjkds.style.opacity = '0';
@@ -4137,6 +4175,411 @@ function CurrentIssuesPopUpFunction(status) {
 }
 
 
+function hgfem() {
+    let currentTz = Intl.DateTimeFormat().resolvedOptions().timeZone; // Get the current timezone
+    let currentDate = new Date(); // Get the current date in the current timezone
+
+    console.log('Current date in ' + currentTz + ': ' + currentDate.toString());
+
+    let estDate = currentDate.toLocaleDateString("en-US", {timeZone: "America/New_York"}); // Convert the current date to EST and get only the date part
+
+    console.log('Current date in EST: ' + estDate);
+}
+
+
+let EGxjxpyyQVICYLlt = `
+    <div class="djwod">
+	    <div class="rjtso" style="display: flex; justify-content: space-between; align-items: flex-start; align-self: stretch; margin-bottom: 4px;">
+	    	<div class="OuCoTKrL" style="opacity: 0; filter: blur(8px); transition: .4s; position: relative; display: flex; justify-content: center; align-items: center;"></div>
+	    	<svg class="closeIcon094" style="transition: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);" width="15" height="14" viewBox="0 0 15 14" fill="rgba(255, 255, 255, 0.5)" xmlns="http://www.w3.org/2000/svg">
+	    		<path d="M1.32812 13.4922C0.875 13.0469 0.890625 12.2578 1.3125 11.8359L5.78125 7.36719L1.3125 2.91406C0.890625 2.48438 0.875 1.70312 1.32812 1.25C1.78125 0.789062 2.57031 0.804688 2.99219 1.23438L7.45312 5.69531L11.9141 1.23438C12.3516 0.796875 13.1172 0.796875 13.5703 1.25C14.0312 1.70312 14.0312 2.46875 13.5859 2.91406L9.13281 7.36719L13.5859 11.8281C14.0312 12.2734 14.0234 13.0312 13.5703 13.4922C13.125 13.9453 12.3516 13.9453 11.9141 13.5078L7.45312 9.04688L2.99219 13.5078C2.57031 13.9375 1.78906 13.9453 1.32812 13.4922Z"/>
+	    	</svg>
+	    </div>
+	    <p class="fiaks">Loading</p>
+	    <p class="lkfds">Loading</p>
+	    <div class="qjids"></div>
+    </div>
+`;
+let lXTUDhsszBlpOzyG = `
+    .djwod {
+	display: flex;
+	width: 222px;
+	padding: 16px;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	gap: 4px;
+	box-sizing: border-box;
+
+	border-radius: 16px;
+	border: 2px solid rgba(0, 0, 0, 0.10);
+	background: #000;
+
+	cursor: pointer;
+	overflow: hidden;
+
+	position: fixed;
+	bottom: 16px;
+	left: -154px;
+
+    z-index: 2;
+
+	transition: scale .4s, background .8s, left .4s, box-shadow .4s, opacity .4s, filter .4s;
+}
+.djwod:hover {
+	box-shadow: 0px 0px 16px 0px rgba(0, 0, 0, 0.2);
+	scale: 1.05;
+}
+.djwod:active {
+	box-shadow: none;
+	scale: .95;
+}
+
+.closeIcon094:hover {
+    fill: rgba(255, 255, 255, 1);
+	box-shadow: 0px 0px 16px 0px rgba(0, 0, 0, 0.2);
+	scale: 1.2;
+}
+.closeIcon094:active {
+	box-shadow: none;
+	scale: .9;
+}
+
+.fiaks {
+	align-self: stretch;
+
+	color: #FFF;
+	font-size: 20px;
+	font-style: normal;
+	font-weight: 700;
+	line-height: normal;
+
+	margin: 0;
+	transition: .4s;
+}
+.lkfds {
+	align-self: stretch;
+
+	color: rgba(255, 255, 255, 0.75);
+	font-size: 16px;
+	font-style: normal;
+	font-weight: 700;
+	line-height: normal;
+
+	margin: 0;
+
+	height: 0;
+	opacity: 0;
+	transition: .4s;
+}
+
+.qjids {
+	display: flex;
+	padding-top: 4px;
+	justify-content: center;
+	align-items: center;
+	gap: 4px;
+
+}
+.iohft {
+	height: 8px;
+	border-radius: 4px;
+
+	background: rgba(255, 255, 255, 0.50);
+	backdrop-filter: blur(4px);
+
+	transition: 1s;
+}
+.fheks {
+	height: 8px;
+	border-radius: 4px;
+
+	background: rgba(255, 255, 255, 0.50);
+	backdrop-filter: blur(4px);
+
+	transition: width 8s, opacity 1s;
+}
+`;
+let EGxjxpyyQVICYLltElement = null;
+let lXTUDhsszBlpOzyGStyle = null;
+const pathsOJDS = ['/learn', '/practice-hub', '/leaderboard', '/quests', '/shop', '/profile/', '/settings/'];
+function cBcutPZB() {
+    try {
+    if (pathsOJDS.includes(window.location.pathname)) {
+        if (!lXTUDhsszBlpOzyGStyle) {
+            lXTUDhsszBlpOzyGStyle = document.createElement('style');
+            lXTUDhsszBlpOzyGStyle.type = 'text/css';
+            lXTUDhsszBlpOzyGStyle.innerHTML = lXTUDhsszBlpOzyG;
+            document.head.appendChild(lXTUDhsszBlpOzyGStyle);
+
+            document.body.insertAdjacentHTML('beforeend', EGxjxpyyQVICYLlt);
+        }
+        function eipwofa() {
+            if (pathsOJDS.includes(window.location.pathname)) {
+                try { document.querySelector('.djwod').style.display = ''; } catch (error) {}
+            } else {
+                try { document.querySelector('.djwod').style.display = 'none'; } catch (error) {}
+            }
+        }
+        setInterval(eipwofa, 1000);
+
+        let djwodElement = document.querySelector('.djwod');
+
+        let smallView = false;
+        if (window.innerWidth < 1160) {
+            smallView = true;
+        } else {
+            smallView = false;
+        }
+//
+        let EdIozuiv = true;
+        let isPaused = false;
+        let currentNumber = 1;
+
+        let isHoveringCloseButton094 = false;
+        let currentURL = "https://example.com/";
+        document.querySelector('.closeIcon094').addEventListener('mouseover', function() {
+            isHoveringCloseButton094 = true;
+        });
+        document.querySelector('.closeIcon094').addEventListener('mouseout', function() {
+            setTimeout(function() {
+                isHoveringCloseButton094 = false;
+            }, 800);
+        });
+        document.querySelector('.closeIcon094').addEventListener('click', function() {
+            localStorage.setItem('DLP4Uz53cm6wjnOG7tY', "false");
+            djwodElement.style.scale = "0.8";
+            djwodElement.style.filter = "blur(16px)";
+            djwodElement.style.opacity = "0";
+            notificationCall("Promotions Hidden", "Duolingo Pro promotions are hidden until the next update. ");
+        });
+        djwodElement.addEventListener("click", function() {
+            if (!isHoveringCloseButton094) {
+                window.open(BubbleResult.bubbles[currentNumber - 1].link, '_blank');
+            } else {
+            }
+        });
+
+        let isTransitionTime832 = false;
+        let sjidhf = document.querySelector(".fiaks");
+        let ifdhsi = document.querySelector(".lkfds");
+        let OuCoTKrL = document.querySelector('.OuCoTKrL');
+
+        sjidhf.textContent = BubbleResult.bubbles[0].title.text;
+        ifdhsi.textContent = BubbleResult.bubbles[0].description.text;
+        sjidhf.style.opacity = "1";
+        sjidhf.style.filter = "blur(0px)";
+        sjidhf.style.height = BubbleResult.bubbles[0].title.height;
+        djwodElement.style.background = BubbleResult.bubbles[0].background;
+
+        OuCoTKrL.insertAdjacentHTML('afterbegin', BubbleResult.bubbles[0].icon);
+        OuCoTKrL.style.filter = "blur(0px)";
+        OuCoTKrL.style.opacity = "1";
+
+        document.querySelector(".djwod").style.background = BubbleResult.bubbles[0].background;
+
+        if (!smallView) {
+            djwodElement.style.left = "16px";
+        }
+        djwodElement.addEventListener("mouseover", function() {
+            let fgijgElement = document.querySelector(".fiaks");
+            let lkfdsElement = document.querySelector(".lkfds");
+
+            if (smallView) {
+                djwodElement.style.left = "16px";
+            }
+            tddfnj();
+            function tddfnj() {
+                if (!isTransitionTime832) {
+                    lkfdsElement.style.height = BubbleResult.bubbles[currentNumber - 1].description.height;
+                    lkfdsElement.style.opacity = "1";
+                    lkfdsElement.style.filter = "blur(0px)";
+
+                    fgijgElement.style.height = BubbleResult.bubbles[currentNumber - 1].title.height;
+                    fgijgElement.style.opacity = "1";
+                    fgijgElement.style.filter = "blur(0px)";
+                } else {
+                    setTimeout(function() {
+                        tddfnj();
+                    }, 50);
+                }
+            }
+            isPaused = true;
+        });
+
+        djwodElement.addEventListener("mouseout", function() {
+            let lkfdsElement = document.getElementsByClassName("lkfds")[0];
+            if (smallView) {
+                djwodElement.style.left = "-154px";
+            }
+            lkfdsElement.style.height = "0px";
+            lkfdsElement.style.opacity = "0";
+            lkfdsElement.style.filter = "blur(8px)";
+            isPaused = false;
+        });
+
+        function injectElements(amount) {
+            for (let i = 1; i <= amount; i++) {
+                let outerDiv = document.createElement('div');
+                outerDiv.id = 'jfei' + i;
+                outerDiv.className = 'iohft';
+                outerDiv.style.width = '8px';
+
+                let innerDiv = document.createElement('div');
+                innerDiv.className = 'fheks';
+                innerDiv.style.width = '8px';
+                innerDiv.style.background = '#FFF';
+                innerDiv.style.opacity = '0';
+
+                outerDiv.appendChild(innerDiv);
+
+                document.querySelector('.qjids').appendChild(outerDiv);
+            }
+        }
+
+        function disdf(total) {
+            let numbersList = [];
+            let jfei1Element = document.getElementById("jfei" + String(currentNumber));
+            jfei1Element.style.width = "32px";
+            let jfei1fheksElement = jfei1Element.getElementsByClassName("fheks")[0];
+            jfei1fheksElement.style.width = "8px";
+            jfei1fheksElement.style.opacity = "1";
+            for (let i = 1; i <= total; i++) {
+                if (i !== currentNumber) {
+                    numbersList.push(i);
+                }
+            }
+            numbersList.forEach(function(num) {
+                let element = document.getElementById("jfei" + String(num));
+                if (element) {
+                    //console.log("Element found for ID:", "jfei" + String(num));
+                    element.style.width = "8px";
+                }
+            });
+
+
+            setTimeout(function() {
+                jfei1fheksElement.style.width = "100%";
+            }, 50);
+
+            document.querySelector(".djwod").style.background = BubbleResult.bubbles[currentNumber - 1].background;
+
+            ifhji();
+            function ifhji() {
+                setTimeout(function() {
+                    sjidhf.textContent = BubbleResult.bubbles[currentNumber - 1].title.text;
+                    ifdhsi.textContent = BubbleResult.bubbles[currentNumber - 1].description.text;
+                    sjidhf.style.opacity = "1";
+                    sjidhf.style.filter = "blur(0px)";
+                    sjidhf.style.height = BubbleResult.bubbles[currentNumber - 1].title.height;
+
+                    if (!EdIozuiv) {
+                        document.querySelector('.OuCoTKrL .dihafk').remove();
+                        document.querySelector('.OuCoTKrL').insertAdjacentHTML('afterbegin', BubbleResult.bubbles[currentNumber - 1].icon);
+
+                        //requestAnimationFrame(function() {
+                            setTimeout(function() {
+                                document.querySelector('.OuCoTKrL').style.filter = "blur(0px)";
+                                document.querySelector('.OuCoTKrL').style.opacity = "1";
+                            }, 0);
+                        //});
+                    }
+                    EdIozuiv = false;
+
+                    if (isPaused) {
+                        ifdhsi.style.opacity = "1";
+                        ifdhsi.style.filter = "blur(0px)";
+                        ifdhsi.style.height = BubbleResult.bubbles[currentNumber - 1].description.height;
+                    }
+                }, 400);
+                setTimeout(function() {
+                    isTransitionTime832 = false;
+                }, 800);
+            }
+
+
+            setTimeout(function() {
+                isTransitionTime832 = true;
+                if (currentNumber < total) {
+                    currentNumber = currentNumber + 1;
+                    disdf(bubbleTotal);
+                } else if (currentNumber === total) {
+                    currentNumber = 1;
+                    disdf(bubbleTotal);
+                }
+
+                jfei1fheksElement.style.width = "8px";
+                jfei1fheksElement.style.opacity = "0";
+
+                sjidhf.style.opacity = "0";
+                sjidhf.style.filter = "blur(8px)";
+                sjidhf.style.height = "0px";
+                ifdhsi.style.opacity = "0";
+                ifdhsi.style.filter = "blur(8px)";
+                ifdhsi.style.height = "0px";
+
+                document.querySelector('.OuCoTKrL').style.filter = "blur(8px)";
+                document.querySelector('.OuCoTKrL').style.opacity = "0";
+            }, 8050);
+        }
+        injectElements(bubbleTotal);
+        disdf(bubbleTotal);
+    } else {
+    }
+    } catch (error) {
+        console.log(error);
+    }
+}
+let bubbleTotal;
+let BubbleResult;
+async function fetchDatacBcutPZB(url) {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        bubbleTotal = parseInt(data["bubble-total"]);
+        const bubbleList = [];
+        for (let i = 1; i <= bubbleTotal; i++) {
+            const bubbleKey = `bubble-${i}`;
+            const bubbleInfo = {
+                icon: data[bubbleKey].icon,
+                title: {
+                    text: data[bubbleKey].title["title-text"],
+                    color: data[bubbleKey].title["title-color"],
+                    height: data[bubbleKey].title["title-height"]
+                },
+                description: {
+                    text: data[bubbleKey].description["description-text"],
+                    color: data[bubbleKey].description["description-color"],
+                    height: data[bubbleKey].description["description-height"]
+                },
+                background: data[bubbleKey].background,
+                border: data[bubbleKey].border,
+                link: data[bubbleKey].link
+            };
+            bubbleList.push(bubbleInfo);
+        }
+        return {
+            bubbleTotal,
+            bubbles: bubbleList
+        };
+    } catch (error) {
+        alert(`Error getting data: ${error.message}`);
+    }
+}
+async function getDatacBcutPZB() {
+    try {
+        BubbleResult = await fetchDatacBcutPZB("https://raw.githubusercontent.com/anonymoushackerIV/anonymoushackerIV.github.io/main/duolingopro/promotion-bubble.json");
+        cBcutPZB();
+    } catch (error) {
+        console.error(`Error: ${error.message}`);
+    }
+}
+if (DLPpromotionBubbleVisibility) {
+    getDatacBcutPZB();
+}
 
 
 
@@ -4165,7 +4608,6 @@ function solving() {
 }
 
 function solve() {
-    const selAgain = document.querySelectorAll('[data-test="player-practice-again"]');
     const practiceAgain = document.querySelector('[data-test="player-practice-again"]');
 
     try {
@@ -4187,19 +4629,23 @@ function solve() {
         }
     } catch (error) {}
 
-    if (selAgain.length === 1 && isAutoMode) {
-        // Make sure it's the `practice again` button
-        //if (selAgain[0].innerHTML.toLowerCase() === 'practice again') {
-        // Click the `practice again` button
-        selAgain[0].click();
-        // Terminate
-        return;
-        //}
-    }
     if (practiceAgain !== null && isAutoMode) {
-        practiceAgain.click();
-        return;
+        if (!DuolingoProSettingsNeverEndMode) {
+            autoSolverBoxRepeatAmount--;
+        }
+        sessionStorage.setItem('autoSolverBoxRepeatAmount', autoSolverBoxRepeatAmount);
+        if (autoSolverBoxRepeatAmount > 0 || DuolingoProSettingsNeverEndMode) {
+            //practiceAgain.click();
+            //DuolingoProCounterOneFunction();
+            window.location.reload();
+            return;
+        } else if (autoSolverBoxRepeatAmount <= 0) {
+            autoSolverBoxRepeatAmount = 0;
+            sessionStorage.setItem('autoSolverBoxRepeatAmount', autoSolverBoxRepeatAmount);
+            window.location.href = "https://duolingo.com";
+        }
     }
+
     try {
         window.sol = findReact(document.getElementsByClassName('_3FiYg')[0]).props.currentChallenge;
     } catch {
