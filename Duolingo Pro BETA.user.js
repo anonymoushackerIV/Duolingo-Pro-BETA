@@ -8,7 +8,6 @@
 // @grant        none
 // @license      MIT
 // @require      https://unpkg.com/@supabase/supabase-js@2.12.1
-// @require      https://html2canvas.hertzen.com/dist/html2canvas.min.js
 // @icon         https://github.com/anonymoushackerIV/Duolingo-Pro-Assets/blob/main/images/Duolingo-Pro-Icon.png?raw=true
 // ==/UserScript==
 
@@ -4961,7 +4960,8 @@ function LhEqEHHc() {
     questionErrorLogs(findReact(document.getElementsByClassName('_3FiYg')[0]).props.currentChallenge, document.body.innerHTML, randomImageValue);
     //const challengeAssistElement = document.querySelector('[data-test="challenge challenge-assist"]');
     const challengeAssistElement = document.querySelector('._3x0ok');
-    if (challengeAssistElement) {
+    let html2canvasApprovedEnviroment = false;
+    if (html2canvasApprovedEnviroment && challengeAssistElement.length > 0) {
         html2canvas(challengeAssistElement).then(canvas => {
             canvas.toBlob(async blob => {
                 // Get a reference to the Supabase Storage bucket
