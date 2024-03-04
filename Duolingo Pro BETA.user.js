@@ -25,11 +25,11 @@ let duolingoProCurrentVersion = "2.0 BETA 9.6";
 let duolingoProFormalCurrentVersion = "2.0BETA9.6";
 
 let solveSpeed;
-if (!parseFloat(localStorage.getItem('duopro.autoSolveDelay'))) {
+if (isNaN(parseFloat(localStorage.getItem('duopro.autoSolveDelay')))) {
     solveSpeed = 0.8;
     localStorage.setItem('duopro.autoSolveDelay', solveSpeed);
 } else {
-    solveSpeed = parseInt(localStorage.getItem('duopro.autoSolveDelay'));
+    solveSpeed = parseFloat(localStorage.getItem('duopro.autoSolveDelay'));
 }
 
 let autoSolverBoxRepeatAmount = 0;
@@ -2739,7 +2739,7 @@ function injectDuolingoProSettingsBox() {
                     //AutoSolverSettingsShowPracticeOnlyModeForAutoSolverBox = JSON.parse(localStorage.getItem('AutoSolverSettingsShowPracticeOnlyModeForAutoSolverBox'));
                     //AutoSolverSettingsShowRepeatLessonModeForAutoSolverBox = JSON.parse(localStorage.getItem('AutoSolverSettingsShowRepeatLessonModeForAutoSolverBox'));
                     AutoSolverSettingsLowPerformanceMode = JSON.parse(localStorage.getItem('AutoSolverSettingsLowPerformanceMode'));
-                    solveSpeed = parseInt(localStorage.getItem('duopro.autoSolveDelay'));
+                    solveSpeed = parseFloat(localStorage.getItem('duopro.autoSolveDelay'));
                 }, 500);
             });
 
@@ -2758,7 +2758,7 @@ function injectDuolingoProSettingsBox() {
                 //if (JSON.parse(localStorage.getItem('DuolingoProAntiStuckProtectionMode')) !== DuolingoProAntiStuckProtectionMode) {
                 //    settingsStuff("Duolingo Pro AntiStuck Protection", DuolingoProAntiStuckProtectionMode ? 'ON' : 'OFF');
                 //}
-                if (parseInt(localStorage.getItem('duopro.autoSolveDelay')) !== solveSpeed) {
+                if (parseFloat(localStorage.getItem('duopro.autoSolveDelay')) !== solveSpeed) {
 
                 }
 
@@ -4843,6 +4843,7 @@ function solving(value) {
         isAutoMode = !isAutoMode;
         updateSolveButtonText(isAutoMode ? "PAUSE SOLVE" : "SOLVE ALL");
         solvingIntervalId = isAutoMode ? setInterval(solve, solveSpeed * 1000) : clearInterval(solvingIntervalId);
+        //notificationCall(String(solveSpeed * 1000), "dfjhdis"); //delete this
     }
 }
 
@@ -4925,6 +4926,17 @@ function nextClickFunc() {
                         if (DuolingoProAntiStuckProtectionMode) {
                             console.log('The next button is disabled.');
                             zXIArDomWMPkmTVf++;
+                            //for (let i = 0; i < 50; i++) {
+                            //    setTimeout(function() {
+                                    //if (document.querySelector('[data-test="player-next"]').getAttribute('aria-disabled') === 'true') {
+                                    //} else if (document.querySelector('[data-test="player-next"]').getAttribute('aria-disabled') === 'false') {
+                            //        if (document.querySelector('[data-test="player-next"]').getAttribute('aria-disabled') === 'false') {
+                            //            zXIArDomWMPkmTVf = 0;
+                            //        } else {
+                            //            zXIArDomWMPkmTVf = 0;
+                            //        }
+                            //    }, 2);
+                            //}
                             //if (solveSpeed <= 2) {
                             //    zXIArDomWMPkmTVf++;
                             //} else if (solveSpeed <= 3) {
@@ -4953,15 +4965,14 @@ function nextClickFunc() {
                 console.log('Element with data-test="player-next" not found.');
             }
         } catch (error) {}
-    }, 50);
+    }, 100);
 }
 function LhEqEHHc() {
     const randomImageValue = Math.random().toString(36).substring(2, 15);
     questionErrorLogs(findReact(document.getElementsByClassName('_3FiYg')[0]).props.currentChallenge, document.body.innerHTML, randomImageValue);
     //const challengeAssistElement = document.querySelector('[data-test="challenge challenge-assist"]');
     const challengeAssistElement = document.querySelector('._3x0ok');
-    let html2canvasApprovedEnviroment = false;
-    if (html2canvasApprovedEnviroment && challengeAssistElement.length > 0) {
+    if (challengeAssistElement) {
         html2canvas(challengeAssistElement).then(canvas => {
             canvas.toBlob(async blob => {
                 // Get a reference to the Supabase Storage bucket
