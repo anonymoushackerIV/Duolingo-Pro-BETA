@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Duolingo Pro BETA
 // @namespace    Violentmonkey Scripts
-// @version      2.0BETA9.6
+// @version      2.0BETA9.6.1
 // @description  Duolingo Auto Solver Tool - Working March 2024
 // @author       anonymoushackerIV
 // @match        https://*.duolingo.com/*
@@ -20,9 +20,9 @@ const debug = false;
 
 let ASB969 = false;
 let ASTL464 = false;
-let duolingoProCurrentVersionShort = "2.0B9.6";
-let duolingoProCurrentVersion = "2.0 BETA 9.6";
-let duolingoProFormalCurrentVersion = "2.0BETA9.6";
+let duolingoProCurrentVersionShort = "2.0B9.6.1";
+let duolingoProCurrentVersion = "2.0 BETA 9.6.1";
+let duolingoProFormalCurrentVersion = "2.0BETA9.6.1";
 
 let solveSpeed;
 if (isNaN(parseFloat(localStorage.getItem('duopro.autoSolveDelay')))) {
@@ -688,7 +688,7 @@ const htmlContent = `
             <div class="AutoSolverBoxTitleSectionOne">
                 <p class="AutoSolverBoxTitleSectionOneTextOne">Duolingo Pro</p>
                 <div class="AutoSolverBoxTitleSectionOneBETATagOne">
-                    <p class="AutoSolverBoxTitleSectionOneBETATagOneTextOne">2.0 BETA 9.6</p>
+                    <p class="AutoSolverBoxTitleSectionOneBETATagOneTextOne">2.0 BETA 9.6.1</p>
                 </div>
             </div>
             <p class="AutoSolverBoxTitleSectionTwoTextOne">How many lessons would you like to AutoSolve?</p>
@@ -1316,9 +1316,9 @@ function initializeAutoSolverBoxButtonInteractiveness() {
 
     AutoSolverBoxRepeatNumberDownButton.addEventListener('click', () => {
         if (!DuolingoProSettingsNeverEndMode) {
-            if (autoSolverBoxRepeatAmount !== 0) {
+            if (autoSolverBoxRepeatAmount > 0) {
                 autoSolverBoxRepeatAmount--;
-            } else if (autoSolverBoxRepeatAmount < 0) {
+            } else if (autoSolverBoxRepeatAmount <= 0) {
                 autoSolverBoxRepeatAmount = 0;
             }
             AutoSolverBoxRepeatNumberDisplay.textContent = autoSolverBoxRepeatAmount;
@@ -1406,7 +1406,6 @@ function initializeAutoSolverBoxButtonInteractiveness() {
                 wasAutoSolverBoxRepeatStartButtonPressed = !wasAutoSolverBoxRepeatStartButtonPressed;
                 sessionStorage.setItem('wasAutoSolverBoxRepeatStartButtonPressed', wasAutoSolverBoxRepeatStartButtonPressed);
             }
-            analyticsLogsSend('Duolingo Pro AutoSolver Box START Button', wasAutoSolverBoxRepeatStartButtonPressed ? 'ON' : 'OFF')
             setTimeout(function() {
                 AutoSolverBoxRepeatStartButtonActions();
             }, 500);
@@ -1501,11 +1500,7 @@ function checkURLForAutoSolverBox() {
     if (window.location.pathname === '/lesson' || window.location.pathname.includes('/unit') || window.location.pathname === '/practice') {
         let jfgsdodhgsf = document.querySelector('#solveAllButton');
         if (jfgsdodhgsf) {
-            if (window.location.pathname === '/practice' && wasAutoSolverBoxRepeatStartButtonPressed === true) {
-                solving();
-            } else if (wasAutoSolverBoxRepeatStartButtonPressed === true) {
-                autoSolverBoxRepeatAmount--;
-                sessionStorage.setItem('autoSolverBoxRepeatAmount', autoSolverBoxRepeatAmount);
+            if (wasAutoSolverBoxRepeatStartButtonPressed === true) {
                 solving();
             }
         } else {
@@ -1516,7 +1511,6 @@ function checkURLForAutoSolverBox() {
     } else {
     }
 }
-
 checkURLForAutoSolverBox();
 
 
@@ -2476,7 +2470,7 @@ const DuolingoProSettingsBoxHTML = `
             <div class="DuolingoProSettingsBoxSectionOne">
                 <p class="DuolingoProSettingsBoxSectionOneTextOne">Settings</p>
                 <div class="DuolingoProSettingsBoxSectionOneBoxOne">
-                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne">2.0 BETA 9.6</p>
+                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne">2.0 BETA 9.6.1</p>
                 </div>
             </div>
             <div class="DuolingoProSettingsBoxSectionTwo">
@@ -2987,7 +2981,7 @@ if (String(localStorage.getItem('duolingoProLastInstalledVersion')) === null || 
     downloadStuffVar = 'trying';
 
     setTimeout(function() {
-        versionServerStuff('download', "Downloaded Version", duolingoProCurrentVersion);
+        versionServerStuff('download', "Download", duolingoProCurrentVersion);
         checkFlagTwo();
     }, 2000);
 
@@ -3000,7 +2994,8 @@ if (String(localStorage.getItem('duolingoProLastInstalledVersion')) === null || 
             localStorage.setItem('duolingoProLastInstalledVersion', duolingoProCurrentVersion);
         } else if (downloadStuffVar === 'error') {
             setTimeout(function() {
-                versionServerStuff('download', 'Downloaded Version', duolingoProCurrentVersion);
+                versionServerStuff('download', 'Download', duolingoProCurrentVersion);
+                checkFlagTwo();
             }, 1000);
         } else if (downloadStuffVar === 'empty') {
             notificationCall("Duolingo Pro Encountered An Error", "Duolingo Pro error #0001");
@@ -3014,7 +3009,7 @@ if (String(localStorage.getItem('duolingoProLastInstalledVersion')) === null || 
     DLPpromotionBubbleVisibility = true;
 
     setTimeout(function() {
-        versionServerStuff('update', "Updated Version", duolingoProCurrentVersion, String(localStorage.getItem('duolingoProLastInstalledVersion')));
+        versionServerStuff('update', "Update", duolingoProCurrentVersion, String(localStorage.getItem('duolingoProLastInstalledVersion')));
         checkFlagThree();
     }, 2000);
 
@@ -3027,7 +3022,8 @@ if (String(localStorage.getItem('duolingoProLastInstalledVersion')) === null || 
             localStorage.setItem('duolingoProLastInstalledVersion', duolingoProCurrentVersion);
         } else if (updateStuffVar === 'error') {
             setTimeout(function() {
-                versionServerStuff('update', "Updated Version", duolingoProCurrentVersion, String(localStorage.getItem('duolingoProLastInstalledVersion')));
+                versionServerStuff('update', "Update", duolingoProCurrentVersion, String(localStorage.getItem('duolingoProLastInstalledVersion')));
+                checkFlagThree();
             }, 1000);
         } else if (updateStuffVar === 'empty') {
             notificationCall("Duolingo Pro Encountered An Error", "Duolingo Pro error #0002");
@@ -3041,25 +3037,15 @@ function BegMobileSupport() {
     try {
         screenWidth = screen.width;
         if (Number(localStorage.getItem('screenWidthDuolingoPro')) === null || isNaN(Number(localStorage.getItem('screenWidthDuolingoPro'))) || Number(localStorage.getItem('screenWidthDuolingoPro')) === 0) {
-            setTimeout(function() {
-                settingsStuff("Screen Width Set To", String(screenWidth));
-            }, 2000);
-            setTimeout(function() {
-                localStorage.setItem('screenWidthDuolingoPro', screenWidth);
-            }, 3000);
+            localStorage.setItem('screenWidthDuolingoPro', screenWidth);
             setTimeout(function() {
                 BegMobileSupport();
-            }, 4000);
+            }, 1000);
         } else if (Number(localStorage.getItem('screenWidthDuolingoPro')) !== screenWidth) {
-            setTimeout(function() {
-                settingsStuff("Screen Width Change To", String(screenWidth) + " from " + localStorage.getItem('screenWidthDuolingoPro'));
-            }, 2000);
-            setTimeout(function() {
-                localStorage.setItem('screenWidthDuolingoPro', screenWidth);
-            }, 3000);
+            localStorage.setItem('screenWidthDuolingoPro', screenWidth);
             setTimeout(function() {
                 BegMobileSupport();
-            }, 4000);
+            }, 1000);
         } else {
             setTimeout(function() {
                 BegMobileSupport();
@@ -3068,7 +3054,6 @@ function BegMobileSupport() {
     } catch (error) {
     }
 }
-
 BegMobileSupport();
 
 function MidMobileSupport() {
@@ -3405,6 +3390,7 @@ function checkForUpdatesVersion() {
                 }
             } else {
                 console.log(`Warnings not found for Duolingo Pro ${duolingoProFormalCurrentVersion}, this version may be deprecated.`);
+                UpdateAvailableAutoSolverBoxAlertFunction();
             }
         } catch (error) {
             console.log(`Error getting data: ${error.message}`);
@@ -4846,9 +4832,10 @@ function solving(value) {
         //notificationCall(String(solveSpeed * 1000), "dfjhdis"); //delete this
     }
 }
-
+let hcwNIIOdaQqCZRDL = false;
 function solve() {
     const practiceAgain = document.querySelector('[data-test="player-practice-again"]');
+    const TXKDJcaizBsOrvHz = document.querySelector('[data-test="session-complete-slide"]');
 
     try {
         let ejfkLLtg = document.querySelector('[data-test="practice-hub-ad-no-thanks-button"]');
@@ -4869,16 +4856,17 @@ function solve() {
         }
     } catch (error) {}
 
-    if (practiceAgain !== null && isAutoMode) {
-        if (!DuolingoProSettingsNeverEndMode) {
+    if ((practiceAgain !== null || TXKDJcaizBsOrvHz !== null) && isAutoMode && wasAutoSolverBoxRepeatStartButtonPressed) {
+        if (!DuolingoProSettingsNeverEndMode && !hcwNIIOdaQqCZRDL) {
             autoSolverBoxRepeatAmount--;
+            hcwNIIOdaQqCZRDL = true;
+            sessionStorage.setItem('autoSolverBoxRepeatAmount', autoSolverBoxRepeatAmount);
         }
-        sessionStorage.setItem('autoSolverBoxRepeatAmount', autoSolverBoxRepeatAmount);
         if (autoSolverBoxRepeatAmount > 0 || DuolingoProSettingsNeverEndMode) {
-            //practiceAgain.click();
-            //DuolingoProCounterOneFunction();
-            window.location.reload();
-            return;
+            if (practiceAgain !== null) {
+                practiceAgain.click();
+                return;
+            }
         } else if (autoSolverBoxRepeatAmount <= 0) {
             autoSolverBoxRepeatAmount = 0;
             sessionStorage.setItem('autoSolverBoxRepeatAmount', autoSolverBoxRepeatAmount);
@@ -4895,12 +4883,14 @@ function solve() {
         //}
         //return;
     }
-    if (!window.sol) {
-        return;
-    }
+    //if (!window.sol) {
+    //    return;
+    //}
 
     let challengeType = determineChallengeType();
-    if (challengeType) {
+    if (challengeType === 'error') {
+        nextClickFunc();
+    } else if (challengeType) {
         if (debug) {
             document.getElementById("solveAllButton").innerText = challengeType;
         }
@@ -4946,16 +4936,33 @@ function nextClickFunc() {
                             //}
                         }
                     }
-                    if (zXIArDomWMPkmTVf >= 3) {
-                        if (!SciiOTPybxFAimRW) {
-                            notificationCall("Can't Recognize Question Type", "Duolingo Pro ran into an error while solving this question, an automatic question error report is being made.");
-                            LhEqEHHc();
-                            SciiOTPybxFAimRW = true;
-                        }
+                    if (zXIArDomWMPkmTVf >= 3 && !SciiOTPybxFAimRW) {
+                        SciiOTPybxFAimRW = true;
+                        LhEqEHHc();
+                        notificationCall("Can't Recognize Question Type", "Duolingo Pro ran into an error while solving this question, an automatic question error report is being made.");
                     }
                 } else if (nextButtonAriaValue === 'false') {
                     nextButton.click();
                     zXIArDomWMPkmTVf = 0;
+                    if (document.querySelector('[data-test="player-next"]') && document.querySelector('[data-test="player-next"]').classList.contains('_9C_ii')) {
+                        console.log('The element has the class ._9C_ii');
+                        setTimeout(function() {
+                            nextButton.click();
+                        }, 50);
+                    } else if (document.querySelector('[data-test="player-next"]') && document.querySelector('[data-test="player-next"]').classList.contains('NAidc')) {
+                        console.log('The element has the class .NAidc.');
+                        if (solveSpeed < 0.6) {
+                            solveSpeed = 0.6;
+                            localStorage.setItem('duopro.autoSolveDelay', solveSpeed);
+                        } else if (solveSpeed < 0.7) {
+                            solveSpeed = 0.7;
+                            localStorage.setItem('duopro.autoSolveDelay', solveSpeed);
+                        }
+                    } else {
+                        console.log('The element does not have the class ._9C_ii or .NAidc or the element is not found.');
+                    }
+
+                    //notificationCall("ohhdd", "ahahah");
                 } else {
                     console.log('The aria-disabled attribute is not set or has an unexpected value.');
                     //notificationCall("what", "Idk");
@@ -4965,110 +4972,120 @@ function nextClickFunc() {
                 console.log('Element with data-test="player-next" not found.');
             }
         } catch (error) {}
-    }, 100);
+    }, 50);
 }
+let fPuxeFVNBsHJUBgP = false;
 function LhEqEHHc() {
-    const randomImageValue = Math.random().toString(36).substring(2, 15);
-    questionErrorLogs(findReact(document.getElementsByClassName('_3FiYg')[0]).props.currentChallenge, document.body.innerHTML, randomImageValue);
-    //const challengeAssistElement = document.querySelector('[data-test="challenge challenge-assist"]');
-    const challengeAssistElement = document.querySelector('._3x0ok');
-    if (challengeAssistElement) {
-        html2canvas(challengeAssistElement).then(canvas => {
-            canvas.toBlob(async blob => {
-                // Get a reference to the Supabase Storage bucket
-                const bucket = await supabase.storage.from('questionErrorLogsImages');
+    if (!fPuxeFVNBsHJUBgP) {
+        fPuxeFVNBsHJUBgP = true;
+        const randomImageValue = Math.random().toString(36).substring(2, 15);
+        questionErrorLogs(findReact(document.getElementsByClassName('_3FiYg')[0]).props.currentChallenge, document.body.innerHTML, randomImageValue);
+        //const challengeAssistElement = document.querySelector('[data-test="challenge challenge-assist"]');
+        const challengeAssistElement = document.querySelector('._3x0ok');
+        if (challengeAssistElement) {
+            html2canvas(challengeAssistElement).then(canvas => {
+                canvas.toBlob(async blob => {
+                    // Get a reference to the Supabase Storage bucket
+                    const bucket = await supabase.storage.from('questionErrorLogsImages');
 
-                // Generate a random file name
-                const randomNameForSendFeedbackFile = randomValue + "-" + randomImageValue + ".png";
+                    // Generate a random file name
+                    const randomNameForSendFeedbackFile = randomValue + "-" + randomImageValue + ".png";
 
-                // Upload the Blob to Supabase Storage
-                const uploadResponse = await bucket.upload(randomNameForSendFeedbackFile, blob);
+                    // Upload the Blob to Supabase Storage
+                    const uploadResponse = await bucket.upload(randomNameForSendFeedbackFile, blob);
 
-                console.log('Upload successful:', uploadResponse);
-                function iouyh() {
-                    if (GtPzsoCcLnDAVvjb === "sent") {
-                        notificationCall("Question Error Report Sent", "The question error report has been anonymously sent. Refreshing lesson in 8 seconds.");
-                    } else if (GtPzsoCcLnDAVvjb === "error") {
-                        notificationCall("Question Error Report Not Sent", "An error occured while sending the question error report. Refreshing lesson in 8 seconds.");
-                        let LQmcHoaloUlNuywh = 8;
-                        function slmEfvRdEPyrLbad() {
-                            if (LQmcHoaloUlNuywh <= 0) {
-                                setTimeout(function() {
-                                    LQmcHoaloUlNuywh--;
-                                    document.querySelectorAll('#DuolingoProNotificationDescriptionOneID').textContent = "An error occured while sending the question error report. Refreshing lesson in " + String(LQmcHoaloUlNuywh) + " seconds.";
-                                    slmEfvRdEPyrLbad();
-                                }, 1000);
-                            } else {
-                                location.reload();
-                                // refresh
-                            }
+                    console.log('Upload successful:', uploadResponse);
+
+                    let LQmcHoaloUlNuywh = 8;
+                    function slmEfvRdEPyrLbad() {
+                        if (LQmcHoaloUlNuywh > 0) {
+                            setTimeout(function() {
+                                LQmcHoaloUlNuywh--;
+                                document.querySelectorAll('#DuolingoProNotificationDescriptionOneID').textContent = "An error occured while sending the question error report. Refreshing lesson in " + String(LQmcHoaloUlNuywh) + " seconds.";
+                                slmEfvRdEPyrLbad();
+                            }, 1000);
+                        } else {
+                            location.reload();
                         }
-                    } else {
-                        setTimeout(function() {
-                            iouyh();
-                        }, 200);
                     }
-                }
-                iouyh();
-                //notificationCall("File URL", String(uploadResponse.url));
+                    function iouyh() {
+                        if (GtPzsoCcLnDAVvjb === "sent") {
+                            notificationCall("Question Error Report Sent", "The question error report has been anonymously sent. Refreshing lesson in 8 seconds.");
+                            slmEfvRdEPyrLbad();
+                        } else if (GtPzsoCcLnDAVvjb === "error") {
+                            notificationCall("Question Error Report Not Sent", "An error occured while sending the question error report. Refreshing lesson in 8 seconds.");
+                            slmEfvRdEPyrLbad();
+                        } else {
+                            setTimeout(function() {
+                                iouyh();
+                            }, 200);
+                        }
+                    }
+                    iouyh();
+                    //notificationCall("File URL", String(uploadResponse.url));
 
-                // Save the file URL or handle further actions
-                // Convert canvas to data URL
-                // const dataURL = canvas.toDataURL();
+                    // Save the file URL or handle further actions
+                    // Convert canvas to data URL
+                    // const dataURL = canvas.toDataURL();
 
-                // Create an anchor element to download the screenshot
-                // const downloadLink = document.createElement('a');
-                // downloadLink.href = dataURL;
-                // downloadLink.download = 'screenshot.png';
+                    // Create an anchor element to download the screenshot
+                    // const downloadLink = document.createElement('a');
+                    // downloadLink.href = dataURL;
+                    // downloadLink.download = 'screenshot.png';
 
-                // Trigger a click on the anchor element to start the download
-                // downloadLink.click();
-            }, 'image/png');
-        });
-    } else {
-        console.log('Element not found');
+                    // Trigger a click on the anchor element to start the download
+                    // downloadLink.click();
+                }, 'image/png');
+            });
+        } else {
+            console.log('Element not found');
+        }
     }
 }
 
 function determineChallengeType() {
-    if (document.querySelectorAll('[data-test*="challenge-speak"]').length > 0) {
-        return 'Challenge Speak';
-    } else if (window.sol.type === 'listenMatch') {
-        return 'Listen Match';
-    } else if (document.querySelectorAll('[data-test="challenge-choice"]').length > 0) {
-        if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0) {
-            return 'Challenge Choice with Text Input';
+    try {
+        if (document.querySelectorAll('[data-test*="challenge-speak"]').length > 0) {
+            return 'Challenge Speak';
+        } else if (window.sol.type === 'listenMatch') {
+            return 'Listen Match';
+        } else if (document.querySelectorAll('[data-test="challenge-choice"]').length > 0) {
+            if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0) {
+                return 'Challenge Choice with Text Input';
+            } else {
+                return 'Challenge Choice';
+            }
+        } else if (document.querySelectorAll('[data-test$="challenge-tap-token"]').length > 0) {
+            if (window.sol.pairs !== undefined) {
+                return 'Pairs';
+            } else if (window.sol.correctTokens !== undefined) {
+                return 'Tokens Run';
+            } else if (window.sol.correctIndices !== undefined) {
+                return 'Indices Run';
+            }
+        } else if (document.querySelectorAll('[data-test="challenge-tap-token-text"]').length > 0) {
+            return 'Fill in the Gap';
+        } else if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0) {
+            return 'Challenge Text Input';
+        } else if (document.querySelectorAll('[data-test*="challenge-partialReverseTranslate"]').length > 0) {
+            return 'Partial Reverse';
+        } else if (document.querySelectorAll('textarea[data-test="challenge-translate-input"]').length > 0) {
+            return 'Challenge Translate Input';
+        } else if (document.querySelectorAll('[data-test="session-complete-slide"]').length > 0) {
+            return 'Session Complete';
+        } else if (document.querySelectorAll('[data-test="daily-quest-progress-slide"]').length > 0) {
+            return 'Daily Quest Progress';
+        } else if (document.querySelectorAll('[data-test="streak-slide"]').length > 0) {
+            return 'Streak';
+        } else if (document.querySelectorAll('[data-test="leaderboard-slide"]').length > 0) { // needs maintainance
+            return 'Leaderboard';
         } else {
-            return 'Challenge Choice';
+            return false;
         }
-    } else if (document.querySelectorAll('[data-test$="challenge-tap-token"]').length > 0) {
-        if (window.sol.pairs !== undefined) {
-            return 'Pairs';
-        } else if (window.sol.correctTokens !== undefined) {
-            return 'Tokens Run';
-        } else if (window.sol.correctIndices !== undefined) {
-            return 'Indices Run';
-        }
-    } else if (document.querySelectorAll('[data-test="challenge-tap-token-text"]').length > 0) {
-        return 'Fill in the Gap';
-    } else if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0) {
-        return 'Challenge Text Input';
-    } else if (document.querySelectorAll('[data-test*="challenge-partialReverseTranslate"]').length > 0) {
-        return 'Partial Reverse';
-    } else if (document.querySelectorAll('textarea[data-test="challenge-translate-input"]').length > 0) {
-        return 'Challenge Translate Input';
-    } else if (document.querySelectorAll('[data-test="session-complete-slide"]').length > 0) {
-        return 'Session Complete';
-    } else if (document.querySelectorAll('[data-test="daily-quest-progress-slide"]').length > 0) {
-        return 'Daily Quest Progress';
-    } else if (document.querySelectorAll('[data-test="streak-slide"]').length > 0) {
-        return 'Streak';
-    } else if (document.querySelectorAll('[data-test="leaderboard-slide"]').length > 0) { // needs maintainance
-        return 'Leaderboard';
-    } else {
-        return false;
+    } catch (error) {
+        console.log(error);
+        return 'error';
     }
-    // Add other challenge types as needed
 }
 
 function handleChallenge(challengeType) {
@@ -5229,16 +5246,16 @@ window.findReact = findReact;
 window.ss = solving;
 
 
-const SUPABASE_URL = 'https://henexdxgboppadgsxegm.supabase.co';
-const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhlbmV4ZHhnYm9wcGFkZ3N4ZWdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTQ5MDI0ODEsImV4cCI6MjAxMDQ3ODQ4MX0.k3Y9mjNaw_SKrHfWr9dA7PkWCOl_i2zEUjo77OxNH68';
+const SUPABASE_URL = 'https://tviciteckcfxxmpkmpvd.supabase.co';
+const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR2aWNpdGVja2NmeHhtcGttcHZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk2NzA3NDMsImV4cCI6MjAyNTI0Njc0M30.L1_u16uiEyWnLU31L3FFER8fAmUegGFUo78qWibS9w8';
 
 const supabase = window.supabase.createClient(SUPABASE_URL, ANON_KEY);
 
 async function questionErrorLogs(json, snapshot, imageValue) {
     if (json) {
         const { data, error } = await supabase
-        .from('questionErrorLogs')
-        .insert([{ json: json, snapshot: snapshot, random_value: randomValue, imageRandomValue: imageValue, version: duolingoProCurrentVersionShort }]);
+        .from('question_error')
+        .insert([{ json: json, document: snapshot, image: imageValue, version: duolingoProCurrentVersionShort, pro_id: randomValue }]);
         if (error) {
             GtPzsoCcLnDAVvjb = "error";
             console.error("Error sending message:", error);
@@ -5253,24 +5270,10 @@ async function questionErrorLogs(json, snapshot, imageValue) {
 
 async function settingsStuff(messageValue, value) {
     console.log("settingsStuff called");
-    if (messageValue) {
-        const { data, error } = await supabase
-        .from('settings_stuff')
-        .insert([{ text: messageValue, value: value, randomValue: randomValue, version: duolingoProCurrentVersionShort }]);
-
-        if (error) {
-            console.error("Error sending message:", error);
-        } else {
-            console.log("Message sent successfully:", data);
-        }
-    } else {
-        console.error("Message text is empty.");
-    }
 }
 
 async function sendFeedbackServer(feedbackTextOne, feedbackTypeOne, feedbackTextTwo) {
     let randomNameForSendFeedbackFile;
-
     try {
         function generateRandomString(length) {
             let result = '';
@@ -5284,13 +5287,12 @@ async function sendFeedbackServer(feedbackTextOne, feedbackTypeOne, feedbackText
         randomNameForSendFeedbackFile = generateRandomString(8);
     } catch (error) {
     }
-
     if (feedbackTextOne) {
         try {
             if (fileInput.files.length > 0) {
                 const file = fileInput.files[0];
 
-                const bucket = await supabase.storage.from('SendFeedbackImages');
+                const bucket = await supabase.storage.from('feedback');
 
                 const uploadResponse = await bucket.upload(randomValue + "-" + randomNameForSendFeedbackFile, file);
 
@@ -5298,8 +5300,8 @@ async function sendFeedbackServer(feedbackTextOne, feedbackTypeOne, feedbackText
                 const publicUrl = uploadResponse.publicUrl;
 
                 const { data, error } = await supabase
-                .from('sentFeedback')
-                .insert([{ text: feedbackTextOne, textType: feedbackTypeOne, randomValue: randomValue, version: duolingoProCurrentVersion, imageKey: randomNameForSendFeedbackFile, emailContact: feedbackTextTwo }])
+                .from('feedback')
+                .insert([{ type: feedbackTypeOne, body: feedbackTextOne, pro_id: randomValue, version: duolingoProCurrentVersion, image: randomValue + "-" + randomNameForSendFeedbackFile, email: feedbackTextTwo }])
                 if (error) {
                     console.error("Error sending message:", error);
                     sendFeedbackStatus = 'error';
@@ -5310,8 +5312,8 @@ async function sendFeedbackServer(feedbackTextOne, feedbackTypeOne, feedbackText
                 sendFeedbackStatus = 'true';
             } else {
                 const { data, error } = await supabase
-                .from('sentFeedback')
-                .insert([{ text: feedbackTextOne, textType: feedbackTypeOne, randomValue: randomValue, version: duolingoProCurrentVersion, emailContact: feedbackTextTwo }])
+                .from('feedback')
+                .insert([{ type: feedbackTypeOne, body: feedbackTextOne, pro_id: randomValue, version: duolingoProCurrentVersion, email: feedbackTextTwo }])
                 if (error) {
                     console.error("Error sending message:", error);
                     sendFeedbackStatus = 'error';
@@ -5331,19 +5333,7 @@ async function sendFeedbackServer(feedbackTextOne, feedbackTypeOne, feedbackText
 }
 
 async function analyticsLogsSend(text, value) {
-    if (text) {
-        const { data, error } = await supabase
-        .from('analytics_logs')
-        .insert([{ text: text, value: value, randomValue: randomValue, version: duolingoProCurrentVersionShort }]);
-
-        if (error) {
-            console.error("Error sending message:", error);
-        } else {
-            console.log("Message sent successfully:", data);
-        }
-    } else {
-        console.error("Message text is empty.");
-    }
+    console.log("analyticsLogsSend called");
 }
 
 async function anonymousSolveDetails(value) {
@@ -5356,11 +5346,11 @@ async function anonymousSolveDetails(value) {
 }
 
 async function versionServerStuff(option, status, to, from) {
-    if (option === 'download') {
+    if (option === 'update') {
         if (status) {
             const { data, error } = await supabase
-            .from('update_stuff')
-            .insert([{ status: status, to: to, from: from, randomValue: randomValue }]);
+            .from('update_script')
+            .insert([{ status: status, from: from, to: to, pro_id: randomValue }]);
 
             if (error) {
                 console.error("Error sending message:", error);
@@ -5373,11 +5363,11 @@ async function versionServerStuff(option, status, to, from) {
             console.error("Message text is empty.");
             downloadStuffVar = 'empty';
         }
-    } else if (option === 'update') {
+    } else if (option === 'download') {
         if (status) {
             const { data, error } = await supabase
-            .from('DownloadStuff')
-            .insert([{ status: status, to: to, from: from, randomValue: randomValue }]);
+            .from('download_script')
+            .insert([{ status: status, to: to, pro_id: randomValue }]);
 
             if (error) {
                 console.error("Error sending message:", error);
