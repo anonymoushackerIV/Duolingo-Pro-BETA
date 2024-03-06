@@ -1360,18 +1360,24 @@ function initializeAutoSolverBoxButtonInteractiveness() {
         if (autoSolverBoxRepeatAmount > 0 || DuolingoProSettingsNeverEndMode) {
             sessionStorage.setItem('autoSolverBoxRepeatAmount', autoSolverBoxRepeatAmount);
 
-            setTimeout(function() {
+            //let erXybYXuipnzVGxn = document.querySelectorAll('._33Jbm._1eJKW._16r-S.RQl8m');
+            //let hyllzkmzXKVMUBGy = Array.from(erXybYXuipnzVGxn).find(button => !button.disabled);
+            //if (hyllzkmzXKVMUBGy.length > 0) {
+            //    hyllzkmzXKVMUBGy.click();
+            //}
+
+            document.addEventListener('DOMContentLoaded', function () {
                 try {
-                    //let openChestThingy = document.querySelector("button[aria-label='Open chest']");
-                    //openChestThingy.click();
-                    let erXybYXuipnzVGxn = document.querySelectorAll('._33Jbm._1eJKW._16r-S.RQl8m');
-                    let hyllzkmzXKVMUBGy = Array.from(erXybYXuipnzVGxn).find(button => !button.disabled);
-                    if (hyllzkmzXKVMUBGy.length > 0) {
-                        hyllzkmzXKVMUBGy.click();
-                    }
+                    const imageUrl = 'https://d35aaqx5ub95lt.cloudfront.net/images/path/09f977a3e299d1418fde0fd053de0beb.svg';
+                    const images = document.querySelectorAll('img');
+                    images.forEach(image => {
+                        if (image.src === imageUrl) {
+                            image.click();
+                        }
+                    });
                 } catch (error) {
                 }
-            }, 1000);
+            });
 
             setTimeout(function() {
                 if (!DuolingoProSettingsNeverEndMode) {
