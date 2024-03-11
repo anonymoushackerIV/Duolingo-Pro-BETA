@@ -5393,7 +5393,7 @@ async function questionErrorLogs(json, snapshot, imageValue) {
     //        GtPzsoCcLnDAVvjb = "error";
     //        console.error("Error sending message:", error);
     //    } else {
-    //        GtPzsoCcLnDAVvjb = "sent";
+            GtPzsoCcLnDAVvjb = "sent";
     //        console.log("Message sent successfully:", data);
     //    }
     //} else {
