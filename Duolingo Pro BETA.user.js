@@ -212,6 +212,7 @@ function createButton(id, text, styleClass, eventHandlers) {
     return button;
 }
 
+//Adds buttons
 function addButtons() {
     if (window.location.pathname === '/learn' && document.querySelector('a[data-test="global-practice"]')) {
         return;
