@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Duolingo Pro BETA
 // @namespace    Violentmonkey Scripts
-// @version      2.0BETA9.6.1
+// @version      2.0BETA9.6.2
 // @description  Duolingo Auto Solver Tool - Working March 2024
 // @author       anonymoushackerIV
 // @match        https://*.duolingo.com/*
@@ -20,9 +20,9 @@ const debug = false;
 
 let ASB969 = false;
 let ASTL464 = false;
-let duolingoProCurrentVersionShort = "2.0B9.6.1";
-let duolingoProCurrentVersion = "2.0 BETA 9.6.1";
-let duolingoProFormalCurrentVersion = "2.0BETA9.6.1";
+let duolingoProCurrentVersionShort = "2.0B9.6.2";
+let duolingoProCurrentVersion = "2.0 BETA 9.6.2";
+let duolingoProFormalCurrentVersion = "2.0BETA9.6.2";
 
 let solveSpeed;
 if (isNaN(parseFloat(localStorage.getItem('duopro.autoSolveDelay')))) {
@@ -35,8 +35,30 @@ if (isNaN(parseFloat(localStorage.getItem('duopro.autoSolveDelay')))) {
 let autoSolverBoxRepeatAmount = 0;
 autoSolverBoxRepeatAmount = Number(sessionStorage.getItem('autoSolverBoxRepeatAmount'));
 
-let DuolingoProAmountOfQuestionsEverSolved = 0;
-DuolingoProAmountOfQuestionsEverSolved = Number(localStorage.getItem('DuolingoProAmountOfQuestionsEverSolved'));
+let DLPsessionCompleteAmount = 0;
+if (!isNaN(Number(sessionStorage.getItem('duopro.autoSolveSessionCompleteAmount'))) && Number(sessionStorage.getItem('duopro.autoSolveSessionCompleteAmount')) !== null) {
+    DLPsessionCompleteAmount = Number(sessionStorage.getItem('duopro.autoSolveSessionCompleteAmount'));
+} else {
+    DLPsessionCompleteAmount = 0;
+}
+
+let duoproForeverTotalQuestions = 0;
+if (!isNaN(Number(localStorage.getItem('duopro.forever.totalQuestions'))) && Number(localStorage.getItem('duopro.forever.totalQuestions')) !== null) {
+    duoproForeverTotalQuestions = Number(localStorage.getItem('duopro.forever.totalQuestions'));
+} else {
+    duoproForeverTotalQuestions = 0;
+    localStorage.setItem('duopro.forever.totalQuestions', duoproForeverTotalQuestions);
+}
+let duoproForeverTotalLessons = 0;
+if (!isNaN(Number(localStorage.getItem('duopro.forever.totalLessons'))) && Number(localStorage.getItem('duopro.forever.totalLessons')) !== null) {
+    duoproForeverTotalLessons = Number(localStorage.getItem('duopro.forever.totalLessons'));
+    try {
+        localStorage.removeItem("DuolingoProAmountOfQuestionsEverSolved");
+    } catch (error) {}
+} else {
+    duoproForeverTotalLessons = 0;
+    localStorage.setItem('duopro.forever.totalLessons', duoproForeverTotalQuestions);
+}
 
 let ProBlockBannerOneVisible = false;
 if (JSON.parse(localStorage.getItem('ProBlockBannerOneVisible')) === null) {
@@ -688,7 +710,7 @@ const htmlContent = `
             <div class="AutoSolverBoxTitleSectionOne">
                 <p class="AutoSolverBoxTitleSectionOneTextOne">Duolingo Pro</p>
                 <div class="AutoSolverBoxTitleSectionOneBETATagOne">
-                    <p class="AutoSolverBoxTitleSectionOneBETATagOneTextOne">2.0 BETA 9.6.1</p>
+                    <p class="AutoSolverBoxTitleSectionOneBETATagOneTextOne">2.0 BETA 9.6.2</p>
                 </div>
             </div>
             <p class="AutoSolverBoxTitleSectionTwoTextOne">How many lessons would you like to AutoSolve?</p>
@@ -760,7 +782,7 @@ const cssContent = `
     background: rgb(var(--color-snow), 0.84);
     backdrop-filter: blur(32px);
 
-    width: 300px;
+    width: 320px;
 
     transition: .5s;
     overflow: hidden;
@@ -1264,7 +1286,7 @@ function initializeAutoSolverBoxButtonInteractiveness() {
                 AutoSolverBoxRepeatNumberDownButton.classList.remove('AutoSolverBoxRepeatAmountButtonDeactive');
             } catch (error) {}
         }
-        if (autoSolverBoxRepeatAmount === 999999 || autoSolverBoxRepeatAmount > 999999) {
+        if (autoSolverBoxRepeatAmount === 99999 || autoSolverBoxRepeatAmount > 99999) {
             AutoSolverBoxRepeatNumberUpButton.classList.add('AutoSolverBoxRepeatAmountButtonDeactive');
             try {
                 AutoSolverBoxRepeatNumberUpButton.classList.remove('AutoSolverBoxRepeatAmountButtonActive');
@@ -1331,10 +1353,10 @@ function initializeAutoSolverBoxButtonInteractiveness() {
 
     AutoSolverBoxRepeatNumberUpButton.addEventListener('click', () => {
         if (!DuolingoProSettingsNeverEndMode) {
-            if (autoSolverBoxRepeatAmount !== 999999) {
+            if (autoSolverBoxRepeatAmount !== 99999) {
                 autoSolverBoxRepeatAmount++;
-            } else if (autoSolverBoxRepeatAmount > 999999) {
-                autoSolverBoxRepeatAmount = 999999;
+            } else if (autoSolverBoxRepeatAmount > 99999) {
+                autoSolverBoxRepeatAmount = 99999;
             }
             AutoSolverBoxRepeatNumberDisplay.textContent = autoSolverBoxRepeatAmount;
             sessionStorage.setItem('autoSolverBoxRepeatAmount', autoSolverBoxRepeatAmount);
@@ -1358,28 +1380,50 @@ function initializeAutoSolverBoxButtonInteractiveness() {
 
     function AutoSolverBoxRepeatStartButtonActions() {
         if (autoSolverBoxRepeatAmount > 0 || DuolingoProSettingsNeverEndMode) {
-            sessionStorage.setItem('autoSolverBoxRepeatAmount', autoSolverBoxRepeatAmount);
+            pKVKQrfVcqrLWnpH();
 
-            //let erXybYXuipnzVGxn = document.querySelectorAll('._33Jbm._1eJKW._16r-S.RQl8m');
-            //let hyllzkmzXKVMUBGy = Array.from(erXybYXuipnzVGxn).find(button => !button.disabled);
-            //if (hyllzkmzXKVMUBGy.length > 0) {
-            //    hyllzkmzXKVMUBGy.click();
-            //}
-
-            document.addEventListener('DOMContentLoaded', function () {
+            function pKVKQrfVcqrLWnpH() {
+                if (document.readyState === 'complete') {
+                    setTimeout(function() {
+                        PjYdVpmxDsskMlRs();
+                    }, 2000);
+                } else {
+                    setTimeout(function() {
+                        pKVKQrfVcqrLWnpH();
+                    }, 100);
+                }
+            }
+            function PjYdVpmxDsskMlRs() {
                 try {
                     const imageUrl = 'https://d35aaqx5ub95lt.cloudfront.net/images/path/09f977a3e299d1418fde0fd053de0beb.svg';
-                    const images = document.querySelectorAll('img');
+                    const images = document.querySelectorAll('._2Zucs');
+                    if (!images.length) {
+                        setTimeout(function() {
+                            PjYdVpmxDsskMlRs();
+                            return;
+                        }, 100);
+                    }
+                    let imagesProcessed = 0;
+                    let chestFound = false;
                     images.forEach(image => {
                         if (image.src === imageUrl) {
                             image.click();
+                            chestFound = true;
+                            setTimeout(function() {
+                                XyEOALuaeQicpGHW();
+                            }, 2000);
+                        }
+                        imagesProcessed++;
+                        if (imagesProcessed >= images.length && !chestFound) {
+                            XyEOALuaeQicpGHW();
                         }
                     });
                 } catch (error) {
+                    XyEOALuaeQicpGHW();
                 }
-            });
+            }
 
-            setTimeout(function() {
+            function XyEOALuaeQicpGHW() {
                 if (!DuolingoProSettingsNeverEndMode) {
                     if (wasAutoSolverBoxRepeatStartButtonPressed === true && autoSolverBoxRepeatAmount > 0) {
                         if (autoSolverBoxPracticeOnlyMode) {
@@ -1401,7 +1445,7 @@ function initializeAutoSolverBoxButtonInteractiveness() {
                         window.location.href = "https://duolingo.com/lesson";
                     }
                 }
-            }, 4000);
+            };
         }
     }
 
@@ -1412,9 +1456,7 @@ function initializeAutoSolverBoxButtonInteractiveness() {
                 wasAutoSolverBoxRepeatStartButtonPressed = !wasAutoSolverBoxRepeatStartButtonPressed;
                 sessionStorage.setItem('wasAutoSolverBoxRepeatStartButtonPressed', wasAutoSolverBoxRepeatStartButtonPressed);
             }
-            setTimeout(function() {
-                AutoSolverBoxRepeatStartButtonActions();
-            }, 500);
+            AutoSolverBoxRepeatStartButtonActions();
         });
     } catch(error) {
     }
@@ -2476,7 +2518,7 @@ const DuolingoProSettingsBoxHTML = `
             <div class="DuolingoProSettingsBoxSectionOne">
                 <p class="DuolingoProSettingsBoxSectionOneTextOne">Settings</p>
                 <div class="DuolingoProSettingsBoxSectionOneBoxOne">
-                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne">2.0 BETA 9.6.1</p>
+                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne">2.0 BETA 9.6.2</p>
                 </div>
             </div>
             <div class="DuolingoProSettingsBoxSectionTwo">
@@ -2549,9 +2591,32 @@ const DuolingoProSettingsBoxHTML = `
                         <svg width="18" height="17" viewBox="0 0 18 17" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M9 16.9766C8.57812 16.9766 8.24219 16.6719 8.15625 16.2188C7.35156 11.0156 6.70312 10.3984 1.66406 9.70312C1.21094 9.64062 0.882812 9.29688 0.882812 8.85938C0.882812 8.42188 1.21875 8.0625 1.67188 8.00781C6.71875 7.44531 7.4375 6.71094 8.15625 1.5C8.22656 1.05469 8.57031 0.742188 9 0.742188C9.42188 0.742188 9.76562 1.05469 9.83594 1.5C10.625 6.71094 11.3047 7.38281 16.3359 8.00781C16.7812 8.07031 17.1172 8.42188 17.1172 8.85938C17.1172 9.29688 16.7812 9.64844 16.3281 9.70312C11.2812 10.2734 10.5547 11.0078 9.83594 16.2188C9.77344 16.6641 9.42969 16.9766 9 16.9766Z" fill="#007AFF"/>
                         </svg>
-                        <p class="paragraphText noSelect" style="flex: 1 0 0; color: #007AFF;">Contributors & Libraries</p>
+                        <p class="paragraphText noSelect" style="flex: 1 0 0; color: #007AFF;">Your Time with Duolingo Pro</p>
+                        <svg width="18" height="17" viewBox="0 0 18 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9 16.6172C4.47656 16.6172 0.75 12.8906 0.75 8.35938C0.75 3.83594 4.46875 0.109375 9 0.109375C13.5234 0.109375 17.25 3.83594 17.25 8.35938C17.25 12.8906 13.5312 16.6172 9 16.6172ZM8.99219 5.86719C9.65625 5.86719 10.2031 5.3125 10.2031 4.64844C10.2031 3.96094 9.65625 3.42188 8.99219 3.42188C8.32031 3.42188 7.76562 3.96094 7.76562 4.64844C7.76562 5.3125 8.32031 5.86719 8.99219 5.86719ZM7.52344 12.8125H10.8438C11.2734 12.8125 11.6094 12.5156 11.6094 12.0703C11.6094 11.6562 11.2734 11.3281 10.8438 11.3281H10.1094V7.95312C10.1094 7.36719 9.82031 6.99219 9.27344 6.99219H7.67969C7.25 6.99219 6.91406 7.32031 6.91406 7.72656C6.91406 8.16406 7.25 8.47656 7.67969 8.47656H8.42969V11.3281H7.52344C7.09375 11.3281 6.75781 11.6562 6.75781 12.0703C6.75781 12.5156 7.09375 12.8125 7.52344 12.8125Z" fill="#007AFF"/>
+                        </svg>
                     </div>
-                    <p class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);"><a href="https://github.com/anonymoushackerIV" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">anonymoushackerIV</a>, <a href="https://github.com/surebrec" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">surebrec</a>, <a href="https://github.com/SicariusBlack" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">SicariusBlack</a>, <a href="https://github.com/supabase/supabase-js" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">supabase-js</a>, <a href="https://github.com/niklasvh/html2canvas" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">html2canvas</a></p>
+                    <div style="display: flex; align-items: center; gap: 8px; align-self: stretch;">
+                        <p class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);">Questions Solved:</p>
+                        <p id="eASGBnBrCZmjwbBq" class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);">NaN</p>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; align-self: stretch;">
+                        <p class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);">Lessons Solved:</p>
+                        <p id="WuLExbHJuqjJkLpE" class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);">NaN</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; padding: 16px; flex-direction: column; justify-content: center; align-items: flex-start; gap: 8px; align-self: stretch; border-radius: 8px; border: 2px solid rgba(0, 122, 255, 0.10); background: rgba(0, 122, 255, 0.10);">
+                    <div style="display: flex; align-items: center; gap: 8px; align-self: stretch;">
+                        <svg width="18" height="17" viewBox="0 0 18 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9 16.9766C8.57812 16.9766 8.24219 16.6719 8.15625 16.2188C7.35156 11.0156 6.70312 10.3984 1.66406 9.70312C1.21094 9.64062 0.882812 9.29688 0.882812 8.85938C0.882812 8.42188 1.21875 8.0625 1.67188 8.00781C6.71875 7.44531 7.4375 6.71094 8.15625 1.5C8.22656 1.05469 8.57031 0.742188 9 0.742188C9.42188 0.742188 9.76562 1.05469 9.83594 1.5C10.625 6.71094 11.3047 7.38281 16.3359 8.00781C16.7812 8.07031 17.1172 8.42188 17.1172 8.85938C17.1172 9.29688 16.7812 9.64844 16.3281 9.70312C11.2812 10.2734 10.5547 11.0078 9.83594 16.2188C9.77344 16.6641 9.42969 16.9766 9 16.9766Z" fill="#007AFF"/>
+                        </svg>
+                        <p class="paragraphText noSelect" style="flex: 1 0 0; color: #007AFF;">Contributors & Libraries</p>
+                        <svg width="18" height="17" viewBox="0 0 18 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9 16.6172C4.47656 16.6172 0.75 12.8906 0.75 8.35938C0.75 3.83594 4.46875 0.109375 9 0.109375C13.5234 0.109375 17.25 3.83594 17.25 8.35938C17.25 12.8906 13.5312 16.6172 9 16.6172ZM8.99219 5.86719C9.65625 5.86719 10.2031 5.3125 10.2031 4.64844C10.2031 3.96094 9.65625 3.42188 8.99219 3.42188C8.32031 3.42188 7.76562 3.96094 7.76562 4.64844C7.76562 5.3125 8.32031 5.86719 8.99219 5.86719ZM7.52344 12.8125H10.8438C11.2734 12.8125 11.6094 12.5156 11.6094 12.0703C11.6094 11.6562 11.2734 11.3281 10.8438 11.3281H10.1094V7.95312C10.1094 7.36719 9.82031 6.99219 9.27344 6.99219H7.67969C7.25 6.99219 6.91406 7.32031 6.91406 7.72656C6.91406 8.16406 7.25 8.47656 7.67969 8.47656H8.42969V11.3281H7.52344C7.09375 11.3281 6.75781 11.6562 6.75781 12.0703C6.75781 12.5156 7.09375 12.8125 7.52344 12.8125Z" fill="#007AFF"/>
+                        </svg>
+                    </div>
+                    <p class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);"><a href="https://github.com/anonymoushackerIV" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">anonymoushackerIV</a>, <a href="https://github.com/surebrec" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">surebrec</a>, <a href="https://github.com/SicariusBlack" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">SicariusBlack</a>, <a href="https://github.com/supabase/supabase-js" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">supabase-js</a>, <a href="https://github.com/niklasvh/html2canvas" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">html2canvas</a>, <a href="https://github.com/fakeduo" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">fakeduo</a></p>
                 </div>
 
             </div>
@@ -2777,6 +2842,9 @@ function injectDuolingoProSettingsBox() {
                 }, 2000);
 
             });
+
+            document.querySelector('#eASGBnBrCZmjwbBq').textContent = String(duoproForeverTotalQuestions);
+            document.querySelector('#WuLExbHJuqjJkLpE').textContent = String(duoproForeverTotalLessons);
 
             const DuolingoProSettingsBoxToggleT1ID1 = document.querySelector('#DuolingoProSettingsBoxToggleT1ID1');
             DuolingoProSettingsBoxToggleT1ID1.addEventListener('click', () => {
@@ -3930,7 +3998,13 @@ const DuolingoProCounterOneHTML = `
         <svg id="DLPTB1e1i1ID" style="display: none;" width="20" height="10" viewBox="0 0 20 10" fill="rgb(var(--color-eel))" xmlns="http://www.w3.org/2000/svg">
             <path d="M0.223633 5.06445C0.223633 2.2959 2.01465 0.470703 4.66699 0.470703C6.02734 0.470703 7.20312 1.04492 8.41309 2.2207L9.91016 3.66309L11.4004 2.2207C12.6104 1.04492 13.7861 0.470703 15.1465 0.470703C17.7988 0.470703 19.5898 2.2959 19.5898 5.06445C19.5898 7.82617 17.7988 9.65137 15.1465 9.65137C13.7861 9.65137 12.6104 9.08398 11.4004 7.9082L9.91016 6.45898L8.41309 7.9082C7.20312 9.08398 6.02734 9.65137 4.66699 9.65137C2.01465 9.65137 0.223633 7.82617 0.223633 5.06445ZM2.25391 5.06445C2.25391 6.61621 3.21777 7.62109 4.66699 7.62109C5.45312 7.62109 6.17773 7.23828 6.99121 6.46582L8.47461 5.06445L6.99121 3.66309C6.17773 2.89062 5.45312 2.50098 4.66699 2.50098C3.21777 2.50098 2.25391 3.50586 2.25391 5.06445ZM11.3389 5.06445L12.8223 6.46582C13.6426 7.23828 14.3604 7.62109 15.1465 7.62109C16.5957 7.62109 17.5596 6.61621 17.5596 5.06445C17.5596 3.50586 16.5957 2.50098 15.1465 2.50098C14.3604 2.50098 13.6357 2.89062 12.8223 3.66309L11.3389 5.06445Z"/>
         </svg>
-        <p id="DLPTB1e1t1ID" class="vCIrKKxykXwXyUza-Text noSelect">Infinity</p>
+        <p id="DLPTB1e1t1ID" class="vCIrKKxykXwXyUza-Text noSelect"></p>
+    </div>
+    <div class="vCIrKKxykXwXyUza" id="DLPTB1e4ID">
+        <svg id="DLPTB1e1i1ID" style="display: none;" width="20" height="10" viewBox="0 0 20 10" fill="rgb(var(--color-eel))" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0.223633 5.06445C0.223633 2.2959 2.01465 0.470703 4.66699 0.470703C6.02734 0.470703 7.20312 1.04492 8.41309 2.2207L9.91016 3.66309L11.4004 2.2207C12.6104 1.04492 13.7861 0.470703 15.1465 0.470703C17.7988 0.470703 19.5898 2.2959 19.5898 5.06445C19.5898 7.82617 17.7988 9.65137 15.1465 9.65137C13.7861 9.65137 12.6104 9.08398 11.4004 7.9082L9.91016 6.45898L8.41309 7.9082C7.20312 9.08398 6.02734 9.65137 4.66699 9.65137C2.01465 9.65137 0.223633 7.82617 0.223633 5.06445ZM2.25391 5.06445C2.25391 6.61621 3.21777 7.62109 4.66699 7.62109C5.45312 7.62109 6.17773 7.23828 6.99121 6.46582L8.47461 5.06445L6.99121 3.66309C6.17773 2.89062 5.45312 2.50098 4.66699 2.50098C3.21777 2.50098 2.25391 3.50586 2.25391 5.06445ZM11.3389 5.06445L12.8223 6.46582C13.6426 7.23828 14.3604 7.62109 15.1465 7.62109C16.5957 7.62109 17.5596 6.61621 17.5596 5.06445C17.5596 3.50586 16.5957 2.50098 15.1465 2.50098C14.3604 2.50098 13.6357 2.89062 12.8223 3.66309L11.3389 5.06445Z"/>
+        </svg>
+        <p id="DLPTB1e4t1ID" class="vCIrKKxykXwXyUza-Text noSelect"></p>
     </div>
     <div class="vCIrKKxykXwXyUza" id="DLPTB1e2ID">
         <svg width="13" height="15" viewBox="0 0 13 15" fill="rgb(var(--color-eel))" xmlns="http://www.w3.org/2000/svg">
@@ -4102,26 +4176,44 @@ function DuolingoProCounterOneFunction() {
                 cLsYCmdd.textContent = 'OFF';
             }
         }
+        function aQklgZktoyzqdZpz(typeSingular, typePLural) {
+            if (DLPsessionCompleteAmount === 0) {
+                if (DLPCE258) {
+                    DLPCE258.remove();
+                }
+            } else if (DLPsessionCompleteAmount === 1) {
+                DLPCE258i.textContent = String(DLPsessionCompleteAmount) + " " + typeSingular + " Solved";
+            } else {
+                DLPCE258i.textContent = String(DLPsessionCompleteAmount) + " " + typePLural + " Solved";
+            }
+        }
         let DLPCE728 = document.querySelector('#DLPTB1e1t1ID');
         let DLPCE728i = document.querySelector('#DLPTB1e1i1ID');
+        let DLPCE258 = document.querySelector('#DLPTB1e4ID');
+        let DLPCE258i = document.querySelector('#DLPTB1e4t1ID');
         if (DuolingoProSettingsNeverEndMode) {
             DLPCE728i.style.display = '';
             DLPCE728.textContent = 'Infinity';
+            if (window.location.pathname === '/practice') {
+                aQklgZktoyzqdZpz("Practice", "Practices");
+            } else {
+                aQklgZktoyzqdZpz("Lesson", "Lessons");
+            }
         } else if (window.location.pathname === '/practice') {
-            if (autoSolverBoxRepeatAmount === 2) {
-                DLPCE728.textContent = '1 Practice Left';
-            } else if (autoSolverBoxRepeatAmount === 1) {
+            aQklgZktoyzqdZpz("Practice", "Practices");
+            if (autoSolverBoxRepeatAmount === 1) {
                 DLPCE728.textContent = 'Last Practice';
             } else if (autoSolverBoxRepeatAmount === 0) {
-                DLPCE728.textContent = 'Finishing Up...';
+                DLPCE728.textContent = 'Finishing Up';
             } else if (autoSolverBoxRepeatAmount) {
                 DLPCE728.textContent = String(autoSolverBoxRepeatAmount + ' Practices Left');
             }
         } else {
+            aQklgZktoyzqdZpz("Lesson", "Lessons");
             if (autoSolverBoxRepeatAmount === 1) {
-                DLPCE728.textContent = '1 Lesson Left';
-            } else if (autoSolverBoxRepeatAmount === 0) {
                 DLPCE728.textContent = 'Last Lesson';
+            } else if (autoSolverBoxRepeatAmount === 0) {
+                DLPCE728.textContent = 'Finishing Up';
             } else if (autoSolverBoxRepeatAmount) {
                 DLPCE728.textContent = String(autoSolverBoxRepeatAmount + ' Lessons Left');
             }
@@ -4835,13 +4927,12 @@ function solving(value) {
         isAutoMode = !isAutoMode;
         updateSolveButtonText(isAutoMode ? "PAUSE SOLVE" : "SOLVE ALL");
         solvingIntervalId = isAutoMode ? setInterval(solve, solveSpeed * 1000) : clearInterval(solvingIntervalId);
-        //notificationCall(String(solveSpeed * 1000), "dfjhdis"); //delete this
     }
 }
 let hcwNIIOdaQqCZRDL = false;
 function solve() {
     const practiceAgain = document.querySelector('[data-test="player-practice-again"]');
-    const TXKDJcaizBsOrvHz = document.querySelector('[data-test="session-complete-slide"]');
+    const sessionCompleteSlide = document.querySelector('[data-test="session-complete-slide"]');
 
     try {
         let ejfkLLtg = document.querySelector('[data-test="practice-hub-ad-no-thanks-button"]');
@@ -4862,14 +4953,17 @@ function solve() {
         }
     } catch (error) {}
 
-    if ((practiceAgain !== null || TXKDJcaizBsOrvHz !== null) && isAutoMode && wasAutoSolverBoxRepeatStartButtonPressed) {
+    if ((practiceAgain !== null || sessionCompleteSlide !== null) && isAutoMode && wasAutoSolverBoxRepeatStartButtonPressed) {
         if (!DuolingoProSettingsNeverEndMode && !hcwNIIOdaQqCZRDL) {
             autoSolverBoxRepeatAmount--;
-            hcwNIIOdaQqCZRDL = true;
             sessionStorage.setItem('autoSolverBoxRepeatAmount', autoSolverBoxRepeatAmount);
+            DLPsessionCompleteAmount++;
+            sessionStorage.setItem('duopro.autoSolveSessionCompleteAmount', DLPsessionCompleteAmount);
+            hcwNIIOdaQqCZRDL = true;
         }
         if (autoSolverBoxRepeatAmount > 0 || DuolingoProSettingsNeverEndMode) {
             if (practiceAgain !== null) {
+                hcwNIIOdaQqCZRDL = false;
                 practiceAgain.click();
                 return;
             }
@@ -4949,26 +5043,22 @@ function nextClickFunc() {
                     }
                 } else if (nextButtonAriaValue === 'false') {
                     nextButton.click();
+                    mainSolveStatistics('question');
                     zXIArDomWMPkmTVf = 0;
                     if (document.querySelector('[data-test="player-next"]') && document.querySelector('[data-test="player-next"]').classList.contains('_9C_ii')) {
-                        console.log('The element has the class ._9C_ii');
-                        setTimeout(function() {
-                            nextButton.click();
-                        }, 50);
+                        if (isAutoMode) {
+                            setTimeout(function() {
+                                nextButton.click();
+                            }, 50);
+                        }
                     } else if (document.querySelector('[data-test="player-next"]') && document.querySelector('[data-test="player-next"]').classList.contains('NAidc')) {
-                        console.log('The element has the class .NAidc.');
                         if (solveSpeed < 0.6) {
                             solveSpeed = 0.6;
-                            localStorage.setItem('duopro.autoSolveDelay', solveSpeed);
-                        } else if (solveSpeed < 0.7) {
-                            solveSpeed = 0.7;
                             localStorage.setItem('duopro.autoSolveDelay', solveSpeed);
                         }
                     } else {
                         console.log('The element does not have the class ._9C_ii or .NAidc or the element is not found.');
                     }
-
-                    //notificationCall("ohhdd", "ahahah");
                 } else {
                     console.log('The aria-disabled attribute is not set or has an unexpected value.');
                     //notificationCall("what", "Idk");
@@ -5048,13 +5138,25 @@ function LhEqEHHc() {
         }
     }
 }
-
+function mainSolveStatistics(value) {
+    if (value === 'question') {
+        duoproForeverTotalQuestions++;
+        localStorage.setItem('duopro.forever.totalQuestions', duoproForeverTotalQuestions);
+    } else if (value === 'lesson') {
+        duoproForeverTotalLessons++;
+        localStorage.setItem('duopro.forever.totalLessons', duoproForeverTotalQuestions);
+    }
+}
 function determineChallengeType() {
     try {
         if (document.querySelectorAll('[data-test*="challenge-speak"]').length > 0) {
             return 'Challenge Speak';
+        } else if (document.querySelectorAll('[data-test*="challenge-name"]').length > 0) {
+            return 'Challenge Name';
         } else if (window.sol.type === 'listenMatch') {
             return 'Listen Match';
+        } else if (document.querySelectorAll('[data-test="challenge challenge-listenSpeak"]').length > 0) {
+            return 'Listen Speak';
         } else if (document.querySelectorAll('[data-test="challenge-choice"]').length > 0) {
             if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0) {
                 return 'Challenge Choice with Text Input';
@@ -5078,6 +5180,7 @@ function determineChallengeType() {
         } else if (document.querySelectorAll('textarea[data-test="challenge-translate-input"]').length > 0) {
             return 'Challenge Translate Input';
         } else if (document.querySelectorAll('[data-test="session-complete-slide"]').length > 0) {
+            //mainSolveStatistics('lesson');
             return 'Session Complete';
         } else if (document.querySelectorAll('[data-test="daily-quest-progress-slide"]').length > 0) {
             return 'Daily Quest Progress';
@@ -5097,7 +5200,7 @@ function determineChallengeType() {
 function handleChallenge(challengeType) {
     // Implement logic to handle different challenge types
     // This function should encapsulate the logic for each challenge type
-    if (challengeType === 'Challenge Speak' || challengeType === 'Listen Match') {
+    if (challengeType === 'Challenge Speak' || challengeType === 'Listen Match' || challengeType === 'Listen Speak') {
         const buttonSkip = document.querySelector('button[data-test="player-skip"]');
         buttonSkip?.click();
     } else if (challengeType === 'Challenge Choice' || challengeType === 'Challenge Choice with Text Input') {
@@ -5197,6 +5300,30 @@ function handleChallenge(challengeType) {
         });
 
         elm.dispatchEvent(inputEvent);
+    } else if (challengeType === 'Challenge Name') {
+
+        let articles = findReact(document.getElementsByClassName('_3FiYg')[0]).props.currentChallenge.articles;
+        let correctSolutions = findReact(document.getElementsByClassName('_3FiYg')[0]).props.currentChallenge.correctSolutions[0];
+
+        let matchingArticle = articles.find(article => correctSolutions.startsWith(article));
+        let matchingIndex = matchingArticle !== undefined ? articles.indexOf(matchingArticle) : null;
+        let remainingValue = correctSolutions.substring(matchingArticle.length);
+
+        let selectedElement = document.querySelector(`[data-test="challenge-choice"]:nth-child(${matchingIndex + 1})`);
+        if (selectedElement) {
+            selectedElement.click();
+        }
+
+        let elm = document.querySelector('[data-test="challenge-text-input"]');
+        let nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+        nativeInputValueSetter.call(elm, remainingValue);
+        let inputEvent = new Event('input', {
+            bubbles: true
+        });
+
+        elm.dispatchEvent(inputEvent);
+    } else if (challengeType === 'Session Complete') {
+
     }
 }
 
@@ -5258,20 +5385,20 @@ const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 const supabase = window.supabase.createClient(SUPABASE_URL, ANON_KEY);
 
 async function questionErrorLogs(json, snapshot, imageValue) {
-    if (json) {
-        const { data, error } = await supabase
-        .from('question_error')
-        .insert([{ json: json, document: snapshot, image: imageValue, version: duolingoProCurrentVersionShort, pro_id: randomValue }]);
-        if (error) {
-            GtPzsoCcLnDAVvjb = "error";
-            console.error("Error sending message:", error);
-        } else {
-            GtPzsoCcLnDAVvjb = "sent";
-            console.log("Message sent successfully:", data);
-        }
-    } else {
-        console.error("Message text is empty.");
-    }
+    //if (json) {
+    //    const { data, error } = await supabase
+    //    .from('question_error')
+    //    .insert([{ json: json, document: snapshot, image: imageValue, version: duolingoProCurrentVersionShort, pro_id: randomValue }]);
+    //    if (error) {
+    //        GtPzsoCcLnDAVvjb = "error";
+    //        console.error("Error sending message:", error);
+    //    } else {
+    //        GtPzsoCcLnDAVvjb = "sent";
+    //        console.log("Message sent successfully:", data);
+    //    }
+    //} else {
+    //    console.error("Message text is empty.");
+    //}
 }
 
 async function settingsStuff(messageValue, value) {
@@ -5340,15 +5467,6 @@ async function sendFeedbackServer(feedbackTextOne, feedbackTypeOne, feedbackText
 
 async function analyticsLogsSend(text, value) {
     console.log("analyticsLogsSend called");
-}
-
-async function anonymousSolveDetails(value) {
-    if (value) {
-        DuolingoProAmountOfQuestionsEverSolved++;
-        localStorage.setItem('DuolingoProAmountOfQuestionsEverSolved', DuolingoProAmountOfQuestionsEverSolved);
-    } else {
-        console.error("Message text is empty.");
-    }
 }
 
 async function versionServerStuff(option, status, to, from) {
