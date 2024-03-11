@@ -3153,7 +3153,7 @@ const DuolingoProShadeHTML = `
 <div class="BlockBoxOne">
     <div class="BlockBoxOneSectionOne">
         <p class="BlockBoxOneSectionOneTextOne">Duolingo Pro is working hard</p>
-        <p class="BlockBoxOneSectionOneTextTwo">AntiStuck Protection is <a style="color: #007AFF;">active</a></p>
+        <p class="BlockBoxOneSectionOneTextTwo">AntiStuck Protection is <a id="AntiStuckShadeText">active</a></p>
     </div>
     <div class="BlockBoxOneSectionTwo">
         <div class="BlockBoxOneSectionTwoBoxOne noSelect">END LESSON</div>
@@ -4152,6 +4152,7 @@ function DuolingoProCounterOneFunction() {
                 DuolingoProAntiStuckProtectionMode = !DuolingoProAntiStuckProtectionMode;
                 localStorage.setItem('DuolingoProAntiStuckProtectionMode', DuolingoProAntiStuckProtectionMode);
                 EAWoMwEP();
+                changeAntiStuckShadeText();
                 let remember013 = fgOFCULKfxUUvNjw2.offsetWidth;
                 fgOFCULKfxUUvNjw2.style.width = '';
                 let remember014 = fgOFCULKfxUUvNjw2.offsetWidth;
@@ -4176,6 +4177,17 @@ function DuolingoProCounterOneFunction() {
                 cLsYCmdd.textContent = 'OFF';
             }
         }
+        let AntiStuckShadeText = document.querySelector('#AntiStuckShadeText');
+        function changeAntiStuckShadeText() {
+            if (DuolingoProAntiStuckProtectionMode) {
+                AntiStuckShadeText.style.color = '#007AFF';
+                AntiStuckShadeText.textContent = 'active';
+            } else {
+                AntiStuckShadeText.style.color = 'rgb(255, 45, 85)';
+                AntiStuckShadeText.textContent = 'inactive';
+            }
+        }
+        changeAntiStuckShadeText();
         function aQklgZktoyzqdZpz(typeSingular, typePLural) {
             if (DLPsessionCompleteAmount === 0) {
                 if (DLPCE258) {
