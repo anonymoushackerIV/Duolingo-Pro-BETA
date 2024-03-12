@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Duolingo Pro BETA
 // @namespace    Violentmonkey Scripts
-// @version      2.0BETA9.6.2
+// @version      2.0BETA9.6.2.1
 // @description  Duolingo Auto Solver Tool - Working March 2024
 // @author       anonymoushackerIV
 // @match        https://*.duolingo.com/*
@@ -1383,15 +1383,18 @@ function initializeAutoSolverBoxButtonInteractiveness() {
             pKVKQrfVcqrLWnpH();
 
             function pKVKQrfVcqrLWnpH() {
-                if (document.readyState === 'complete') {
-                    setTimeout(function() {
-                        PjYdVpmxDsskMlRs();
-                    }, 2000);
-                } else {
-                    setTimeout(function() {
-                        pKVKQrfVcqrLWnpH();
-                    }, 100);
-                }
+                setTimeout(function() {
+                    PjYdVpmxDsskMlRs();
+                }, 2000);
+                //if (document.readyState === 'complete') {
+                //    setTimeout(function() {
+                //        PjYdVpmxDsskMlRs();
+                //    }, 2000);
+                //} else {
+                //    setTimeout(function() {
+                //        pKVKQrfVcqrLWnpH();
+                //    }, 100);
+                //}
             }
             function PjYdVpmxDsskMlRs() {
                 try {
