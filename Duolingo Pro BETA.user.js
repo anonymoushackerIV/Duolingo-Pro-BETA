@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Duolingo Pro BETA
 // @namespace    Violentmonkey Scripts
-// @version      2.0BETA9.6.2.1
+// @version      2.0BETA9.6.2-2
 // @description  Duolingo Auto Solver Tool - Working March 2024
 // @author       anonymoushackerIV
 // @match        https://*.duolingo.com/*
@@ -1258,6 +1258,7 @@ function something() {
     }
 }
 
+let PkJiQETebALNWeLt = 0;
 function initializeAutoSolverBoxButtonInteractiveness() {
     const AutoSolverBoxRepeatNumberDisplay = document.querySelector('.AutoSolverBoxRepeatNumberDisplay');
     const AutoSolverBoxRepeatNumberDownButton = document.querySelector('#DPASBadB1');
@@ -1355,7 +1356,7 @@ function initializeAutoSolverBoxButtonInteractiveness() {
         if (!DuolingoProSettingsNeverEndMode) {
             if (autoSolverBoxRepeatAmount !== 99999) {
                 autoSolverBoxRepeatAmount++;
-            } else if (autoSolverBoxRepeatAmount > 99999) {
+            } else if (autoSolverBoxRepeatAmount >= 99999) {
                 autoSolverBoxRepeatAmount = 99999;
             }
             AutoSolverBoxRepeatNumberDisplay.textContent = autoSolverBoxRepeatAmount;
@@ -1383,18 +1384,26 @@ function initializeAutoSolverBoxButtonInteractiveness() {
             pKVKQrfVcqrLWnpH();
 
             function pKVKQrfVcqrLWnpH() {
-                setTimeout(function() {
+                if (PkJiQETebALNWeLt <= 20) {
+                    try {
+                        if (document.readyState === 'complete') {
+                            setTimeout(function() {
+                                PjYdVpmxDsskMlRs();
+                            }, 2000);
+                        } else {
+                            setTimeout(function() {
+                                pKVKQrfVcqrLWnpH();
+                                PkJiQETebALNWeLt++;
+                            }, 100);
+                        }
+                    } catch (error) {
+                        setTimeout(function() {
+                            PjYdVpmxDsskMlRs();
+                        }, 2000);
+                    }
+                } else {
                     PjYdVpmxDsskMlRs();
-                }, 2000);
-                //if (document.readyState === 'complete') {
-                //    setTimeout(function() {
-                //        PjYdVpmxDsskMlRs();
-                //    }, 2000);
-                //} else {
-                //    setTimeout(function() {
-                //        pKVKQrfVcqrLWnpH();
-                //    }, 100);
-                //}
+                }
             }
             function PjYdVpmxDsskMlRs() {
                 try {
@@ -3156,7 +3165,7 @@ const DuolingoProShadeHTML = `
 <div class="BlockBoxOne">
     <div class="BlockBoxOneSectionOne">
         <p class="BlockBoxOneSectionOneTextOne">Duolingo Pro is working hard</p>
-        <p class="BlockBoxOneSectionOneTextTwo">AntiStuck Protection is <a id="AntiStuckShadeText">active</a></p>
+        <p class="BlockBoxOneSectionOneTextTwo">AntiStuck Protection is <a style="color: #007AFF;">active</a></p>
     </div>
     <div class="BlockBoxOneSectionTwo">
         <div class="BlockBoxOneSectionTwoBoxOne noSelect">END LESSON</div>
@@ -4155,7 +4164,6 @@ function DuolingoProCounterOneFunction() {
                 DuolingoProAntiStuckProtectionMode = !DuolingoProAntiStuckProtectionMode;
                 localStorage.setItem('DuolingoProAntiStuckProtectionMode', DuolingoProAntiStuckProtectionMode);
                 EAWoMwEP();
-                changeAntiStuckShadeText();
                 let remember013 = fgOFCULKfxUUvNjw2.offsetWidth;
                 fgOFCULKfxUUvNjw2.style.width = '';
                 let remember014 = fgOFCULKfxUUvNjw2.offsetWidth;
@@ -4180,17 +4188,6 @@ function DuolingoProCounterOneFunction() {
                 cLsYCmdd.textContent = 'OFF';
             }
         }
-        let AntiStuckShadeText = document.querySelector('#AntiStuckShadeText');
-        function changeAntiStuckShadeText() {
-            if (DuolingoProAntiStuckProtectionMode) {
-                AntiStuckShadeText.style.color = '#007AFF';
-                AntiStuckShadeText.textContent = 'active';
-            } else {
-                AntiStuckShadeText.style.color = 'rgb(255, 45, 85)';
-                AntiStuckShadeText.textContent = 'inactive';
-            }
-        }
-        changeAntiStuckShadeText();
         function aQklgZktoyzqdZpz(typeSingular, typePLural) {
             if (DLPsessionCompleteAmount === 0) {
                 if (DLPCE258) {
@@ -5166,7 +5163,7 @@ function determineChallengeType() {
     try {
         if (document.querySelectorAll('[data-test*="challenge-speak"]').length > 0) {
             return 'Challenge Speak';
-        } else if (document.querySelectorAll('[data-test*="challenge-name"]').length > 0) {
+        } else if (document.querySelectorAll('[data-test*="challenge-name"]').length > 0 && document.querySelectorAll('[data-test="challenge-choice"]').length > 0) {
             return 'Challenge Name';
         } else if (window.sol.type === 'listenMatch') {
             return 'Listen Match';
