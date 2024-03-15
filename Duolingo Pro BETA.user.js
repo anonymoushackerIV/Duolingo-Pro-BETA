@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Duolingo Pro BETA
 // @namespace    Violentmonkey Scripts
-// @version      2.0BETA9.6.2-2
+// @version      2.0-BETA-9.6.3-RC-2
 // @description  Duolingo Auto Solver Tool - Working March 2024
 // @author       anonymoushackerIV
 // @match        https://*.duolingo.com/*
@@ -57,7 +57,7 @@ if (!isNaN(Number(localStorage.getItem('duopro.forever.totalLessons'))) && Numbe
     } catch (error) {}
 } else {
     duoproForeverTotalLessons = 0;
-    localStorage.setItem('duopro.forever.totalLessons', duoproForeverTotalQuestions);
+    localStorage.setItem('duopro.forever.totalLessons', duoproForeverTotalLessons);
 }
 
 let ProBlockBannerOneVisible = false;
@@ -1379,88 +1379,6 @@ function initializeAutoSolverBoxButtonInteractiveness() {
         AutoSolverBoxRepeatStartButtonActions();
     }
 
-    function AutoSolverBoxRepeatStartButtonActions() {
-        if (autoSolverBoxRepeatAmount > 0 || DuolingoProSettingsNeverEndMode) {
-            pKVKQrfVcqrLWnpH();
-
-            function pKVKQrfVcqrLWnpH() {
-                if (PkJiQETebALNWeLt <= 20) {
-                    try {
-                        if (document.readyState === 'complete') {
-                            setTimeout(function() {
-                                PjYdVpmxDsskMlRs();
-                            }, 2000);
-                        } else {
-                            setTimeout(function() {
-                                pKVKQrfVcqrLWnpH();
-                                PkJiQETebALNWeLt++;
-                            }, 100);
-                        }
-                    } catch (error) {
-                        setTimeout(function() {
-                            PjYdVpmxDsskMlRs();
-                        }, 2000);
-                    }
-                } else {
-                    PjYdVpmxDsskMlRs();
-                }
-            }
-            function PjYdVpmxDsskMlRs() {
-                try {
-                    const imageUrl = 'https://d35aaqx5ub95lt.cloudfront.net/images/path/09f977a3e299d1418fde0fd053de0beb.svg';
-                    const images = document.querySelectorAll('._2Zucs');
-                    if (!images.length) {
-                        setTimeout(function() {
-                            PjYdVpmxDsskMlRs();
-                            return;
-                        }, 100);
-                    }
-                    let imagesProcessed = 0;
-                    let chestFound = false;
-                    images.forEach(image => {
-                        if (image.src === imageUrl) {
-                            image.click();
-                            chestFound = true;
-                            setTimeout(function() {
-                                XyEOALuaeQicpGHW();
-                            }, 2000);
-                        }
-                        imagesProcessed++;
-                        if (imagesProcessed >= images.length && !chestFound) {
-                            XyEOALuaeQicpGHW();
-                        }
-                    });
-                } catch (error) {
-                    XyEOALuaeQicpGHW();
-                }
-            }
-
-            function XyEOALuaeQicpGHW() {
-                if (!DuolingoProSettingsNeverEndMode) {
-                    if (wasAutoSolverBoxRepeatStartButtonPressed === true && autoSolverBoxRepeatAmount > 0) {
-                        if (autoSolverBoxPracticeOnlyMode) {
-                            window.location.href = "https://duolingo.com/practice";
-                        } else if (autoSolverBoxRepeatLessonMode) {
-                            window.location.href = "https://duolingo.com/lesson/unit/1/level/1";
-                        } else {
-                            window.location.href = "https://duolingo.com/lesson";
-                        }
-                    } else {
-                        console.log('cancelled');
-                    }
-                } else if (wasAutoSolverBoxRepeatStartButtonPressed === true) {
-                    if (autoSolverBoxPracticeOnlyMode) {
-                        window.location.href = "https://duolingo.com/practice";
-                    } else if (autoSolverBoxRepeatLessonMode) {
-                        window.location.href = "https://duolingo.com/lesson/unit/1/level/1";
-                    } else {
-                        window.location.href = "https://duolingo.com/lesson";
-                    }
-                }
-            };
-        }
-    }
-
     try {
         AutoSolverBoxRepeatStartButton.addEventListener('click', () => {
             if (autoSolverBoxRepeatAmount > 0 || DuolingoProSettingsNeverEndMode) {
@@ -1554,6 +1472,72 @@ function initializeAutoSolverBoxButtonInteractiveness() {
 
     }
 }
+
+function AutoSolverBoxRepeatStartButtonActions() {
+    if (autoSolverBoxRepeatAmount > 0 || DuolingoProSettingsNeverEndMode) {
+        pKVKQrfVcqrLWnpH();
+    }
+};
+function pKVKQrfVcqrLWnpH() {
+    if (PkJiQETebALNWeLt <= 20) {
+        try {
+            if (document.readyState === 'complete') {
+                setTimeout(function() {
+                    PjYdVpmxDsskMlRs();
+                }, 2000);
+            } else {
+                setTimeout(function() {
+                    pKVKQrfVcqrLWnpH();
+                    PkJiQETebALNWeLt++;
+                }, 100);
+            }
+        } catch (error) {
+            setTimeout(function() {
+                PjYdVpmxDsskMlRs();
+            }, 2000);
+        }
+    } else {
+        PjYdVpmxDsskMlRs();
+    }
+};
+function PjYdVpmxDsskMlRs() {
+    try {
+        const imageUrl = 'https://d35aaqx5ub95lt.cloudfront.net/images/path/09f977a3e299d1418fde0fd053de0beb.svg';
+        const images = document.querySelectorAll('._2Zucs');
+        if (!images.length) {
+            XyEOALuaeQicpGHW();
+        } else {
+            let imagesProcessed = 0;
+            let chestFound = false;
+            images.forEach(image => {
+                if (image.src === imageUrl) {
+                    image.click();
+                    chestFound = true;
+                    setTimeout(function() {
+                        XyEOALuaeQicpGHW();
+                    }, 2000);
+                }
+                imagesProcessed++;
+                if (imagesProcessed >= images.length && !chestFound) {
+                    XyEOALuaeQicpGHW();
+                }
+            });
+        }
+    } catch (error) {
+        XyEOALuaeQicpGHW();
+    }
+};
+function XyEOALuaeQicpGHW() {
+    if ((DuolingoProSettingsNeverEndMode || autoSolverBoxRepeatAmount > 0) && wasAutoSolverBoxRepeatStartButtonPressed) {
+        if (autoSolverBoxPracticeOnlyMode) {
+            window.location.href = "https://duolingo.com/practice";
+        } else if (autoSolverBoxRepeatLessonMode) {
+            window.location.href = "https://duolingo.com/lesson/unit/1/level/1";
+        } else {
+            window.location.href = "https://duolingo.com/lesson";
+        }
+    }
+};
 
 
 function checkURLForAutoSolverBox() {
@@ -4967,18 +4951,16 @@ function solve() {
 
     if ((practiceAgain !== null || sessionCompleteSlide !== null) && isAutoMode && wasAutoSolverBoxRepeatStartButtonPressed) {
         if (!DuolingoProSettingsNeverEndMode && !hcwNIIOdaQqCZRDL) {
+            hcwNIIOdaQqCZRDL = true;
             autoSolverBoxRepeatAmount--;
             sessionStorage.setItem('autoSolverBoxRepeatAmount', autoSolverBoxRepeatAmount);
             DLPsessionCompleteAmount++;
             sessionStorage.setItem('duopro.autoSolveSessionCompleteAmount', DLPsessionCompleteAmount);
-            hcwNIIOdaQqCZRDL = true;
+            mainSolveStatistics('lesson');
         }
-        if (autoSolverBoxRepeatAmount > 0 || DuolingoProSettingsNeverEndMode) {
-            if (practiceAgain !== null) {
-                hcwNIIOdaQqCZRDL = false;
-                practiceAgain.click();
-                return;
-            }
+        if ((autoSolverBoxRepeatAmount > 0 || DuolingoProSettingsNeverEndMode) && practiceAgain !== null) {
+            practiceAgain.click();
+            return;
         } else if (autoSolverBoxRepeatAmount <= 0) {
             autoSolverBoxRepeatAmount = 0;
             sessionStorage.setItem('autoSolverBoxRepeatAmount', autoSolverBoxRepeatAmount);
@@ -5156,26 +5138,32 @@ function mainSolveStatistics(value) {
         localStorage.setItem('duopro.forever.totalQuestions', duoproForeverTotalQuestions);
     } else if (value === 'lesson') {
         duoproForeverTotalLessons++;
-        localStorage.setItem('duopro.forever.totalLessons', duoproForeverTotalQuestions);
+        localStorage.setItem('duopro.forever.totalLessons', duoproForeverTotalLessons);
     }
 }
 function determineChallengeType() {
     try {
         if (document.querySelectorAll('[data-test*="challenge-speak"]').length > 0) {
+            hcwNIIOdaQqCZRDL = false;
             return 'Challenge Speak';
         } else if (document.querySelectorAll('[data-test*="challenge-name"]').length > 0 && document.querySelectorAll('[data-test="challenge-choice"]').length > 0) {
+            hcwNIIOdaQqCZRDL = false;
             return 'Challenge Name';
         } else if (window.sol.type === 'listenMatch') {
+            hcwNIIOdaQqCZRDL = false;
             return 'Listen Match';
         } else if (document.querySelectorAll('[data-test="challenge challenge-listenSpeak"]').length > 0) {
+            hcwNIIOdaQqCZRDL = false;
             return 'Listen Speak';
         } else if (document.querySelectorAll('[data-test="challenge-choice"]').length > 0) {
+            hcwNIIOdaQqCZRDL = false;
             if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0) {
                 return 'Challenge Choice with Text Input';
             } else {
                 return 'Challenge Choice';
             }
         } else if (document.querySelectorAll('[data-test$="challenge-tap-token"]').length > 0) {
+            hcwNIIOdaQqCZRDL = false;
             if (window.sol.pairs !== undefined) {
                 return 'Pairs';
             } else if (window.sol.correctTokens !== undefined) {
@@ -5184,15 +5172,18 @@ function determineChallengeType() {
                 return 'Indices Run';
             }
         } else if (document.querySelectorAll('[data-test="challenge-tap-token-text"]').length > 0) {
+            hcwNIIOdaQqCZRDL = false;
             return 'Fill in the Gap';
         } else if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0) {
+            hcwNIIOdaQqCZRDL = false;
             return 'Challenge Text Input';
         } else if (document.querySelectorAll('[data-test*="challenge-partialReverseTranslate"]').length > 0) {
+            hcwNIIOdaQqCZRDL = false;
             return 'Partial Reverse';
         } else if (document.querySelectorAll('textarea[data-test="challenge-translate-input"]').length > 0) {
+            hcwNIIOdaQqCZRDL = false;
             return 'Challenge Translate Input';
         } else if (document.querySelectorAll('[data-test="session-complete-slide"]').length > 0) {
-            //mainSolveStatistics('lesson');
             return 'Session Complete';
         } else if (document.querySelectorAll('[data-test="daily-quest-progress-slide"]').length > 0) {
             return 'Daily Quest Progress';
