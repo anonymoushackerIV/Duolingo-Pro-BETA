@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Duolingo Pro BETA
 // @namespace    Violentmonkey Scripts
-// @version      2.0-BETA-9.6.3-RC-2
+// @version      2.0-BETA-9.6.3
 // @description  Duolingo Auto Solver Tool - Working March 2024
 // @author       anonymoushackerIV
 // @match        https://*.duolingo.com/*
@@ -20,9 +20,9 @@ const debug = false;
 
 let ASB969 = false;
 let ASTL464 = false;
-let duolingoProCurrentVersionShort = "2.0B9.6.2";
-let duolingoProCurrentVersion = "2.0 BETA 9.6.2";
-let duolingoProFormalCurrentVersion = "2.0BETA9.6.2";
+let duolingoProCurrentVersionShort = "2.0B9.6.3";
+let duolingoProCurrentVersion = "2.0 BETA 9.6.3";
+let duolingoProFormalCurrentVersion = "2.0BETA9.6.3";
 
 let solveSpeed;
 if (isNaN(parseFloat(localStorage.getItem('duopro.autoSolveDelay')))) {
@@ -710,7 +710,7 @@ const htmlContent = `
             <div class="AutoSolverBoxTitleSectionOne">
                 <p class="AutoSolverBoxTitleSectionOneTextOne">Duolingo Pro</p>
                 <div class="AutoSolverBoxTitleSectionOneBETATagOne">
-                    <p class="AutoSolverBoxTitleSectionOneBETATagOneTextOne">2.0 BETA 9.6.2</p>
+                    <p class="AutoSolverBoxTitleSectionOneBETATagOneTextOne">2.0 BETA 9.6.3</p>
                 </div>
             </div>
             <p class="AutoSolverBoxTitleSectionTwoTextOne">How many lessons would you like to AutoSolve?</p>
@@ -2514,7 +2514,7 @@ const DuolingoProSettingsBoxHTML = `
             <div class="DuolingoProSettingsBoxSectionOne">
                 <p class="DuolingoProSettingsBoxSectionOneTextOne">Settings</p>
                 <div class="DuolingoProSettingsBoxSectionOneBoxOne">
-                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne">2.0 BETA 9.6.2</p>
+                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne">2.0 BETA 9.6.3</p>
                 </div>
             </div>
             <div class="DuolingoProSettingsBoxSectionTwo">
