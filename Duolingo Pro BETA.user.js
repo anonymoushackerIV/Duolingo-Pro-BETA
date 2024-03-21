@@ -14,8 +14,6 @@
 // @require      https://unpkg.com/@supabase/supabase-js@2.12.1
 // @require      https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js
 // @icon         https://github.com/anonymoushackerIV/Duolingo-Pro-Assets/blob/main/images/Duolingo-Pro-Icon.png?raw=true
-// @downloadURL  https://update.greasyfork.org/scripts/473310/Duolingo%20Pro%20BETA.user.js
-// @updateURL    https://update.greasyfork.org/scripts/473310/Duolingo%20Pro%20BETA.meta.js
 // ==/UserScript==
 
 // MIT License
