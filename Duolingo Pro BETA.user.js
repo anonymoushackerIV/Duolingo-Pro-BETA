@@ -6,6 +6,7 @@
 // @author       anonymoushackerIV (https://github.com/anonymoushackerIV)
 // @match        https://*.duolingo.com/*
 // @grant        GM_xmlhttpRequest
+// @grant        GM_addStyle
 // @license      MIT
 // @connect      raw.githubusercontent.com
 // @connect      github.com
