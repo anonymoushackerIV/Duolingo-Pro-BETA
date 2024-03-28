@@ -114,21 +114,7 @@ if (JSON.parse(sessionStorage.getItem('wasDuolingoProJustSolveThisLessonButtonOn
     wasDuolingoProJustSolveThisLessonButtonOnePressed = JSON.parse(sessionStorage.getItem('wasDuolingoProJustSolveThisLessonButtonOnePressed'));
 }
 
-// Whats New Variables Start
-try {
-    localStorage.removeItem('wasWhatsNewInTwoPointZeroBetaThreeFinished');
-} catch (error) {}
-try {
-    localStorage.removeItem('wasWhatsNewInTwoPointZeroBetaFourFinished');
-} catch (error) {}
-try {
-    localStorage.removeItem('wasWhatsNewInTwoPointZeroBetaSixFinished');
-} catch (error) {}
-try {
-    localStorage.removeItem('wasWhatsNewInTwoPointZeroBetaSevenFinished');
-} catch (error) {}
 // DuolingoProSettingsHumaneSolvingMode
-// Whats New Variables End
 
 let wasDuolingoProSettingsButtonOnePressed = false;
 
