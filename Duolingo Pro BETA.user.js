@@ -84,7 +84,7 @@ if (JSON.parse(sessionStorage.getItem('autoSolverBoxRepeatLessonMode')) === null
     autoSolverBoxRepeatLessonMode = JSON.parse(sessionStorage.getItem('autoSolverBoxRepeatLessonMode'));
 }
 if (JSON.parse(sessionStorage.getItem('autoSolverBoxListeningOnlyMode')) === null) {
-    autoSolverBoxListeningOnlyMode = true;
+    autoSolverBoxListeningOnlyMode = false;
 } else {
     autoSolverBoxListeningOnlyMode = JSON.parse(sessionStorage.getItem('autoSolverBoxListeningOnlyMode'));
 }
