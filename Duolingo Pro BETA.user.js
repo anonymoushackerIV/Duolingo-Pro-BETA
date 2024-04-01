@@ -2,7 +2,7 @@
 // @name         Duolingo Pro BETA
 // @namespace    Violentmonkey Scripts
 // @version      2.0-BETA-9.6.3
-// @description  Duolingo Auto Solver Tool - Working March 2024
+// @description  Duolingo Auto Solver Tool - Working April 2024
 // @author       anonymoushackerIV (https://github.com/anonymoushackerIV)
 // @match        https://*.duolingo.com/*
 // @grant        GM_xmlhttpRequest
@@ -12,7 +12,7 @@
 // @connect      github.com
 // @connect      unpkg.com
 // @connect      cdn.jsdelivr.net
-// @require      https://unpkg.com/@supabase/supabase-js@2.12.1
+// @connect      duolingoprodb.pythonanywhere.com
 // @require      https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js
 // @icon         https://github.com/anonymoushackerIV/Duolingo-Pro-Assets/blob/main/images/Duolingo-Pro-Icon.png?raw=true
 // ==/UserScript==
@@ -29,12 +29,18 @@ let isSolving = false;
 let isTokenRunning = false;
 
 const debug = false;
+let findReactMainElementClass = '_3FiYg';
+if (window.location.href.includes("preview.duolingo.com")) {
+    findReactMainElementClass = '_3js2_';
+} else {
+    //findReactMainElementClass = '_3FiYg';
+}
 
-let ASB969 = false;
+let ASB969 = true;
 let ASTL464 = false;
-let duolingoProCurrentVersionShort = "2.0B9.6.3";
-let duolingoProCurrentVersion = "2.0 BETA 9.6.3";
-let duolingoProFormalCurrentVersion = "2.0BETA9.6.3";
+let duolingoProCurrentVersionShort = "2.0B9.6.4";
+let duolingoProCurrentVersion = "2.0 BETA 9.6.4";
+let duolingoProFormalCurrentVersion = "2.0BETA9.6.4";
 
 let solveSpeed;
 if (isNaN(parseFloat(localStorage.getItem('duopro.autoSolveDelay')))) {
@@ -54,23 +60,22 @@ if (!isNaN(Number(sessionStorage.getItem('duopro.autoSolveSessionCompleteAmount'
     DLPsessionCompleteAmount = 0;
 }
 
+
 let duoproForeverTotalQuestions = 0;
-if (!isNaN(Number(localStorage.getItem('duopro.forever.totalQuestions'))) && Number(localStorage.getItem('duopro.forever.totalQuestions')) !== null) {
-    duoproForeverTotalQuestions = Number(localStorage.getItem('duopro.forever.totalQuestions'));
-} else {
-    duoproForeverTotalQuestions = 0;
-    localStorage.setItem('duopro.forever.totalQuestions', duoproForeverTotalQuestions);
-}
 let duoproForeverTotalLessons = 0;
-if (!isNaN(Number(localStorage.getItem('duopro.forever.totalLessons'))) && Number(localStorage.getItem('duopro.forever.totalLessons')) !== null) {
-    duoproForeverTotalLessons = Number(localStorage.getItem('duopro.forever.totalLessons'));
-    try {
-        localStorage.removeItem("DuolingoProAmountOfQuestionsEverSolved");
-    } catch (error) {}
-} else {
-    duoproForeverTotalLessons = 0;
-    localStorage.setItem('duopro.forever.totalLessons', duoproForeverTotalLessons);
+let TATJxnLggmiGvbDm = localStorage.getItem("duopro.forever.userStatistics");
+if (TATJxnLggmiGvbDm) {
+    let BDxfDivqDbLuJooi = JSON.parse(TATJxnLggmiGvbDm);
+    if (!isNaN(BDxfDivqDbLuJooi.question)) {
+        duoproForeverTotalQuestions = BDxfDivqDbLuJooi.question;
+    }
+    if (!isNaN(BDxfDivqDbLuJooi.lesson)) {
+        duoproForeverTotalLessons = BDxfDivqDbLuJooi.lesson;
+    }
 }
+duoproForeverTotalQuestions = duoproForeverTotalQuestions || 0;
+duoproForeverTotalLessons = duoproForeverTotalLessons || 0;
+
 
 let ProBlockBannerOneVisible = false;
 if (JSON.parse(localStorage.getItem('ProBlockBannerOneVisible')) === null) {
@@ -82,6 +87,7 @@ if (JSON.parse(localStorage.getItem('ProBlockBannerOneVisible')) === null) {
 
 let autoSolverBoxPracticeOnlyMode;
 let autoSolverBoxRepeatLessonMode;
+let autoSolverBoxListeningOnlyMode;
 if (JSON.parse(sessionStorage.getItem('autoSolverBoxPracticeOnlyMode')) === null) {
     autoSolverBoxPracticeOnlyMode = true;
 } else {
@@ -92,10 +98,16 @@ if (JSON.parse(sessionStorage.getItem('autoSolverBoxRepeatLessonMode')) === null
 } else {
     autoSolverBoxRepeatLessonMode = JSON.parse(sessionStorage.getItem('autoSolverBoxRepeatLessonMode'));
 }
+if (JSON.parse(sessionStorage.getItem('autoSolverBoxListeningOnlyMode')) === null) {
+    autoSolverBoxListeningOnlyMode = false;
+} else {
+    autoSolverBoxListeningOnlyMode = JSON.parse(sessionStorage.getItem('autoSolverBoxListeningOnlyMode'));
+}
 
 let DLPpromotionBubbleVisibility;
 if (JSON.parse(localStorage.getItem('DLP4Uz53cm6wjnOG7tY')) === null) {
     DLPpromotionBubbleVisibility = true;
+
 } else {
     DLPpromotionBubbleVisibility = JSON.parse(localStorage.getItem('DLP4Uz53cm6wjnOG7tY'));
 }
@@ -137,6 +149,7 @@ let wasDuolingoProSettingsButtonOnePressed = false;
 //moved here
 let AutoSolverSettingsShowPracticeOnlyModeForAutoSolverBox = true;
 let AutoSolverSettingsShowRepeatLessonModeForAutoSolverBox = true;
+let AutoSolverSettingsShowListeningOnlyModeForAutoSolverBox = true;
 //moved here
 
 let AutoSolverSettingsShowAutoSolverBox = true;
@@ -212,6 +225,20 @@ if (JSON.parse(localStorage.getItem('DuolingoProSettingsSolveIntervalValue')) ==
 }
 // Duolingo Pro Settings Variables End
 
+function DuolingoProRounded() {
+    let DuolingoProRoundedCSS = `
+    @font-face {
+        font-family: 'Duolingo Pro Rounded';
+        src: url(https://raw.githubusercontent.com/anonymoushackerIV/Duolingo-Pro-Assets/main/fonts/SF-Pro-Rounded-Bold.otf) format('opentype');
+    }
+    `;
+    //GM_addStyle(DuolingoProRoundedCSS);
+    let styleElement = document.createElement('style');
+    styleElement.type = 'text/css';
+    styleElement.appendChild(document.createTextNode(DuolingoProRoundedCSS));
+    document.head.appendChild(styleElement);
+}
+DuolingoProRounded();
 
 function createButton(id, text, styleClass, eventHandlers) {
     const button = document.createElement('button');
@@ -256,8 +283,15 @@ function addButtons() {
         });
         startButton.parentNode.appendChild(solveAllButton);
     } else {
-        const wrapper = document.querySelector('._10vOG, ._2L_r0');
-        wrapper.style.display = "flex";
+        if (document.querySelector('._10vOG, ._2L_r0') !== null) {
+            findReactMainElementClass = '_3FiYg';
+            document.querySelector('._10vOG, ._2L_r0').style.display = "flex";
+            document.querySelector('._10vOG, ._2L_r0').style.gap = "20px";
+        } else {
+            findReactMainElementClass = '_3js2_';
+            document.querySelector('._2sXnx').style.display = "flex";
+            document.querySelector('._2sXnx').style.gap = "20px";
+        }
 
         const buttonsCSS = document.createElement('style');
         buttonsCSS.innerHTML = `
@@ -274,7 +308,6 @@ function addButtons() {
             letter-spacing: .8px;
             background: #1cb0f6;
             color: rgb(var(--color-snow));
-            margin-left: 20px;
             cursor: pointer;
         }
         .pause-btn {
@@ -290,7 +323,6 @@ function addButtons() {
             letter-spacing: .8px;
             background: #ffc800;
             color: rgb(var(--color-snow));
-            margin-left: 20px;
             cursor: pointer;
         }
         .auto-solver-btn:hover {
@@ -392,10 +424,14 @@ const DLPuniversalCSS = `
 }
 
 .paragraphText {
+    font-family: Duolingo Pro Rounded, 'din-round' !important;
     font-size: 16px;
     font-weight: 700;
 
     margin: 0;
+}
+.textFill {
+    flex: 1 0 0;
 }
 
 .DPLPrimaryButtonStyleT1 {
@@ -414,6 +450,7 @@ const DLPuniversalCSS = `
 
     color: #fff;
     font-weight: 700;
+    font-family: Duolingo Pro Rounded, 'din-round' !important;
 
     transition: .1s;
     cursor: pointer;
@@ -446,6 +483,7 @@ const DLPuniversalCSS = `
 
     color: #fff;
     font-weight: 700;
+    font-family: Duolingo Pro Rounded, 'din-round' !important;
 
     transition: .1s;
     cursor: pointer;
@@ -466,6 +504,7 @@ const DLPuniversalCSS = `
 
     color: rgb(var(--DLP-blue));
     font-weight: 700;
+    font-family: Duolingo Pro Rounded, 'din-round' !important;
 
     transition: .1s;
     cursor: pointer;
@@ -582,6 +621,7 @@ const DLPuniversalCSS = `
     text-align: center;
     font-size: 16px;
     font-weight: 700;
+    font-family: Duolingo Pro Rounded, 'din-round' !important;
 }
 
 .DLPSettingsToggleT3 {
@@ -638,6 +678,7 @@ const DLPuniversalCSS = `
     color: rgb(var(--color-eel));
     font-size: 16px;
     font-weight: 700;
+    font-family: Duolingo Pro Rounded, 'din-round' !important;
 
     transition: .2s;
 }
@@ -676,7 +717,7 @@ const htmlContent = `
         <svg id="HideAutoSolverBoxButtonOneIconTwoID" width="23" height="16" viewBox="0 0 23 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M17.7266 15.4922L4.1875 1.97656C3.9375 1.72656 3.9375 1.29688 4.1875 1.04688C4.44531 0.789062 4.875 0.789062 5.125 1.04688L18.6562 14.5625C18.9141 14.8203 18.9219 15.2188 18.6562 15.4922C18.3984 15.7578 17.9844 15.75 17.7266 15.4922ZM18.4609 12.9062L15.3281 9.75781C15.5 9.32812 15.5938 8.85938 15.5938 8.375C15.5938 6.07812 13.7266 4.24219 11.4375 4.24219C10.9531 4.24219 10.4922 4.33594 10.0547 4.49219L7.75 2.17969C8.875 1.8125 10.1016 1.59375 11.4297 1.59375C17.8984 1.59375 22.1172 6.78906 22.1172 8.375C22.1172 9.28125 20.7344 11.3438 18.4609 12.9062ZM11.4297 15.1562C5.05469 15.1562 0.75 9.95312 0.75 8.375C0.75 7.46094 2.16406 5.35938 4.54688 3.77344L7.59375 6.82812C7.39062 7.29688 7.27344 7.82812 7.27344 8.375C7.28125 10.6172 9.13281 12.5078 11.4375 12.5078C11.9766 12.5078 12.4922 12.3906 12.9609 12.1875L15.2812 14.5078C14.125 14.9141 12.8281 15.1562 11.4297 15.1562ZM13.9609 8.21094C13.9609 8.27344 13.9609 8.32812 13.9531 8.38281L11.3203 5.75781C11.375 5.75 11.4375 5.75 11.4922 5.75C12.8594 5.75 13.9609 6.85156 13.9609 8.21094ZM8.88281 8.32031C8.88281 8.25781 8.88281 8.1875 8.89062 8.125L11.5391 10.7734C11.4766 10.7812 11.4219 10.7891 11.3594 10.7891C10 10.7891 8.88281 9.67969 8.88281 8.32031Z" fill="white" fill-opacity="0.8"/>
         </svg>
-        <p id="HideAutoSolverBoxButtonOneTextOneID" class="AutoSolverBoxAlertOneBoxTextOne" style="color: rgba(255, 255, 255, 0.80);">Hide</p>
+        <p id="HideAutoSolverBoxButtonOneTextOneID" class="paragraphText noSelect" style="color: rgba(255, 255, 255, 0.80);">Hide</p>
         <!--<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 15" width="9" height="15" fill="#007AFF">
             <path d="M8.57031 7.35938C8.57031 7.74219 8.4375 8.0625 8.10938 8.375L2.20312 14.1641C1.96875 14.3984 1.67969 14.5156 1.33594 14.5156C0.648438 14.5156 0.0859375 13.9609 0.0859375 13.2734C0.0859375 12.9219 0.226562 12.6094 0.484375 12.3516L5.63281 7.35156L0.484375 2.35938C0.226562 2.10938 0.0859375 1.78906 0.0859375 1.44531C0.0859375 0.765625 0.648438 0.203125 1.33594 0.203125C1.67969 0.203125 1.96875 0.320312 2.20312 0.554688L8.10938 6.34375C8.42969 6.64844 8.57031 6.96875 8.57031 7.35938Z"/>
         </svg>-->
@@ -686,21 +727,21 @@ const htmlContent = `
             <div class="AutoSolverBoxAlertSectionOne">
                 <div class="AutoSolverBoxAlertSectionOneSystemSection">
 
-                    <div id="SendFeedbackButtonOne" class="AutoSolverBoxAlertOneBox" style="border: 2px solid rgba(0, 122, 255, 0.10); flex: 1 0 0; background: rgba(0, 122, 255, 0.10); padding: 8px; border-radius: 8px;">
+                    <div id="SendFeedbackButtonOne" class="AutoSolverBoxAlertOneBox" style="border: 2px solid rgba(0, 122, 255, 0.10); flex: 1 0 0; background: rgba(0, 122, 255, 0.10);">
                         <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M5.22656 17.3125C4.70312 17.3125 4.39062 16.9531 4.39062 16.3906V14.1641H3.6875C1.52344 14.1641 -0.0078125 12.7109 -0.0078125 10.3438V4.14844C-0.0078125 1.77344 1.42969 0.320312 3.82031 0.320312H14.1641C16.5547 0.320312 17.9922 1.77344 17.9922 4.14844V10.3438C17.9922 12.7109 16.5547 14.1641 14.1641 14.1641H9.22656L6.29688 16.7734C5.86719 17.1562 5.57812 17.3125 5.22656 17.3125Z" fill="#007AFF"/>
                         </svg>
-                        <p class="AutoSolverBoxAlertOneBoxTextOne" style="color: #007AFF;">Feedback</p>
+                        <p class="paragraphText noSelect textFill" style="color: #007AFF;">Feedback</p>
                         <!--<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 15" width="9" height="15" fill="#007AFF">
                             <path d="M8.57031 7.35938C8.57031 7.74219 8.4375 8.0625 8.10938 8.375L2.20312 14.1641C1.96875 14.3984 1.67969 14.5156 1.33594 14.5156C0.648438 14.5156 0.0859375 13.9609 0.0859375 13.2734C0.0859375 12.9219 0.226562 12.6094 0.484375 12.3516L5.63281 7.35156L0.484375 2.35938C0.226562 2.10938 0.0859375 1.78906 0.0859375 1.44531C0.0859375 0.765625 0.648438 0.203125 1.33594 0.203125C1.67969 0.203125 1.96875 0.320312 2.20312 0.554688L8.10938 6.34375C8.42969 6.64844 8.57031 6.96875 8.57031 7.35938Z"/>
                         </svg>-->
                     </div>
 
-                    <div id="DuolingoProSettingsButtonOne" class="AutoSolverBoxAlertOneBox" style="border: 2px solid rgba(0, 122, 255, 0.10); flex: 1 0 0; background: rgba(0, 122, 255, 0.10); padding: 8px; border-radius: 8px;">
+                    <div id="DuolingoProSettingsButtonOne" class="AutoSolverBoxAlertOneBox" style="border: 2px solid rgba(0, 122, 255, 0.10); flex: 1 0 0; background: rgba(0, 122, 255, 0.10);">
                         <svg width="19" height="19" viewBox="0 0 19 19" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M9.46094 17.1875C9.28906 17.1875 9.13281 17.1797 8.96875 17.1719L8.55469 17.9453C8.42969 18.1875 8.17188 18.3281 7.89062 18.2891C7.60156 18.2344 7.40625 18.0156 7.36719 17.7344L7.24219 16.8672C6.92188 16.7812 6.61719 16.6641 6.32031 16.5469L5.67969 17.1172C5.47656 17.3047 5.17969 17.3516 4.92188 17.2109C4.67188 17.0547 4.57031 16.7891 4.625 16.5156L4.80469 15.6562C4.54688 15.4688 4.28906 15.2578 4.05469 15.0312L3.25781 15.3672C2.98438 15.4844 2.71094 15.4062 2.50781 15.1797C2.34375 14.9688 2.3125 14.6719 2.46094 14.4375L2.92188 13.6875C2.75 13.4219 2.59375 13.1406 2.4375 12.8438L1.57031 12.8828C1.28906 12.8984 1.03125 12.7344 0.945312 12.4531C0.851562 12.1953 0.9375 11.9062 1.15625 11.7344L1.84375 11.1953C1.76562 10.8828 1.70312 10.5625 1.67188 10.2344L0.84375 9.96094C0.5625 9.875 0.398438 9.64844 0.398438 9.35938C0.398438 9.07031 0.5625 8.84375 0.84375 8.75L1.67188 8.48438C1.70312 8.15625 1.76562 7.84375 1.84375 7.52344L1.15625 6.97656C0.9375 6.8125 0.851562 6.53125 0.945312 6.27344C1.03125 5.99219 1.28906 5.83594 1.57031 5.84375L2.4375 5.875C2.59375 5.57812 2.75 5.30469 2.92188 5.02344L2.46094 4.28125C2.3125 4.05469 2.34375 3.75781 2.50781 3.54688C2.71094 3.32031 2.98438 3.24219 3.25 3.35938L4.05469 3.67969C4.28906 3.46875 4.54688 3.25781 4.80469 3.0625L4.625 2.21875C4.5625 1.92188 4.67969 1.65625 4.91406 1.51562C5.1875 1.375 5.47656 1.41406 5.6875 1.60938L6.32031 2.17969C6.61719 2.05469 6.92969 1.94531 7.24219 1.85156L7.36719 0.992188C7.40625 0.710938 7.60156 0.492188 7.88281 0.445312C8.17188 0.398438 8.42969 0.53125 8.55469 0.765625L8.96875 1.54688C9.13281 1.53906 9.28906 1.53125 9.46094 1.53125C9.61719 1.53125 9.78125 1.53906 9.94531 1.54688L10.3594 0.765625C10.4766 0.539062 10.7344 0.398438 11.0234 0.4375C11.3047 0.492188 11.5078 0.710938 11.5469 0.992188L11.6719 1.85156C11.9844 1.94531 12.2891 2.05469 12.5859 2.17969L13.2266 1.60938C13.4375 1.41406 13.7266 1.375 13.9922 1.51562C14.2344 1.65625 14.3516 1.92188 14.2891 2.21094L14.1094 3.0625C14.3594 3.25781 14.6172 3.46875 14.8516 3.67969L15.6562 3.35938C15.9297 3.24219 16.2031 3.32031 16.4062 3.54688C16.5703 3.75781 16.5938 4.05469 16.4453 4.28125L15.9844 5.02344C16.1641 5.30469 16.3203 5.57812 16.4688 5.875L17.3438 5.84375C17.6172 5.83594 17.8828 5.99219 17.9688 6.27344C18.0625 6.53125 17.9609 6.80469 17.75 6.97656L17.0703 7.51562C17.1484 7.84375 17.2109 8.15625 17.2422 8.48438L18.0625 8.75C18.3438 8.85156 18.5234 9.07031 18.5234 9.35938C18.5234 9.64062 18.3438 9.86719 18.0625 9.96094L17.2422 10.2344C17.2109 10.5625 17.1484 10.8828 17.0703 11.1953L17.7578 11.7344C17.9688 11.9062 18.0625 12.1953 17.9688 12.4531C17.8828 12.7344 17.6172 12.8984 17.3438 12.8828L16.4688 12.8438C16.3203 13.1406 16.1641 13.4219 15.9844 13.6875L16.4453 14.4297C16.6016 14.6797 16.5703 14.9688 16.4062 15.1797C16.2031 15.4062 15.9219 15.4844 15.6562 15.3672L14.8594 15.0312C14.6172 15.2578 14.3594 15.4688 14.1094 15.6562L14.2891 16.5078C14.3516 16.7891 14.2344 17.0547 14 17.2031C13.7266 17.3516 13.4375 17.2969 13.2266 17.1172L12.5859 16.5469C12.2891 16.6641 11.9844 16.7812 11.6719 16.8672L11.5469 17.7344C11.5078 18.0156 11.3047 18.2344 11.0312 18.2812C10.7344 18.3281 10.4688 18.1953 10.3516 17.9453L9.94531 17.1719C9.78125 17.1797 9.61719 17.1875 9.46094 17.1875ZM9.44531 6.95312C10.4844 6.95312 11.375 7.60938 11.7109 8.53125H15.3281C14.9375 5.61719 12.4922 3.39062 9.46094 3.39062C8.64062 3.39062 7.86719 3.55469 7.16406 3.84375L8.99219 7C9.14062 6.96875 9.28906 6.95312 9.44531 6.95312ZM3.53906 9.35938C3.53906 11.2422 4.38281 12.9141 5.71875 14.0078L7.60156 10.9141C7.25 10.4922 7.03906 9.95312 7.03906 9.36719C7.03906 8.77344 7.25781 8.22656 7.60938 7.80469L5.78125 4.66406C4.40625 5.75 3.53906 7.44531 3.53906 9.35938ZM9.44531 10.2656C9.96094 10.2656 10.3516 9.875 10.3516 9.36719C10.3516 8.85938 9.96094 8.46094 9.44531 8.46094C8.94531 8.46094 8.54688 8.85938 8.54688 9.36719C8.54688 9.875 8.94531 10.2656 9.44531 10.2656ZM9.46094 15.3281C12.5078 15.3281 14.9609 13.0859 15.3359 10.1562H11.7266C11.4062 11.1016 10.5078 11.7734 9.44531 11.7734C9.28906 11.7734 9.125 11.7578 8.97656 11.7266L7.08594 14.8359C7.8125 15.1484 8.60938 15.3281 9.46094 15.3281Z" fill="#007AFF"/>
                         </svg>
-                        <p class="AutoSolverBoxAlertOneBoxTextOne" style="color: #007AFF;">Settings</p>
+                        <p class="paragraphText noSelect textFill" style="color: #007AFF;">Settings</p>
                         <!--<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 15" width="9" height="15" fill="#007AFF">
                             <path d="M8.57031 7.35938C8.57031 7.74219 8.4375 8.0625 8.10938 8.375L2.20312 14.1641C1.96875 14.3984 1.67969 14.5156 1.33594 14.5156C0.648438 14.5156 0.0859375 13.9609 0.0859375 13.2734C0.0859375 12.9219 0.226562 12.6094 0.484375 12.3516L5.63281 7.35156L0.484375 2.35938C0.226562 2.10938 0.0859375 1.78906 0.0859375 1.44531C0.0859375 0.765625 0.648438 0.203125 1.33594 0.203125C1.67969 0.203125 1.96875 0.320312 2.20312 0.554688L8.10938 6.34375C8.42969 6.64844 8.57031 6.96875 8.57031 7.35938Z"/>
                         </svg>-->
@@ -708,11 +749,11 @@ const htmlContent = `
 
                 </div>
 
-                <div class="AutoSolverBoxAlertOneBox" id="DPSeeAllCurrentIssuesButtonABButtonID" style="border: 2px solid rgba(255, 59, 48, 0.10); background: rgba(255, 59, 48, 0.10); padding: 8px; border-radius: 8px;">
+                <div class="AutoSolverBoxAlertOneBox" id="DPSeeAllCurrentIssuesButtonABButtonID" style="border: 2px solid rgba(255, 59, 48, 0.10); background: rgba(255, 59, 48, 0.10);">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 17" width="18" height="18" fill="#FF2D55">
                         <path d="M2.96094 16.0469C1.53125 16.0469 0.59375 14.9688 0.59375 13.6797C0.59375 13.2812 0.695312 12.875 0.914062 12.4922L6.92969 1.97656C7.38281 1.19531 8.17188 0.789062 8.97656 0.789062C9.77344 0.789062 10.5547 1.1875 11.0156 1.97656L17.0312 12.4844C17.25 12.8672 17.3516 13.2812 17.3516 13.6797C17.3516 14.9688 16.4141 16.0469 14.9844 16.0469H2.96094ZM8.98438 10.4609C9.52344 10.4609 9.83594 10.1562 9.86719 9.59375L9.99219 6.22656C10.0234 5.64062 9.59375 5.23438 8.97656 5.23438C8.35156 5.23438 7.92969 5.63281 7.96094 6.22656L8.08594 9.60156C8.10938 10.1562 8.42969 10.4609 8.98438 10.4609ZM8.98438 13.2812C9.60156 13.2812 10.0859 12.8906 10.0859 12.2891C10.0859 11.7031 9.60938 11.3047 8.98438 11.3047C8.35938 11.3047 7.875 11.7031 7.875 12.2891C7.875 12.8906 8.35938 13.2812 8.98438 13.2812Z"/>
                     </svg>
-                    <p class="AutoSolverBoxAlertOneBoxTextOne" style="color: #FF4B4B;">Issues & Fixes</p>
+                    <p class="paragraphText noSelect textFill" style="color: #FF4B4B; width: 100%;">Issues & Fixes</p>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 15" width="9" height="15" fill="#FF2D55">
                         <path d="M8.57031 7.35938C8.57031 7.74219 8.4375 8.0625 8.10938 8.375L2.20312 14.1641C1.96875 14.3984 1.67969 14.5156 1.33594 14.5156C0.648438 14.5156 0.0859375 13.9609 0.0859375 13.2734C0.0859375 12.9219 0.226562 12.6094 0.484375 12.3516L5.63281 7.35156L0.484375 2.35938C0.226562 2.10938 0.0859375 1.78906 0.0859375 1.44531C0.0859375 0.765625 0.648438 0.203125 1.33594 0.203125C1.67969 0.203125 1.96875 0.320312 2.20312 0.554688L8.10938 6.34375C8.42969 6.64844 8.57031 6.96875 8.57031 7.35938Z"/>
                     </svg>
@@ -720,21 +761,22 @@ const htmlContent = `
 
             </div>
             <div class="AutoSolverBoxTitleSectionOne">
-                <p class="AutoSolverBoxTitleSectionOneTextOne">Duolingo Pro</p>
+                <p class="paragraphText noSelect" style="font-size: 24px;">Duolingo Pro</p>
                 <div class="AutoSolverBoxTitleSectionOneBETATagOne">
-                    <p class="AutoSolverBoxTitleSectionOneBETATagOneTextOne">2.0 BETA 9.6.3</p>
+                    <p class="paragraphText noSelect" style="color: #FFF;">2.0 BETA 9.6.4</p>
                 </div>
             </div>
-            <p class="AutoSolverBoxTitleSectionTwoTextOne">How many lessons would you like to AutoSolve?</p>
+            <p class="paragraphText noSelect" style="color: rgb(var(--color-wolf));">How many lessons would you like to AutoSolve?</p>
             <div class="AutoSolverBoxSectionThreeBox">
                 <div class="AutoSolverBoxSectionThreeBoxSectionOne">
                     <button class="AutoSolverBoxRepeatAmountButton activatorThingDPHDJ" id="DPASBadB1" aria-label="Subtract">-</button>
-                    <div class="AutoSolverBoxRepeatNumberDisplay">0</div>
+                    <div class="AutoSolverBoxRepeatNumberDisplay paragraphText noSelect" id="AutoSolverBoxNumberDisplayID">0</div>
                     <button class="AutoSolverBoxRepeatAmountButton activatorThingDPHDJ" id="DPASBauB1" aria-label="Add">+</button>
                     <button class="AutoSolverBoxRepeatAmountButton activatorThingDPHDJ" id="DPASBfmB1" aria-label="Toggle Infinity Mode" style="font-size: 20px;">∞</button>
+                    <button class="AutoSolverBoxRepeatAmountButton activatorThingDPHDJ" id="DLPIDxpMB1ID1" aria-label="Toggle XP Mode">XP</button>
                 </div>
                 <div class="AutoSolverBoxSectionThreeBoxSectionTwo" id="AutoSolverBoxSectionThreeBoxSectionTwoIDOne">
-                    <div class="AutoSolverBoxSectionThreeBoxSectionTwoTextOne">Practice Only Mode</div>
+                    <div class="paragraphText noSelect textFill">Practice Only Mode</div>
                     <div id="AutoSolverBoxToggleT1ID1" class="DLPSettingsToggleT1 DLPSettingsToggleT1ON">
                         <div class="DLPSettingsToggleT1B1 DLPSettingsToggleT1ONB1">
                             <svg class="DLPSettingsToggleT1B1I1" style="display: ;" "16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -747,7 +789,7 @@ const htmlContent = `
                     </div>
                 </div>
                 <div class="AutoSolverBoxSectionThreeBoxSectionTwo" id="AutoSolverBoxSectionThreeBoxSectionTwoIDTwo">
-                    <div class="AutoSolverBoxSectionThreeBoxSectionTwoTextOne">Repeat Lesson Mode</div>
+                    <div class="paragraphText noSelect textFill">Repeat Lesson Mode</div>
                     <div id="AutoSolverBoxToggleT1ID2" class="DLPSettingsToggleT1 DLPSettingsToggleT1ON">
                         <div class="DLPSettingsToggleT1B1 DLPSettingsToggleT1ONB1">
                             <svg class="DLPSettingsToggleT1B1I1" style="display: ;" "16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -759,8 +801,20 @@ const htmlContent = `
                         </div>
                     </div>
                 </div>
-
-                <p class="AutoSolverBoxTitleSectionTwoTextOne" style="margin-top: 4px; margin-bottom: 8px; color: rgb(var(--color-hare));">Turn off both to use Path Mode</p>
+                <div class="AutoSolverBoxSectionThreeBoxSectionTwo" id="AutoSolverBoxSectionThreeBoxSectionTwoIDThree">
+                    <div class="paragraphText noSelect textFill">Listening Only Mode (Super)</div>
+                    <div id="AutoSolverBoxToggleT1ID3" class="DLPSettingsToggleT1 DLPSettingsToggleT1ON">
+                        <div class="DLPSettingsToggleT1B1 DLPSettingsToggleT1ONB1">
+                            <svg class="DLPSettingsToggleT1B1I1" style="display: ;" "16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6.41406 13.9453C5.91406 13.9453 5.53906 13.7656 5.20312 13.3672L1.17188 8.48438C0.890625 8.16406 0.789062 7.875 0.789062 7.54688C0.789062 6.8125 1.33594 6.27344 2.09375 6.27344C2.53125 6.27344 2.84375 6.42969 3.13281 6.77344L6.375 10.7969L12.7656 0.71875C13.0781 0.226562 13.3984 0.0390625 13.9141 0.0390625C14.6641 0.0390625 15.2109 0.570312 15.2109 1.30469C15.2109 1.57812 15.125 1.86719 14.9219 2.17969L7.64062 13.3125C7.35938 13.7422 6.94531 13.9453 6.41406 13.9453Z" fill="white"/>
+                            </svg>
+                            <svg class="DLPSettingsToggleT1B1I2" style="display: none; transform: scale(0);" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M0.867188 12.9922C0.414062 12.5469 0.429688 11.7578 0.851562 11.3359L5.32031 6.86719L0.851562 2.41406C0.429688 1.98438 0.414062 1.20312 0.867188 0.75C1.32031 0.289062 2.10938 0.304688 2.53125 0.734375L6.99219 5.19531L11.4531 0.734375C11.8906 0.296875 12.6562 0.296875 13.1094 0.75C13.5703 1.20312 13.5703 1.96875 13.125 2.41406L8.67188 6.86719L13.125 11.3281C13.5703 11.7734 13.5625 12.5312 13.1094 12.9922C12.6641 13.4453 11.8906 13.4453 11.4531 13.0078L6.99219 8.54688L2.53125 13.0078C2.10938 13.4375 1.32812 13.4453 0.867188 12.9922Z" fill="white"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <p class="paragraphText noSelect" style="margin-top: 4px; margin-bottom: 8px; color: rgb(var(--color-hare));">Turn off all to use Path Mode</p>
 
                 <button class="AutoSolverBoxRepeatAmountButton" id="DPASBsB1" style="width: 100%;">START</button>
             </div>
@@ -775,7 +829,7 @@ const cssContent = `
     flex-direction: column;
     align-items: flex-end;
     gap: 8px;
-    position: fixed; /* Fix the position to the bottom-right corner */
+    position: fixed;
     bottom: 24px;
     right: 24px;
     z-index: 2;
@@ -831,6 +885,9 @@ const cssContent = `
     align-items: center;
     gap: 8px;
     align-self: stretch;
+    padding: 8px;
+    border-radius: 8px;
+    height: 40px;
 
     cursor: pointer;
     transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -877,16 +934,6 @@ const cssContent = `
     padding: 0px;
 }
 
-.AutoSolverBoxTitleSectionOneTextOne {
-    color: rgb(var(--color-eel));
-    font-style: normal;
-    font-weight: 700;
-    font-size: 24px;
-    margin: 0px;
-
-    cursor: default;
-}
-
 .AutoSolverBoxTitleSectionOneBETATagOne {
     display: flex;
     height: 36px;
@@ -908,17 +955,6 @@ const cssContent = `
     margin-top: 0px;
     margin-bottom: 0px;
     font-size: 16px;
-
-    cursor: default;
-}
-
-.AutoSolverBoxTitleSectionTwoTextOne {
-    color: rgb(var(--color-wolf));
-
-    font-weight: 700;
-    font-size: 16px;
-    margin: 0px;
-    margin-top: -2px;
 
     cursor: default;
 }
@@ -1021,16 +1057,10 @@ const cssContent = `
     align-items: center;
     gap: 8px;
 
-    font-size: 16px;
-    font-weight: 700;
-
     border-radius: 8px;
     border: 2px solid rgb(var(--color-eel), 0.2);
     background: rgb(var(--color-swan), 0.8);
 
-    cursor: default;
-
-    color: rgb(var(--color-eel));
     text-align: center;
 
     transition: all .2s, font-size .0s;
@@ -1045,26 +1075,9 @@ const cssContent = `
     align-items: center;
     gap: 8px;
 }
-
-.AutoSolverBoxSectionThreeBoxSectionTwoTextOne {
-    position: relative;
-    text-align: center;
-    display: inline-flex;
-    height: 48px;
-    width: 100%;
-    justify-content: left;
-    align-items: center;
-    gap: 8px;
-    font-size: 16px;
-    font-weight: 700;
-    border-radius: 8px;
-    cursor: default;
-    color: rgb(var(--color-eel));
-    text-align: left;
-}
 `;
 
-let bannedViewHTML = `
+let DVfkMxsABjstoaGw = `
 <div class="AutoSolverBoxLayers" style="padding: 16px;">
     <svg style="margin: 8px;" width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M30.7812 25.7188L27.8125 22.7344C28.8125 20.9688 29.3906 18.9219 29.3906 16.7188C29.3906 9.85938 23.8594 4.32812 16.9844 4.32812C14.7969 4.32812 12.75 4.90625 10.9844 5.90625L8 2.9375C10.5938 1.21875 13.6875 0.21875 17 0.21875C26.0469 0.21875 33.5 7.67188 33.5 16.7188C33.5 20.0312 32.5 23.125 30.7812 25.7188ZM30.8281 32.4219L1.29688 2.89062C0.796875 2.40625 0.796875 1.53125 1.29688 1.04688C1.8125 0.515625 2.65625 0.53125 3.17188 1.04688L32.6875 30.5469C33.2031 31.0625 33.1875 31.8906 32.6875 32.4062C32.1875 32.9219 31.3438 32.9219 30.8281 32.4219ZM23 27.5469L25.9844 30.5312C23.3906 32.2344 20.3125 33.2344 17 33.2344C7.95312 33.2344 0.5 25.7812 0.5 16.7188C0.5 13.4062 1.5 10.3125 3.21875 7.71875L6.20312 10.7031C5.1875 12.4688 4.60938 14.5312 4.60938 16.7188C4.60938 23.5938 10.125 29.125 17 29.125C19.1875 29.125 21.2344 28.5469 23 27.5469Z" fill="#FF2D55"/>
@@ -1075,8 +1088,23 @@ let bannedViewHTML = `
     <p id="ACuvpqwPRPwTYTHRID" style="cursor: pointer; margin: 0; align-self: stretch; color: #007AFF; text-align: center; font-size: 16px; font-weight: 700;">How can I fix this?</p>
 </div>
 `;
-let bannedViewElement = null;
+let VBvArqbjKNjukomQ = null;
 function szdfgvhbjnk() {
+    let VRFATlhSBsIqitsa = false;
+    if (JSON.parse(localStorage.getItem('PkvEOSJlElvFWWOGmNxshSsPShkkZwmM')) === null) {
+        VRFATlhSBsIqitsa = false;
+    } else {
+        VRFATlhSBsIqitsa = JSON.parse(localStorage.getItem('PkvEOSJlElvFWWOGmNxshSsPShkkZwmM'));
+        localStorage.setItem('PkvEOSJlElvFWWOGmNxshSsPShkkZwmM', VRFATlhSBsIqitsa);
+    }
+    if (VRFATlhSBsIqitsa) {
+        try {
+            document.querySelector('.AutoSolverBoxLayers').remove();
+            VBvArqbjKNjukomQ = document.createElement('div');
+            VBvArqbjKNjukomQ.innerHTML = DVfkMxsABjstoaGw;
+            document.querySelector('.AutoSolverBoxBackground').appendChild(VBvArqbjKNjukomQ);
+        } catch (error) {}
+    }
     async function updateWarningsFromURL(url, currentVersion) {
         try {
             const response = await fetch(url);
@@ -1086,10 +1114,15 @@ function szdfgvhbjnk() {
             const data = await response.json();
             const versionData = data[currentVersion];
             if (versionData) {
-                document.querySelector('.AutoSolverBoxLayers').remove();
-                bannedViewElement = document.createElement('div');
-                bannedViewElement.innerHTML = bannedViewHTML;
-                document.querySelector('.AutoSolverBoxBackground').appendChild(bannedViewElement);
+                try {
+                    document.querySelector('.AutoSolverBoxLayers').remove();
+                    VBvArqbjKNjukomQ = document.createElement('div');
+                    VBvArqbjKNjukomQ.innerHTML = DVfkMxsABjstoaGw;
+                    document.querySelector('.AutoSolverBoxBackground').appendChild(VBvArqbjKNjukomQ);
+                } catch (error) {}
+                autoSolverBoxRepeatAmount = 0;
+                VRFATlhSBsIqitsa = true;
+                localStorage.setItem('PkvEOSJlElvFWWOGmNxshSsPShkkZwmM', VRFATlhSBsIqitsa);
                 for (const warningKey in versionData) {
                     if (warningKey === 'expiration') {
                         if (warningKey === 'never' || warningKey === 'forever' || warningKey === '') {
@@ -1272,15 +1305,17 @@ function something() {
 
 let PkJiQETebALNWeLt = 0;
 function initializeAutoSolverBoxButtonInteractiveness() {
-    const AutoSolverBoxRepeatNumberDisplay = document.querySelector('.AutoSolverBoxRepeatNumberDisplay');
+    const AutoSolverBoxNumberDisplayID = document.querySelector('#AutoSolverBoxNumberDisplayID');
     const AutoSolverBoxRepeatNumberDownButton = document.querySelector('#DPASBadB1');
     const AutoSolverBoxRepeatNumberUpButton = document.querySelector('#DPASBauB1');
     const AutoSolverBoxForeverModeButton = document.querySelector('#DPASBfmB1');
+    const AutoSolverBoxXPModeButton = document.querySelector('#DLPIDxpMB1ID1');
+
     const AutoSolverBoxRepeatStartButton = document.querySelector('#DPASBsB1');
 
     DPABaBsFunc1();
 
-    AutoSolverBoxRepeatNumberDisplay.textContent = autoSolverBoxRepeatAmount;
+    AutoSolverBoxNumberDisplayID.textContent = autoSolverBoxRepeatAmount;
     AutoSolverBoxForeverModeButtonUpdateFunc();
     something();
 
@@ -1312,35 +1347,50 @@ function initializeAutoSolverBoxButtonInteractiveness() {
         }
     }
     function AutoSolverBoxForeverModeButtonUpdateFunc() {
+        if (false) {
+            AutoSolverBoxXPModeButton.classList.add('AutoSolverBoxRepeatAmountButtonActive');
+            try {
+                AutoSolverBoxXPModeButton.classList.remove('AutoSolverBoxRepeatAmountButtonOff');
+            } catch (error) {}
+        } else {
+            AutoSolverBoxXPModeButton.classList.add('AutoSolverBoxRepeatAmountButtonOff');
+            try {
+                AutoSolverBoxXPModeButton.classList.remove('AutoSolverBoxRepeatAmountButtonActive');
+            } catch (error) {}
+        }
         if (DuolingoProSettingsNeverEndMode) {
             AutoSolverBoxForeverModeButton.classList.add('AutoSolverBoxRepeatAmountButtonActive');
             try {
                 AutoSolverBoxForeverModeButton.classList.remove('AutoSolverBoxRepeatAmountButtonOff');
             } catch (error) {}
 
-            AutoSolverBoxRepeatNumberDisplay.style.marginLeft = '-56px';
-            AutoSolverBoxRepeatNumberDisplay.style.marginRight = '-56px';
+            AutoSolverBoxNumberDisplayID.style.marginLeft = '-56px';
+            AutoSolverBoxNumberDisplayID.style.marginRight = '-56px';
             AutoSolverBoxRepeatNumberDownButton.style.opacity = '0';
+            //AutoSolverBoxRepeatNumberDownButton.style.filter = 'blur(4px)';
             AutoSolverBoxRepeatNumberUpButton.style.opacity = '0';
-            AutoSolverBoxRepeatNumberDisplay.textContent = "∞";
-            AutoSolverBoxRepeatNumberDisplay.style.fontSize = '24px';
+            //AutoSolverBoxRepeatNumberUpButton.style.filter = 'blur(4px)';
+            AutoSolverBoxNumberDisplayID.textContent = "∞";
+            AutoSolverBoxNumberDisplayID.style.fontSize = '20px';
         } else {
             AutoSolverBoxForeverModeButton.classList.add('AutoSolverBoxRepeatAmountButtonOff');
             try {
                 AutoSolverBoxForeverModeButton.classList.remove('AutoSolverBoxRepeatAmountButtonActive');
             } catch (error) {}
 
-            AutoSolverBoxRepeatNumberDisplay.style.marginLeft = '';
-            AutoSolverBoxRepeatNumberDisplay.style.marginRight = '';
+            AutoSolverBoxNumberDisplayID.style.marginLeft = '';
+            AutoSolverBoxNumberDisplayID.style.marginRight = '';
             AutoSolverBoxRepeatNumberDownButton.style.opacity = '';
+            //AutoSolverBoxRepeatNumberDownButton.style.filter = '';
             AutoSolverBoxRepeatNumberUpButton.style.opacity = '';
-            AutoSolverBoxRepeatNumberDisplay.textContent = autoSolverBoxRepeatAmount;
-            AutoSolverBoxRepeatNumberDisplay.style.fontSize = '';
+            //AutoSolverBoxRepeatNumberUpButton.style.filter = '';
+            AutoSolverBoxNumberDisplayID.textContent = autoSolverBoxRepeatAmount;
+            AutoSolverBoxNumberDisplayID.style.fontSize = '';
         }
     }
     if (DuolingoProSettingsNeverEndMode) {
-        AutoSolverBoxRepeatNumberDisplay.textContent = "∞";
-        AutoSolverBoxRepeatNumberDisplay.style.fontSize = '22px';
+        AutoSolverBoxNumberDisplayID.textContent = "∞";
+        AutoSolverBoxNumberDisplayID.style.fontSize = '20px';
     }
     AutoSolverBoxForeverModeButton.addEventListener('click', () => {
         DuolingoProSettingsNeverEndMode = !DuolingoProSettingsNeverEndMode;
@@ -1356,7 +1406,7 @@ function initializeAutoSolverBoxButtonInteractiveness() {
             } else if (autoSolverBoxRepeatAmount <= 0) {
                 autoSolverBoxRepeatAmount = 0;
             }
-            AutoSolverBoxRepeatNumberDisplay.textContent = autoSolverBoxRepeatAmount;
+            AutoSolverBoxNumberDisplayID.textContent = autoSolverBoxRepeatAmount;
             sessionStorage.setItem('autoSolverBoxRepeatAmount', autoSolverBoxRepeatAmount);
             DPABaBsFunc1();
         } else {
@@ -1371,7 +1421,7 @@ function initializeAutoSolverBoxButtonInteractiveness() {
             } else if (autoSolverBoxRepeatAmount >= 99999) {
                 autoSolverBoxRepeatAmount = 99999;
             }
-            AutoSolverBoxRepeatNumberDisplay.textContent = autoSolverBoxRepeatAmount;
+            AutoSolverBoxNumberDisplayID.textContent = autoSolverBoxRepeatAmount;
             sessionStorage.setItem('autoSolverBoxRepeatAmount', autoSolverBoxRepeatAmount);
             DPABaBsFunc1();
         } else {
@@ -2526,7 +2576,7 @@ const DuolingoProSettingsBoxHTML = `
             <div class="DuolingoProSettingsBoxSectionOne">
                 <p class="DuolingoProSettingsBoxSectionOneTextOne">Settings</p>
                 <div class="DuolingoProSettingsBoxSectionOneBoxOne">
-                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne">2.0 BETA 9.6.3</p>
+                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne">2.0 BETA 9.6.4</p>
                 </div>
             </div>
             <div class="DuolingoProSettingsBoxSectionTwo">
@@ -2624,7 +2674,7 @@ const DuolingoProSettingsBoxHTML = `
                             <path d="M9 16.6172C4.47656 16.6172 0.75 12.8906 0.75 8.35938C0.75 3.83594 4.46875 0.109375 9 0.109375C13.5234 0.109375 17.25 3.83594 17.25 8.35938C17.25 12.8906 13.5312 16.6172 9 16.6172ZM8.99219 5.86719C9.65625 5.86719 10.2031 5.3125 10.2031 4.64844C10.2031 3.96094 9.65625 3.42188 8.99219 3.42188C8.32031 3.42188 7.76562 3.96094 7.76562 4.64844C7.76562 5.3125 8.32031 5.86719 8.99219 5.86719ZM7.52344 12.8125H10.8438C11.2734 12.8125 11.6094 12.5156 11.6094 12.0703C11.6094 11.6562 11.2734 11.3281 10.8438 11.3281H10.1094V7.95312C10.1094 7.36719 9.82031 6.99219 9.27344 6.99219H7.67969C7.25 6.99219 6.91406 7.32031 6.91406 7.72656C6.91406 8.16406 7.25 8.47656 7.67969 8.47656H8.42969V11.3281H7.52344C7.09375 11.3281 6.75781 11.6562 6.75781 12.0703C6.75781 12.5156 7.09375 12.8125 7.52344 12.8125Z" fill="#007AFF"/>
                         </svg>
                     </div>
-                    <p class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);"><a href="https://github.com/anonymoushackerIV" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">anonymoushackerIV</a>, <a href="https://github.com/surebrec" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">surebrec</a>, <a href="https://github.com/SicariusBlack" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">SicariusBlack</a>, <a href="https://github.com/supabase/supabase-js" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">supabase-js</a>, <a href="https://github.com/niklasvh/html2canvas" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">html2canvas</a>, <a href="https://github.com/fakeduo" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">fakeduo</a>, <a href="https://github.com/JxxIT" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">JxxIT</a></p>
+                    <p class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);"><a href="https://github.com/anonymoushackerIV" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">anonymoushackerIV</a>, <a href="https://github.com/surebrec" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">surebrec</a>, <a href="https://github.com/ByThon1" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">ByThon1</a>, <a href="https://github.com/SicariusBlack" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">SicariusBlack</a>, <a href="https://github.com/fakeduo" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">fakeduo</a>, <a href="https://github.com/JxxIT" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">JxxIT</a>, <a href="https://github.com/tkwon09137" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">tkwon09137</a></p>
                 </div>
 
             </div>
@@ -3063,7 +3113,7 @@ if (String(localStorage.getItem('duolingoProLastInstalledVersion')) === null || 
     downloadStuffVar = 'trying';
 
     setTimeout(function() {
-        versionServerStuff('download', "Download", duolingoProCurrentVersion);
+        versionServerStuff('download', duolingoProCurrentVersion);
         checkFlagTwo();
     }, 2000);
 
@@ -3087,11 +3137,11 @@ if (String(localStorage.getItem('duolingoProLastInstalledVersion')) === null || 
 } else if (String(localStorage.getItem('duolingoProLastInstalledVersion')) !== duolingoProCurrentVersion) {
     updateStuffVar = 'trying';
 
-    localStorage.setItem('DLP4Uz53cm6wjnOG7tY', "true");
     DLPpromotionBubbleVisibility = true;
+    localStorage.setItem('DLP4Uz53cm6wjnOG7tY', "true");
 
     setTimeout(function() {
-        versionServerStuff('update', "Update", duolingoProCurrentVersion, String(localStorage.getItem('duolingoProLastInstalledVersion')));
+        versionServerStuff('update', duolingoProCurrentVersion, String(localStorage.getItem('duolingoProLastInstalledVersion')));
         checkFlagThree();
     }, 2000);
 
@@ -3633,25 +3683,6 @@ function notificationPopOne(title, description, value) {
     });
 }
 
-const proUICSS = `
-@font-face {
-    font-family: "SF Pro Rounded Bold";
-    src: url("https://github.com/anonymoushackerIV/anonymoushackerIV.github.io/raw/main/duolingopro/fonts/SF-Pro-Rounded-Bold.otf");
-}
-`
-
-let injectedproUICSSCSS = null;
-function proUIFunction() {
-    injectedproUICSSCSS = document.createElement('style');
-    injectedproUICSSCSS.type = 'text/css';
-    injectedproUICSSCSS.innerHTML = proUICSS;
-    document.head.appendChild(injectedproUICSSCSS);
-}
-proUIFunction();
-if (AutoSolverSettingsLowPerformanceMode) {
-    //LowPerformanceAnimations();
-}
-
 
 let DuolingoProShortSessionID;
 if (Number(sessionStorage.getItem('DuolingoProShortSessionID')) === null || Number(sessionStorage.getItem('DuolingoProShortSessionID')) === 0 || Number(sessionStorage.getItem('DuolingoProShortSessionID')) === NaN) {
@@ -3712,7 +3743,7 @@ const UpdateAvailableAutoSolverBoxAlertHTML = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 17 17" width="18" height="18" fill="#34C759">
         <path d="M8.64844 16.625C4.125 16.625 0.398438 12.8984 0.398438 8.375C0.398438 3.84375 4.11719 0.125 8.64844 0.125C13.1719 0.125 16.8984 3.84375 16.8984 8.375C16.8984 12.8984 13.1797 16.625 8.64844 16.625ZM8.64844 3.47656C8.46875 3.47656 8.25 3.55469 8.09375 3.72656L4.92969 7.125C4.70312 7.36719 4.59375 7.57812 4.59375 7.83594C4.59375 8.22656 4.89062 8.52344 5.28906 8.52344H6.72656V11.7188C6.72656 12.4531 7.14062 12.8672 7.85938 12.8672H9.42188C10.1328 12.8672 10.5625 12.4531 10.5625 11.7188V8.52344H12C12.3906 8.52344 12.7031 8.22656 12.7031 7.82812C12.7031 7.57812 12.6016 7.39062 12.3516 7.125L9.21094 3.72656C9.03906 3.54688 8.84375 3.47656 8.64844 3.47656Z"/>
     </svg>
-    <p class="AutoSolverBoxAlertOneBoxTextOne" style="color: #34C759;">Update Available</p>
+    <p class="paragraphText noSelect textFill" style="color: #34C759;">Update Available</p>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 15" width="9" height="15" fill="#34C759">
         <path d="M8.57031 7.35938C8.57031 7.74219 8.4375 8.0625 8.10938 8.375L2.20312 14.1641C1.96875 14.3984 1.67969 14.5156 1.33594 14.5156C0.648438 14.5156 0.0859375 13.9609 0.0859375 13.2734C0.0859375 12.9219 0.226562 12.6094 0.484375 12.3516L5.63281 7.35156L0.484375 2.35938C0.226562 2.10938 0.0859375 1.78906 0.0859375 1.44531C0.0859375 0.765625 0.648438 0.203125 1.33594 0.203125C1.67969 0.203125 1.96875 0.320312 2.20312 0.554688L8.10938 6.34375C8.42969 6.64844 8.57031 6.96875 8.57031 7.35938Z"/>
     </svg>
@@ -3924,9 +3955,10 @@ let DPAutoServerButtonMainMenuElement = null;
 let DPAutoServerButtonMainMenuStyle = null;
 
 function DPAutoServerButtonMainMenuFunction() {
+    if (ASB969) {
     try {
         let targetDiv = document.querySelector('._3bTT7');
-        if (targetDiv) {
+        if (targetDiv && !document.querySelector('.DPAutoServerButtonMainMenu')) {
             DPAutoServerButtonMainMenuStyle = document.createElement('style');
             DPAutoServerButtonMainMenuStyle.type = 'text/css';
             DPAutoServerButtonMainMenuStyle.innerHTML = DPAutoServerButtonMainMenuCSS;
@@ -3939,65 +3971,41 @@ function DPAutoServerButtonMainMenuFunction() {
 
                 let otherTargetDiv = document.querySelector('.DPAutoServerButtonMainMenu');
                 otherTargetDiv.addEventListener('click', () => {
-                    notificationCall("Under Construction", "AutoServer is under construction and currently not available. We'll let you know when you can use it.");
+                    notificationCall("AutoServer is under construction", "AutoServer is currently under construction. We'll let you know when it's available. Join our Discord server to learn more & be the first few people to use it discord.gg/r8xQ7K59Mt");
                 });
 
                 if (targetDiv.offsetWidth === 56) {
                     otherTargetDiv.classList.add('DPAutoServerButtonMainMenuMedium');
-                    let otherDeleteDiv = document.querySelector('.DPAutoServerElementsMenu');
-                    otherDeleteDiv.remove();
-                    otherDeleteDiv = document.querySelector('.DPAutoServerElementsMenu');
-                    otherDeleteDiv.remove();
-
+                    document.querySelectorAll('.DPAutoServerElementsMenu').forEach(function(element) {
+                        element.remove();
+                    });
                     fdhuf();
-
                     function fdhuf() {
                         if (targetDiv.offsetWidth !== 56) {
                             otherTargetDiv.remove();
-                            setTimeout(function() {
-                                DPAutoServerButtonMainMenuFunction();
-                            }, 50);
+                            DPAutoServerButtonMainMenuFunction();
                         } else {
-                            setTimeout(function() {
-                                fdhuf();
-                            }, 100);
+                            setTimeout(function() { fdhuf(); }, 100);
                         }
                     }
-
                 } else {
                     otherTargetDiv.classList.add('DPAutoServerButtonMainMenuLarge');
-
                     urhef();
-
                     function urhef() {
-                        if (targetDiv.offsetWidth === 56) {
+                        if (targetDiv.offsetWidth !== 222) {
                             otherTargetDiv.remove();
-                            setTimeout(function() {
-                                DPAutoServerButtonMainMenuFunction();
-                            }, 50);
+                            DPAutoServerButtonMainMenuFunction();
                         } else {
-                            setTimeout(function() {
-                                urhef();
-                            }, 100);
+                            setTimeout(function() { urhef(); }, 100);
                         }
                     }
                 }
-            } else {
-                setTimeout(function() {
-                    DPAutoServerButtonMainMenuFunction();
-                }, 100);
             }
-        } else {
-            setTimeout(function() {
-                DPAutoServerButtonMainMenuFunction();
-            }, 1000);
         }
     } catch(error) {}
+    }
 }
-
-if (ASB969) {
-    DPAutoServerButtonMainMenuFunction();
-}
+setInterval(DPAutoServerButtonMainMenuFunction, 100);
 
 
 const DuolingoProCounterOneHTML = `
@@ -4080,7 +4088,7 @@ let injectedDuolingoProCounterOneElement = null;
 let injectedDuolingoProCounterOneStyle = null;
 
 function DuolingoProCounterOneFunction() {
-    if (window.location.pathname.includes('/lesson') && wasAutoSolverBoxRepeatStartButtonPressed || window.location.pathname.includes('/practice') && wasAutoSolverBoxRepeatStartButtonPressed) {
+    if ((window.location.pathname.includes('/lesson') || window.location.pathname.includes('/practice')) && wasAutoSolverBoxRepeatStartButtonPressed) {
         if (!injectedDuolingoProCounterOneElement) {
             injectedDuolingoProCounterOneStyle = document.createElement('style');
             injectedDuolingoProCounterOneStyle.type = 'text/css';
@@ -4187,11 +4195,13 @@ function DuolingoProCounterOneFunction() {
         function aQklgZktoyzqdZpz(typeSingular, typePLural) {
             if (DLPsessionCompleteAmount === 0) {
                 if (DLPCE258) {
-                    DLPCE258.remove();
+                    DLPCE258.style.display = 'none';
                 }
             } else if (DLPsessionCompleteAmount === 1) {
+                DLPCE258.style.display = '';
                 DLPCE258i.textContent = String(DLPsessionCompleteAmount) + " " + typeSingular + " Solved";
             } else {
+                DLPCE258.style.display = '';
                 DLPCE258i.textContent = String(DLPsessionCompleteAmount) + " " + typePLural + " Solved";
             }
         }
@@ -4523,20 +4533,20 @@ function hgfem() {
 
 
 let EGxjxpyyQVICYLlt = `
-    <div class="djwod">
-	    <div class="rjtso" style="display: flex; justify-content: space-between; align-items: flex-start; align-self: stretch; margin-bottom: 4px;">
-	    	<div class="OuCoTKrL" style="opacity: 0; filter: blur(8px); transition: .4s; position: relative; display: flex; justify-content: center; align-items: center;"></div>
-	    	<svg class="closeIcon094" style="transition: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);" width="15" height="14" viewBox="0 0 15 14" fill="rgba(255, 255, 255, 0.5)" xmlns="http://www.w3.org/2000/svg">
-	    		<path d="M1.32812 13.4922C0.875 13.0469 0.890625 12.2578 1.3125 11.8359L5.78125 7.36719L1.3125 2.91406C0.890625 2.48438 0.875 1.70312 1.32812 1.25C1.78125 0.789062 2.57031 0.804688 2.99219 1.23438L7.45312 5.69531L11.9141 1.23438C12.3516 0.796875 13.1172 0.796875 13.5703 1.25C14.0312 1.70312 14.0312 2.46875 13.5859 2.91406L9.13281 7.36719L13.5859 11.8281C14.0312 12.2734 14.0234 13.0312 13.5703 13.4922C13.125 13.9453 12.3516 13.9453 11.9141 13.5078L7.45312 9.04688L2.99219 13.5078C2.57031 13.9375 1.78906 13.9453 1.32812 13.4922Z"/>
-	    	</svg>
-	    </div>
-	    <p class="fiaks">Loading</p>
-	    <p class="lkfds">Loading</p>
-	    <div class="qjids"></div>
+<div class="djwod">
+    <div class="rjtso" style="display: flex; justify-content: space-between; align-items: flex-start; align-self: stretch; margin-bottom: 4px;">
+        <div class="OuCoTKrL" style="opacity: 0; filter: blur(8px); transition: .4s; position: relative; display: flex; justify-content: center; align-items: center;"></div>
+        <svg class="closeIcon094" style="transition: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);" width="15" height="14" viewBox="0 0 15 14" fill="rgba(255, 255, 255, 0.5)" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1.32812 13.4922C0.875 13.0469 0.890625 12.2578 1.3125 11.8359L5.78125 7.36719L1.3125 2.91406C0.890625 2.48438 0.875 1.70312 1.32812 1.25C1.78125 0.789062 2.57031 0.804688 2.99219 1.23438L7.45312 5.69531L11.9141 1.23438C12.3516 0.796875 13.1172 0.796875 13.5703 1.25C14.0312 1.70312 14.0312 2.46875 13.5859 2.91406L9.13281 7.36719L13.5859 11.8281C14.0312 12.2734 14.0234 13.0312 13.5703 13.4922C13.125 13.9453 12.3516 13.9453 11.9141 13.5078L7.45312 9.04688L2.99219 13.5078C2.57031 13.9375 1.78906 13.9453 1.32812 13.4922Z"/>
+        </svg>
     </div>
+    <p class="paragraphText noSelect fiaks"></p>
+    <p class="paragraphText noSelect lkfds"></p>
+    <div class="qjids"></div>
+</div>
 `;
 let lXTUDhsszBlpOzyG = `
-    .djwod {
+.djwod {
 	display: flex;
 	width: 222px;
 	padding: 16px;
@@ -4633,10 +4643,9 @@ let lXTUDhsszBlpOzyG = `
 `;
 let EGxjxpyyQVICYLltElement = null;
 let lXTUDhsszBlpOzyGStyle = null;
-const pathsOJDS = ['/learn', '/practice-hub', '/leaderboard', '/quests', '/shop', '/profile/', '/settings/'];
 function cBcutPZB() {
     try {
-    if (pathsOJDS.includes(window.location.pathname)) {
+    if (!document.querySelector('.djwod')) {
         if (!lXTUDhsszBlpOzyGStyle) {
             lXTUDhsszBlpOzyGStyle = document.createElement('style');
             lXTUDhsszBlpOzyGStyle.type = 'text/css';
@@ -4646,7 +4655,7 @@ function cBcutPZB() {
             document.body.insertAdjacentHTML('beforeend', EGxjxpyyQVICYLlt);
         }
         function eipwofa() {
-            if (pathsOJDS.includes(window.location.pathname)) {
+            if (document.querySelector('._3bTT7')) {
                 try { document.querySelector('.djwod').style.display = ''; } catch (error) {}
             } else {
                 try { document.querySelector('.djwod').style.display = 'none'; } catch (error) {}
@@ -4679,6 +4688,7 @@ function cBcutPZB() {
         });
         document.querySelector('.closeIcon094').addEventListener('click', function() {
             localStorage.setItem('DLP4Uz53cm6wjnOG7tY', "false");
+            DLPpromotionBubbleVisibility = false;
             djwodElement.style.scale = "0.8";
             djwodElement.style.filter = "blur(16px)";
             djwodElement.style.opacity = "0";
@@ -4892,25 +4902,21 @@ async function fetchDatacBcutPZB(url) {
             };
             bubbleList.push(bubbleInfo);
         }
-        return {
+        BubbleResult = {
             bubbleTotal,
             bubbles: bubbleList
         };
+        cBcutPZB();
     } catch (error) {
         alert(`Error getting data: ${error.message}`);
     }
 }
-async function getDatacBcutPZB() {
-    try {
-        BubbleResult = await fetchDatacBcutPZB("https://raw.githubusercontent.com/anonymoushackerIV/Duolingo-Pro-Assets/main/resources/promotion-bubble.json");
-        cBcutPZB();
-    } catch (error) {
-        console.error(`Error: ${error.message}`);
+async function sTvtBAMVJoWFodPG() {
+    if (DLPpromotionBubbleVisibility && document.querySelector('._3bTT7')) {
+        await fetchDatacBcutPZB("https://raw.githubusercontent.com/anonymoushackerIV/Duolingo-Pro-Assets/main/resources/promotion-bubble.json");
     }
 }
-if (DLPpromotionBubbleVisibility && pathsOJDS.includes(window.location.pathname)) {
-    getDatacBcutPZB();
-}
+setInterval(sTvtBAMVJoWFodPG, 1000);
 
 
 
@@ -4981,7 +4987,7 @@ function solve() {
     }
 
     try {
-        window.sol = findReact(document.getElementsByClassName('_3FiYg')[0]).props.currentChallenge;
+        window.sol = findReact(document.getElementsByClassName(findReactMainElementClass)[0]).props.currentChallenge;
     } catch {
         //let next = document.querySelector('[data-test="player-next"]');
         //if (next) {
@@ -5081,22 +5087,17 @@ function LhEqEHHc() {
     if (!fPuxeFVNBsHJUBgP) {
         fPuxeFVNBsHJUBgP = true;
         const randomImageValue = Math.random().toString(36).substring(2, 15);
-        questionErrorLogs(findReact(document.getElementsByClassName('_3FiYg')[0]).props.currentChallenge, document.body.innerHTML, randomImageValue);
+        questionErrorLogs(findReact(document.getElementsByClassName(findReactMainElementClass)[0]).props.currentChallenge, document.body.innerHTML, randomImageValue);
         //const challengeAssistElement = document.querySelector('[data-test="challenge challenge-assist"]');
         const challengeAssistElement = document.querySelector('._3x0ok');
         if (challengeAssistElement) {
             html2canvas(challengeAssistElement).then(canvas => {
                 canvas.toBlob(async blob => {
-                    // Get a reference to the Supabase Storage bucket
                     const bucket = await supabase.storage.from('questionErrorLogsImages');
 
-                    // Generate a random file name
                     const randomNameForSendFeedbackFile = randomValue + "-" + randomImageValue + ".png";
 
-                    // Upload the Blob to Supabase Storage
                     const uploadResponse = await bucket.upload(randomNameForSendFeedbackFile, blob);
-
-                    console.log('Upload successful:', uploadResponse);
 
                     let LQmcHoaloUlNuywh = 8;
                     function slmEfvRdEPyrLbad() {
@@ -5147,11 +5148,16 @@ function LhEqEHHc() {
 function mainSolveStatistics(value) {
     if (value === 'question') {
         duoproForeverTotalQuestions++;
-        localStorage.setItem('duopro.forever.totalQuestions', duoproForeverTotalQuestions);
     } else if (value === 'lesson') {
         duoproForeverTotalLessons++;
-        localStorage.setItem('duopro.forever.totalLessons', duoproForeverTotalLessons);
     }
+    let question = duoproForeverTotalQuestions;
+    let lesson = duoproForeverTotalLessons;
+    let data = {
+        lesson: lesson,
+        question: question
+    }
+    localStorage.setItem("duopro.forever.userStatistics", JSON.stringify(data));
 }
 function determineChallengeType() {
     try {
@@ -5317,8 +5323,8 @@ function handleChallenge(challengeType) {
         elm.dispatchEvent(inputEvent);
     } else if (challengeType === 'Challenge Name') {
 
-        let articles = findReact(document.getElementsByClassName('_3FiYg')[0]).props.currentChallenge.articles;
-        let correctSolutions = findReact(document.getElementsByClassName('_3FiYg')[0]).props.currentChallenge.correctSolutions[0];
+        let articles = findReact(document.getElementsByClassName(findReactMainElementClass)[0]).props.currentChallenge.articles;
+        let correctSolutions = findReact(document.getElementsByClassName(findReactMainElementClass)[0]).props.currentChallenge.correctSolutions[0];
 
         let matchingArticle = articles.find(article => correctSolutions.startsWith(article));
         let matchingIndex = matchingArticle !== undefined ? articles.indexOf(matchingArticle) : null;
@@ -5394,11 +5400,6 @@ window.findReact = findReact;
 window.ss = solving;
 
 
-const SUPABASE_URL = 'https://tviciteckcfxxmpkmpvd.supabase.co';
-const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR2aWNpdGVja2NmeHhtcGttcHZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk2NzA3NDMsImV4cCI6MjAyNTI0Njc0M30.L1_u16uiEyWnLU31L3FFER8fAmUegGFUo78qWibS9w8';
-
-const supabase = window.supabase.createClient(SUPABASE_URL, ANON_KEY);
-
 async function questionErrorLogs(json, snapshot, imageValue) {
     //if (json) {
     //    const { data, error } = await supabase
@@ -5421,56 +5422,32 @@ async function settingsStuff(messageValue, value) {
 }
 
 async function sendFeedbackServer(feedbackTextOne, feedbackTypeOne, feedbackTextTwo) {
-    let randomNameForSendFeedbackFile;
-    try {
-        function generateRandomString(length) {
-            let result = '';
-            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-            const charactersLength = characters.length;
-            for (let i = 0; i < length; i++) {
-                result += characters.charAt(Math.floor(Math.random() * charactersLength));
-            }
-            return result;
-        }
-        randomNameForSendFeedbackFile = generateRandomString(8);
-    } catch (error) {
-    }
     if (feedbackTextOne) {
         try {
+            const formData = new FormData();
             if (fileInput.files.length > 0) {
-                const file = fileInput.files[0];
-
-                const bucket = await supabase.storage.from('feedback');
-
-                const uploadResponse = await bucket.upload(randomValue + "-" + randomNameForSendFeedbackFile, file);
-
-                // Get the public URL for the uploaded file
-                const publicUrl = uploadResponse.publicUrl;
-
-                const { data, error } = await supabase
-                .from('feedback')
-                .insert([{ type: feedbackTypeOne, body: feedbackTextOne, pro_id: randomValue, version: duolingoProCurrentVersion, image: randomValue + "-" + randomNameForSendFeedbackFile, email: feedbackTextTwo }])
-                if (error) {
-                    console.error("Error sending message:", error);
-                    sendFeedbackStatus = 'error';
-                } else {
-                    console.log("Message sent successfully:", data);
-                }
-
+                let imageFile = fileInput.files[0];
+                formData.append('file', imageFile);
+            }
+            formData.append('type', feedbackTypeOne);
+            formData.append('body', feedbackTextOne);
+            formData.append('pro_id', randomValue);
+            formData.append('email', feedbackTextTwo);
+            formData.append('version', duolingoProCurrentVersion);
+            const response = await fetch("https://duolingoprodb.pythonanywhere.com/feedback", {
+                method: 'POST',
+                body: formData
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const responseData = await response.text();
+            if (responseData === 'success') {
                 sendFeedbackStatus = 'true';
             } else {
-                const { data, error } = await supabase
-                .from('feedback')
-                .insert([{ type: feedbackTypeOne, body: feedbackTextOne, pro_id: randomValue, version: duolingoProCurrentVersion, email: feedbackTextTwo }])
-                if (error) {
-                    console.error("Error sending message:", error);
-                    sendFeedbackStatus = 'error';
-                } else {
-                    console.log("Message sent successfully:", data);
-                    sendFeedbackStatus = 'true';
-                }
-
+                sendFeedbackStatus = 'error';
             }
+            console.log('0001 Response:', responseData);
         } catch (error) {
             sendFeedbackStatus = 'error';
         }
@@ -5484,40 +5461,54 @@ async function analyticsLogsSend(text, value) {
     console.log("analyticsLogsSend called");
 }
 
-async function versionServerStuff(option, status, to, from) {
+async function versionServerStuff(option, to, from) {
+    let versionStuffTable = 'cwzvjDfz';
     if (option === 'update') {
-        if (status) {
-            const { data, error } = await supabase
-            .from('update_script')
-            .insert([{ status: status, from: from, to: to, pro_id: randomValue }]);
-
-            if (error) {
-                console.error("Error sending message:", error);
-                downloadStuffVar = 'error';
-            } else {
-                console.log("Message sent successfully:", data);
-                downloadStuffVar = 'true';
-            }
-        } else {
-            console.error("Message text is empty.");
-            downloadStuffVar = 'empty';
-        }
-    } else if (option === 'download') {
-        if (status) {
-            const { data, error } = await supabase
-            .from('download_script')
-            .insert([{ status: status, to: to, pro_id: randomValue }]);
-
-            if (error) {
-                console.error("Error sending message:", error);
-                updateStuffVar = 'error';
-            } else {
-                console.log("Message sent successfully:", data);
+        if (to && from) {
+            const objectData = {
+                from: from,
+                to: to,
+                pro_id: randomValue,
+                table: versionStuffTable
+            };
+            const response = await fetch("https://duolingoprodb.pythonanywhere.com/updateanalytics", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(objectData)
+            });
+            if (response.ok) {
                 updateStuffVar = 'true';
+            } else {
+                updateStuffVar = 'error';
             }
         } else {
             console.error("Message text is empty.");
             updateStuffVar = 'empty';
+        }
+    } else if (option === 'download') {
+        if (to) {
+            const objectData = {
+                to: to,
+                pro_id: randomValue,
+                table: versionStuffTable
+            };
+            const response = await fetch("https://duolingoprodb.pythonanywhere.com/downloadanalytics", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(objectData)
+            });
+            if (response.ok) {
+                downloadStuffVar = 'true';
+            } else {
+                downloadStuffVar = 'error';
+            }
+        } else {
+            console.error("Message text is empty.");
+            downloadStuffVar = 'empty';
         }
     }
 }
