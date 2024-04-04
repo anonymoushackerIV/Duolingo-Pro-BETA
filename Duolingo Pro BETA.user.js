@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         Duolingo Pro BETA
+// @name         Duolingo Pro BETA Preview
 // @namespace    Violentmonkey Scripts
 // @version      2.0-BETA-9.6.3
 // @description  Duolingo Auto Solver Tool - Working April 2024
@@ -1149,7 +1149,7 @@ let injectedContainer = null;
 let injectedStyleElement = null;
 
 function injectContent() {
-    if (window.location.pathname === '/learn') {
+    if (window.location.pathname === '/learn' || window.location.pathname === '/practice-hub') {
         if (!injectedContainer) {
             injectedContainer = document.createElement('div');
             injectedContainer.innerHTML = htmlContent;
@@ -1166,6 +1166,7 @@ function injectContent() {
             try {
                 let AutoSolverBoxSectionThreeBoxSectionTwoIDOneForHiding = document.querySelector('#AutoSolverBoxSectionThreeBoxSectionTwoIDOne');
                 let AutoSolverBoxSectionThreeBoxSectionTwoIDTwoForHiding = document.querySelector('#AutoSolverBoxSectionThreeBoxSectionTwoIDTwo');
+                let AutoSolverBoxSectionThreeBoxSectionTwoIDThreeForHiding = document.querySelector('#AutoSolverBoxSectionThreeBoxSectionTwoIDThree');
                 const AutoSolverBoxBackgroundForHiding = document.querySelector('.AutoSolverBoxBackground');
 
                 if (AutoSolverSettingsShowAutoSolverBox) {
@@ -1176,6 +1177,9 @@ function injectContent() {
                     }
                     if (!AutoSolverSettingsShowRepeatLessonModeForAutoSolverBox) {
                         AutoSolverBoxSectionThreeBoxSectionTwoIDTwoForHiding.remove();
+                    }
+                    if (!AutoSolverSettingsShowListeningOnlyModeForAutoSolverBox) {
+                        AutoSolverBoxSectionThreeBoxSectionTwoIDThreeForHiding.remove();
                     }
                 } else {
                     console.log('error 5');
@@ -1456,6 +1460,7 @@ function initializeAutoSolverBoxButtonInteractiveness() {
     try {
         const AutoSolverBoxToggleT1ID1 = document.querySelector('#AutoSolverBoxToggleT1ID1');
         const AutoSolverBoxToggleT1ID2 = document.querySelector('#AutoSolverBoxToggleT1ID2');
+        const AutoSolverBoxToggleT1ID3 = document.querySelector('#AutoSolverBoxToggleT1ID3');
 
         AutoSolverBoxToggleT1ID1.addEventListener('click', () => {
             if (autoSolverBoxPracticeOnlyMode) {
@@ -1465,10 +1470,13 @@ function initializeAutoSolverBoxButtonInteractiveness() {
             } else if (!autoSolverBoxPracticeOnlyMode) {
                 autoSolverBoxPracticeOnlyMode = !autoSolverBoxPracticeOnlyMode;
                 autoSolverBoxRepeatLessonMode = !autoSolverBoxPracticeOnlyMode;
+                autoSolverBoxListeningOnlyMode = !autoSolverBoxPracticeOnlyMode;
                 sessionStorage.setItem('autoSolverBoxPracticeOnlyMode', autoSolverBoxPracticeOnlyMode);
                 sessionStorage.setItem('autoSolverBoxRepeatLessonMode', autoSolverBoxRepeatLessonMode);
+                sessionStorage.setItem('autoSolverBoxListeningOnlyMode', autoSolverBoxListeningOnlyMode);
                 updateAutoSolverToggles(AutoSolverBoxToggleT1ID1, autoSolverBoxPracticeOnlyMode);
                 updateAutoSolverToggles(AutoSolverBoxToggleT1ID2, autoSolverBoxRepeatLessonMode);
+                updateAutoSolverToggles(AutoSolverBoxToggleT1ID3, autoSolverBoxListeningOnlyMode);
             }
         });
 
@@ -1477,23 +1485,46 @@ function initializeAutoSolverBoxButtonInteractiveness() {
                 autoSolverBoxRepeatLessonMode = !autoSolverBoxRepeatLessonMode;
                 sessionStorage.setItem('autoSolverBoxRepeatLessonMode', autoSolverBoxRepeatLessonMode);
                 updateAutoSolverToggles(AutoSolverBoxToggleT1ID2, autoSolverBoxRepeatLessonMode);
-            } else {
+            } else if (!autoSolverBoxRepeatLessonMode) {
                 autoSolverBoxRepeatLessonMode = !autoSolverBoxRepeatLessonMode;
                 autoSolverBoxPracticeOnlyMode = !autoSolverBoxRepeatLessonMode;
+                autoSolverBoxListeningOnlyMode = !autoSolverBoxRepeatLessonMode;
                 sessionStorage.setItem('autoSolverBoxPracticeOnlyMode', autoSolverBoxPracticeOnlyMode);
                 sessionStorage.setItem('autoSolverBoxRepeatLessonMode', autoSolverBoxRepeatLessonMode);
-                updateAutoSolverToggles(AutoSolverBoxToggleT1ID2, autoSolverBoxRepeatLessonMode);
+                sessionStorage.setItem('autoSolverBoxListeningOnlyMode', autoSolverBoxListeningOnlyMode);
                 updateAutoSolverToggles(AutoSolverBoxToggleT1ID1, autoSolverBoxPracticeOnlyMode);
+                updateAutoSolverToggles(AutoSolverBoxToggleT1ID2, autoSolverBoxRepeatLessonMode);
+                updateAutoSolverToggles(AutoSolverBoxToggleT1ID3, autoSolverBoxListeningOnlyMode);
+            }
+        });
+
+        AutoSolverBoxToggleT1ID3.addEventListener('click', () => {
+            if (autoSolverBoxListeningOnlyMode) {
+                autoSolverBoxListeningOnlyMode = !autoSolverBoxListeningOnlyMode;
+                sessionStorage.setItem('autoSolverBoxListeningOnlyMode', autoSolverBoxListeningOnlyMode);
+                updateAutoSolverToggles(AutoSolverBoxToggleT1ID3, autoSolverBoxListeningOnlyMode);
+            } else {
+                autoSolverBoxListeningOnlyMode = !autoSolverBoxListeningOnlyMode;
+                autoSolverBoxPracticeOnlyMode = !autoSolverBoxListeningOnlyMode;
+                autoSolverBoxRepeatLessonMode = !autoSolverBoxListeningOnlyMode;
+                sessionStorage.setItem('autoSolverBoxPracticeOnlyMode', autoSolverBoxPracticeOnlyMode);
+                sessionStorage.setItem('autoSolverBoxListeningOnlyMode', autoSolverBoxListeningOnlyMode);
+                sessionStorage.setItem('autoSolverBoxRepeatLessonMode', autoSolverBoxRepeatLessonMode);
+                updateAutoSolverToggles(AutoSolverBoxToggleT1ID1, autoSolverBoxPracticeOnlyMode);
+                updateAutoSolverToggles(AutoSolverBoxToggleT1ID2, autoSolverBoxRepeatLessonMode);
+                updateAutoSolverToggles(AutoSolverBoxToggleT1ID3, autoSolverBoxListeningOnlyMode);
             }
         });
 
         AutoSolverBoxToggleT1ID1.addEventListener('click', () => {
             updateAutoSolverToggles(AutoSolverBoxToggleT1ID1, autoSolverBoxPracticeOnlyMode);
             updateAutoSolverToggles(AutoSolverBoxToggleT1ID2, autoSolverBoxRepeatLessonMode);
+            updateAutoSolverToggles(AutoSolverBoxToggleT1ID3, autoSolverBoxListeningOnlyMode);
         });
 
         updateAutoSolverToggles(AutoSolverBoxToggleT1ID1, autoSolverBoxPracticeOnlyMode);
         updateAutoSolverToggles(AutoSolverBoxToggleT1ID2, autoSolverBoxRepeatLessonMode);
+        updateAutoSolverToggles(AutoSolverBoxToggleT1ID3, autoSolverBoxListeningOnlyMode);
 
     } catch(error) {
     }
@@ -1595,6 +1626,8 @@ function XyEOALuaeQicpGHW() {
             window.location.href = "https://duolingo.com/practice";
         } else if (autoSolverBoxRepeatLessonMode) {
             window.location.href = "https://duolingo.com/lesson/unit/1/level/1";
+        } else if (autoSolverBoxListeningOnlyMode) {
+            window.location.href = "https://duolingo.com/practice-hub/listening-practice";
         } else {
             window.location.href = "https://duolingo.com/lesson";
         }
@@ -1603,7 +1636,7 @@ function XyEOALuaeQicpGHW() {
 
 
 function checkURLForAutoSolverBox() {
-    if (window.location.pathname === '/lesson' || window.location.pathname.includes('/unit') || window.location.pathname === '/practice') {
+    if (window.location.pathname === '/practice-hub/listening-practice' || window.location.pathname.includes('/lesson') || window.location.pathname === '/practice') {
         let jfgsdodhgsf = document.querySelector('#solveAllButton');
         if (jfgsdodhgsf) {
             if (wasAutoSolverBoxRepeatStartButtonPressed === true) {
@@ -1627,7 +1660,7 @@ let DuolingoSiderbarPaddingThingFunctionRepeatTimes = 20;
 let DuolingoProBoxHeightForSidebarPadding;
 
 function DuolingoHomeSidebarAddPaddingFunction() {
-    if (window.location.pathname === '/learn') {
+    if (window.location.pathname === '/learn' || window.location.pathname === '/practice-hub') {
         DuolingoProBoxHeightForSidebarPadding = document.querySelector('.AutoSolverBoxFirst');
         try {
             const DuolingoSiderbarPaddingThing = document.querySelector('.Fc0NK');
@@ -2674,7 +2707,7 @@ const DuolingoProSettingsBoxHTML = `
                             <path d="M9 16.6172C4.47656 16.6172 0.75 12.8906 0.75 8.35938C0.75 3.83594 4.46875 0.109375 9 0.109375C13.5234 0.109375 17.25 3.83594 17.25 8.35938C17.25 12.8906 13.5312 16.6172 9 16.6172ZM8.99219 5.86719C9.65625 5.86719 10.2031 5.3125 10.2031 4.64844C10.2031 3.96094 9.65625 3.42188 8.99219 3.42188C8.32031 3.42188 7.76562 3.96094 7.76562 4.64844C7.76562 5.3125 8.32031 5.86719 8.99219 5.86719ZM7.52344 12.8125H10.8438C11.2734 12.8125 11.6094 12.5156 11.6094 12.0703C11.6094 11.6562 11.2734 11.3281 10.8438 11.3281H10.1094V7.95312C10.1094 7.36719 9.82031 6.99219 9.27344 6.99219H7.67969C7.25 6.99219 6.91406 7.32031 6.91406 7.72656C6.91406 8.16406 7.25 8.47656 7.67969 8.47656H8.42969V11.3281H7.52344C7.09375 11.3281 6.75781 11.6562 6.75781 12.0703C6.75781 12.5156 7.09375 12.8125 7.52344 12.8125Z" fill="#007AFF"/>
                         </svg>
                     </div>
-                    <p class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);"><a href="https://github.com/anonymoushackerIV" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">anonymoushackerIV</a>, <a href="https://github.com/surebrec" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">surebrec</a>, <a href="https://github.com/ByThon1" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">ByThon1</a>, <a href="https://github.com/SicariusBlack" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">SicariusBlack</a>, <a href="https://github.com/fakeduo" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">fakeduo</a>, <a href="https://github.com/JxxIT" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">JxxIT</a>, <a href="https://github.com/tkwon09137" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">tkwon09137</a></p>
+                    <p class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);"><a href="https://github.com/anonymoushackerIV" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">anonymoushackerIV</a>, <a href="https://github.com/tkwon09137" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">Eclipse</a>, <a href="https://github.com/ByThon1" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">ByThon1</a>, <a href="https://github.com/surebrec" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">surebrec</a>, <a href="https://github.com/SicariusBlack" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">SicariusBlack</a>, <a href="https://github.com/fakeduo" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">fakeduo</a>, <a href="https://github.com/JxxIT" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">JxxIT</a></p>
                 </div>
 
             </div>
@@ -3378,6 +3411,7 @@ function injectDuolingoProShade() {
                 window.location.href = "https://duolingo.com/learn";
                 DuolingoProShadeEndLessonButton.textContent = 'ENDING LESSON'
             });
+
 
             const DuolingoProShadeDivBox = document.querySelector('.BlockBoxOne');
 
