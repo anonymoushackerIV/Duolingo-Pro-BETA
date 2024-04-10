@@ -80,6 +80,7 @@ function AmsaXtiWnczmqqlr() {
         autoSolverBoxVisibility = sv.boxvisibility;
     }
 };
+AmsaXtiWnczmqqlr();
 function updateMode(n, v) {
     let sv = JSON.parse(sessionStorage.getItem('duopro.session.solvemode'));
     sv[n] = v;
@@ -708,7 +709,7 @@ const htmlContent = `
             <div class="AutoSolverBoxTitleSectionOne">
                 <p class="paragraphText noSelect" style="font-size: 24px;">Duolingo Pro</p>
                 <div class="AutoSolverBoxTitleSectionOneBETATagOne">
-                    <p class="paragraphText noSelect" style="color: #FFF;">2.0 DAWN.0001</p>
+                    <p class="paragraphText noSelect" style="color: #FFF;">2.0 BETA 9.6.4</p>
                 </div>
             </div>
             <p class="paragraphText noSelect" style="color: rgb(var(--color-wolf));">How many lessons would you like to AutoSolve?</p>
@@ -2548,7 +2549,7 @@ const DuolingoProSettingsBoxHTML = `
             <div class="DuolingoProSettingsBoxSectionOne">
                 <p class="DuolingoProSettingsBoxSectionOneTextOne">Settings</p>
                 <div class="DuolingoProSettingsBoxSectionOneBoxOne">
-                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne">2.0 DAWN.0001</p>
+                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne">2.0 BETA 9.6.4</p>
                 </div>
             </div>
             <div class="DuolingoProSettingsBoxSectionTwo">
