@@ -1,19 +1,12 @@
 // ==UserScript==
-// @name         Duolingo Pro BETA Preview
+// @name         Duolingo Pro BETA
 // @namespace    Violentmonkey Scripts
-// @version      2.0-BETA-9.6.4
+// @version      2.0-BETA-9.6.5
 // @description  Duolingo Auto Solver Tool - Working April 2024
 // @author       anonymoushackerIV (https://github.com/anonymoushackerIV)
 // @match        https://*.duolingo.com/*
-// @grant        GM_xmlhttpRequest
-// @grant        GM_addStyle
+// @grant        none
 // @license      MIT
-// @connect      raw.githubusercontent.com
-// @connect      github.com
-// @connect      unpkg.com
-// @connect      cdn.jsdelivr.net
-// @connect      duolingoprodb.pythonanywhere.com
-// @require      https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js
 // @icon         https://github.com/anonymoushackerIV/Duolingo-Pro-Assets/blob/main/images/Duolingo-Pro-Icon.png?raw=true
 // ==/UserScript==
 
@@ -29,18 +22,12 @@ let isSolving = false;
 let isTokenRunning = false;
 
 const debug = false;
-let findReactMainElementClass = '_3FiYg';
-if (window.location.href.includes("preview.duolingo.com")) {
-    findReactMainElementClass = '_3js2_';
-} else {
-    //findReactMainElementClass = '_3FiYg';
-}
+let findReactMainElementClass = '_3js2_';
 
 let ASB969 = true;
-let ASTL464 = false;
-let duolingoProCurrentVersionShort = "2.0B9.6.4";
-let duolingoProCurrentVersion = "2.0 BETA 9.6.4";
-let duolingoProFormalCurrentVersion = "2.0BETA9.6.4";
+let duolingoProCurrentVersionShort = "2.0B9.6.5";
+let duolingoProCurrentVersion = "2.0 BETA 9.6.5";
+let duolingoProFormalCurrentVersion = "2.0BETA9.6.5";
 
 let solveSpeed;
 if (isNaN(parseFloat(localStorage.getItem('duopro.autoSolveDelay')))) {
@@ -63,19 +50,20 @@ if (!isNaN(Number(sessionStorage.getItem('duopro.autoSolveSessionCompleteAmount'
 
 let duoproForeverTotalQuestions = 0;
 let duoproForeverTotalLessons = 0;
-let TATJxnLggmiGvbDm = localStorage.getItem("duopro.forever.userStatistics");
-if (TATJxnLggmiGvbDm) {
-    let BDxfDivqDbLuJooi = JSON.parse(TATJxnLggmiGvbDm);
-    if (!isNaN(BDxfDivqDbLuJooi.question)) {
-        duoproForeverTotalQuestions = BDxfDivqDbLuJooi.question;
+try {
+    let TATJxnLggmiGvbDm = localStorage.getItem("duopro.forever.userStatistics");
+    if (TATJxnLggmiGvbDm) {
+        let BDxfDivqDbLuJooi = JSON.parse(localStorage.getItem("duopro.forever.userStatistics"));
+        if (!isNaN(BDxfDivqDbLuJooi.question)) {
+            duoproForeverTotalQuestions = BDxfDivqDbLuJooi.question;
+        }
+        if (!isNaN(BDxfDivqDbLuJooi.lesson)) {
+            duoproForeverTotalLessons = BDxfDivqDbLuJooi.lesson;
+        }
     }
-    if (!isNaN(BDxfDivqDbLuJooi.lesson)) {
-        duoproForeverTotalLessons = BDxfDivqDbLuJooi.lesson;
-    }
-}
-duoproForeverTotalQuestions = duoproForeverTotalQuestions || 0;
-duoproForeverTotalLessons = duoproForeverTotalLessons || 0;
-
+    duoproForeverTotalQuestions = duoproForeverTotalQuestions || 0;
+    duoproForeverTotalLessons = duoproForeverTotalLessons || 0;
+} catch (error) { console.log(error); }
 
 let ProBlockBannerOneVisible = false;
 if (JSON.parse(localStorage.getItem('ProBlockBannerOneVisible')) === null) {
@@ -84,63 +72,46 @@ if (JSON.parse(localStorage.getItem('ProBlockBannerOneVisible')) === null) {
     ProBlockBannerOneVisible = JSON.parse(localStorage.getItem('ProBlockBannerOneVisible'));
 }
 
+let autoSolverBoxPracticeOnlyMode = true;
+let autoSolverBoxRepeatLessonMode = false;
+let autoSolverBoxPathMode = false;
+let autoSolverBoxListeningOnlyMode = false;
+let autoSolverBoxAutomatedSolvingActive = false;
+let autoSolverBoxVisibility = true;
+function AmsaXtiWnczmqqlr() {
+    if (!sessionStorage.getItem('duopro.session.solvemode')) {
+        sessionStorage.setItem('duopro.session.solvemode', JSON.stringify({ practicemode: true, lessonmode: false, pathmode: false, listeningmode: false, automatedsolving: false, boxvisibility: true }));
+    } else {
+        let sv = JSON.parse(sessionStorage.getItem('duopro.session.solvemode'));
+        //[autoSolverBoxPracticeOnlyMode, autoSolverBoxRepeatLessonMode, autoSolverBoxPathMode, autoSolverBoxListeningOnlyMode, autoSolverBoxAutomatedSolvingActive, autoSolverBoxVisibility] = [sv.practicemode, sv.lessonmode, sv.pathmode, sv.listeningmode, sv.automatedsolving, sv.boxvisibility];
+        autoSolverBoxPracticeOnlyMode = sv.practicemode;
+        autoSolverBoxRepeatLessonMode = sv.lessonmode;
+        autoSolverBoxPathMode = sv.pathmode;
+        autoSolverBoxListeningOnlyMode = sv.listeningmode;
+        autoSolverBoxAutomatedSolvingActive = sv.automatedsolving;
+        autoSolverBoxVisibility = sv.boxvisibility;
+    }
+};
+AmsaXtiWnczmqqlr();
+function updateMode(n, v) {
+    let sv = JSON.parse(sessionStorage.getItem('duopro.session.solvemode'));
+    sv[n] = v;
+    sessionStorage.setItem('duopro.session.solvemode', JSON.stringify(sv));
+    if (n === 'practicemode') autoSolverBoxPracticeOnlyMode = v;
+    else if (n === 'lessonmode') autoSolverBoxRepeatLessonMode = v;
+    else if (n === 'pathmode') autoSolverBoxPathMode = v;
+    else if (n === 'listeningmode') autoSolverBoxListeningOnlyMode = v;
+    else if (n === 'automatedsolving') autoSolverBoxAutomatedSolvingActive = v;
+    else if (n === 'boxvisibility') autoSolverBoxVisibility = v;
+};
 
-let autoSolverBoxPracticeOnlyMode;
-let autoSolverBoxRepeatLessonMode;
-let autoSolverBoxListeningOnlyMode;
-if (JSON.parse(sessionStorage.getItem('autoSolverBoxPracticeOnlyMode')) === null) {
-    autoSolverBoxPracticeOnlyMode = true;
-} else {
-    autoSolverBoxPracticeOnlyMode = JSON.parse(sessionStorage.getItem('autoSolverBoxPracticeOnlyMode'));
-}
-if (JSON.parse(sessionStorage.getItem('autoSolverBoxRepeatLessonMode')) === null) {
-    autoSolverBoxRepeatLessonMode = false;
-} else {
-    autoSolverBoxRepeatLessonMode = JSON.parse(sessionStorage.getItem('autoSolverBoxRepeatLessonMode'));
-}
-if (JSON.parse(sessionStorage.getItem('autoSolverBoxListeningOnlyMode')) === null) {
-    autoSolverBoxListeningOnlyMode = false;
-} else {
-    autoSolverBoxListeningOnlyMode = JSON.parse(sessionStorage.getItem('autoSolverBoxListeningOnlyMode'));
-}
 
 let DLPpromotionBubbleVisibility;
 if (JSON.parse(localStorage.getItem('DLP4Uz53cm6wjnOG7tY')) === null) {
     DLPpromotionBubbleVisibility = true;
-
 } else {
     DLPpromotionBubbleVisibility = JSON.parse(localStorage.getItem('DLP4Uz53cm6wjnOG7tY'));
 }
-
-let wasAutoSolverBoxRepeatStartButtonPressed = false;
-if (JSON.parse(sessionStorage.getItem('wasAutoSolverBoxRepeatStartButtonPressed')) === null) {
-    wasAutoSolverBoxRepeatStartButtonPressed = false;
-} else {
-    wasAutoSolverBoxRepeatStartButtonPressed = JSON.parse(sessionStorage.getItem('wasAutoSolverBoxRepeatStartButtonPressed'));
-}
-
-let wasDuolingoProJustSolveThisLessonButtonOnePressed = false;
-if (JSON.parse(sessionStorage.getItem('wasDuolingoProJustSolveThisLessonButtonOnePressed')) === null) {
-    wasDuolingoProJustSolveThisLessonButtonOnePressed = false;
-} else {
-    wasDuolingoProJustSolveThisLessonButtonOnePressed = JSON.parse(sessionStorage.getItem('wasDuolingoProJustSolveThisLessonButtonOnePressed'));
-}
-
-// Whats New Variables Start
-try {
-    localStorage.removeItem('wasWhatsNewInTwoPointZeroBetaThreeFinished');
-} catch (error) {}
-try {
-    localStorage.removeItem('wasWhatsNewInTwoPointZeroBetaFourFinished');
-} catch (error) {}
-try {
-    localStorage.removeItem('wasWhatsNewInTwoPointZeroBetaSixFinished');
-} catch (error) {}
-try {
-    localStorage.removeItem('wasWhatsNewInTwoPointZeroBetaSevenFinished');
-} catch (error) {}
-// DuolingoProSettingsHumaneSolvingMode
-// Whats New Variables End
 
 let wasDuolingoProSettingsButtonOnePressed = false;
 
@@ -152,17 +123,6 @@ let AutoSolverSettingsShowRepeatLessonModeForAutoSolverBox = true;
 let AutoSolverSettingsShowListeningOnlyModeForAutoSolverBox = true;
 //moved here
 
-let AutoSolverSettingsShowAutoSolverBox = true;
-if (JSON.parse(localStorage.getItem('AutoSolverSettingsShowAutoSolverBox')) === null) {
-    AutoSolverSettingsShowAutoSolverBox = true; // default
-} else if (JSON.parse(localStorage.getItem('AutoSolverSettingsShowAutoSolverBox')) === false) {
-    AutoSolverSettingsShowAutoSolverBox = JSON.parse(localStorage.getItem('AutoSolverSettingsShowAutoSolverBox'));
-
-    //AutoSolverSettingsShowPracticeOnlyModeForAutoSolverBox = false;
-    //localStorage.setItem('AutoSolverSettingsShowPracticeOnlyModeForAutoSolverBox', AutoSolverSettingsShowPracticeOnlyModeForAutoSolverBox);
-} else {
-    AutoSolverSettingsShowAutoSolverBox = JSON.parse(localStorage.getItem('AutoSolverSettingsShowAutoSolverBox'));
-}
 
 let AutoSolverSettingsLowPerformanceMode = false;
 if (JSON.parse(localStorage.getItem('AutoSolverSettingsLowPerformanceMode')) === null) {
@@ -224,19 +184,21 @@ if (JSON.parse(localStorage.getItem('DuolingoProSettingsSolveIntervalValue')) ==
     DuolingoProSettingsSolveIntervalValue = JSON.parse(localStorage.getItem('DuolingoProSettingsSolveIntervalValue'));
 }
 // Duolingo Pro Settings Variables End
+let duolingoProPythonanywhere = "https://duolingoprodb.pythonanywhere.com";
 
 function DuolingoProRounded() {
+    try {
     let DuolingoProRoundedCSS = `
     @font-face {
         font-family: 'Duolingo Pro Rounded';
         src: url(https://raw.githubusercontent.com/anonymoushackerIV/Duolingo-Pro-Assets/main/fonts/SF-Pro-Rounded-Bold.otf) format('opentype');
     }
     `;
-    //GM_addStyle(DuolingoProRoundedCSS);
     let styleElement = document.createElement('style');
     styleElement.type = 'text/css';
     styleElement.appendChild(document.createTextNode(DuolingoProRoundedCSS));
     document.head.appendChild(styleElement);
+    } catch (error) { console.log(error); }
 }
 DuolingoProRounded();
 
@@ -255,7 +217,6 @@ function addButtons() {
     if (window.location.pathname === '/learn' && document.querySelector('a[data-test="global-practice"]')) {
         return;
     }
-
     if (document.querySelector("#solveAllButton")) {
         return;
     }
@@ -692,7 +653,6 @@ const DLPuniversalCSS = `
 `;
 
 let injectedDLPuniversalCSS = null;
-
 function DLPuniversalCSSfunc() {
     try {
         if (!injectedDLPuniversalCSS) {
@@ -702,9 +662,7 @@ function DLPuniversalCSSfunc() {
             document.head.appendChild(injectedDLPuniversalCSS);
         } else {
         }
-    } catch(error) {
-        // logDLP
-    }
+    } catch (error) { console.log(error); }
 }
 DLPuniversalCSSfunc();
 
@@ -763,7 +721,7 @@ const htmlContent = `
             <div class="AutoSolverBoxTitleSectionOne">
                 <p class="paragraphText noSelect" style="font-size: 24px;">Duolingo Pro</p>
                 <div class="AutoSolverBoxTitleSectionOneBETATagOne">
-                    <p class="paragraphText noSelect" style="color: #FFF;">2.0 BETA 9.6.4</p>
+                    <p class="paragraphText noSelect" style="color: #FFF;">2.0 BETA 9.6.5</p>
                 </div>
             </div>
             <p class="paragraphText noSelect" style="color: rgb(var(--color-wolf));">How many lessons would you like to AutoSolve?</p>
@@ -850,6 +808,7 @@ const cssContent = `
 
     width: 320px;
 
+    opacity: 0;
     transition: .5s;
     overflow: hidden;
 }
@@ -1139,7 +1098,7 @@ function szdfgvhbjnk() {
                 // cleanassbitch
             }
         } catch (error) {
-            console.log(`Error getting data: ${error.message}`);
+            console.log(`Error getting data #1: ${error.message}`);
         }
     }
     updateWarningsFromURL('https://raw.githubusercontent.com/anonymoushackerIV/Duolingo-Pro-Assets/main/resources/security-1.json', String(randomValue));
@@ -1169,7 +1128,7 @@ function injectContent() {
                 let AutoSolverBoxSectionThreeBoxSectionTwoIDThreeForHiding = document.querySelector('#AutoSolverBoxSectionThreeBoxSectionTwoIDThree');
                 const AutoSolverBoxBackgroundForHiding = document.querySelector('.AutoSolverBoxBackground');
 
-                if (AutoSolverSettingsShowAutoSolverBox) {
+                if (autoSolverBoxVisibility) {
                     initializeAutoSolverBoxButtonInteractiveness();
                     something();
                     if (!AutoSolverSettingsShowPracticeOnlyModeForAutoSolverBox) {
@@ -1188,7 +1147,6 @@ function injectContent() {
             }
         }
     } else {
-        // Remove the content if it was previously injected
         if (injectedContainer) {
             document.body.removeChild(injectedContainer);
             document.head.removeChild(injectedStyleElement);
@@ -1219,12 +1177,12 @@ function initializeDuolingoProSystemButtons() {
     let fornow1a;
     const HideAutoSolverBoxButtonOne = document.querySelector('#HideAutoSolverBoxButtonOneID');
     const AutoSolverBoxBackground = document.querySelector('.AutoSolverBoxBackground');
-    if (AutoSolverSettingsShowAutoSolverBox) {
-        AutoSolverBoxBackground.style.opacity = '';
+    if (autoSolverBoxVisibility) {
+        AutoSolverBoxBackground.style.opacity = '1';
         document.querySelector('#HideAutoSolverBoxButtonOneTextOneID').textContent = 'Hide';
         document.querySelector('#HideAutoSolverBoxButtonOneIconOneID').style.display = 'none';
         document.querySelector('#HideAutoSolverBoxButtonOneIconTwoID').style.display = '';
-    } else if (!AutoSolverSettingsShowAutoSolverBox) {
+    } else if (!autoSolverBoxVisibility) {
         fornow1a = document.querySelector('.AutoSolverBoxBackground').offsetHeight;
 
         document.querySelector('#HideAutoSolverBoxButtonOneTextOneID').textContent = 'Show';
@@ -1238,13 +1196,13 @@ function initializeDuolingoProSystemButtons() {
         _32a = true;
     }
     HideAutoSolverBoxButtonOne.addEventListener('click', () => {
-        if (AutoSolverSettingsShowAutoSolverBox) {
+        if (autoSolverBoxVisibility) {
             document.querySelector('#HideAutoSolverBoxButtonOneTextOneID').textContent = 'Show';
             HideAutoSolverBoxButtonOne.style.marginBottom = '0px';
             document.querySelector('#HideAutoSolverBoxButtonOneIconOneID').style.display = '';
             document.querySelector('#HideAutoSolverBoxButtonOneIconTwoID').style.display = 'none';
-            AutoSolverSettingsShowAutoSolverBox = false;
-            localStorage.setItem('AutoSolverSettingsShowAutoSolverBox', AutoSolverSettingsShowAutoSolverBox);
+            autoSolverBoxVisibility = false;
+            updateMode('boxvisibility', autoSolverBoxVisibility);
 
             document.querySelector('.AutoSolverBoxLayers').style.transform = 'scaleY(1.0)';
             AutoSolverBoxBackground.style.filter = 'blur(0)';
@@ -1260,20 +1218,20 @@ function initializeDuolingoProSystemButtons() {
                 setTimeout(function() {
                 }, 500);
             }, 50);
-        } else if (!AutoSolverSettingsShowAutoSolverBox) {
+        } else if (!autoSolverBoxVisibility) {
             document.querySelector('#HideAutoSolverBoxButtonOneTextOneID').textContent = 'Hide';
             HideAutoSolverBoxButtonOne.style.marginBottom = '';
             document.querySelector('#HideAutoSolverBoxButtonOneIconOneID').style.display = 'none';
             document.querySelector('#HideAutoSolverBoxButtonOneIconTwoID').style.display = '';
-            AutoSolverSettingsShowAutoSolverBox = true;
-            localStorage.setItem('AutoSolverSettingsShowAutoSolverBox', AutoSolverSettingsShowAutoSolverBox);
+            autoSolverBoxVisibility = true;
+            updateMode('boxvisibility', autoSolverBoxVisibility);
 
             document.querySelector('.AutoSolverBoxLayers').style.transform = 'scaleY(0)';
             AutoSolverBoxBackground.style.filter = 'blur(16px)';
 
             setTimeout(function() {
                 AutoSolverBoxBackground.style.height = `${fornow1a}px`;
-                AutoSolverBoxBackground.style.opacity = '';
+                AutoSolverBoxBackground.style.opacity = '1';
 
                 document.querySelector('.AutoSolverBoxLayers').style.transform = 'scaleY(1.0)';
                 AutoSolverBoxBackground.style.filter = 'blur(0)';
@@ -1282,7 +1240,7 @@ function initializeDuolingoProSystemButtons() {
                 }, 500);
             }, 10);
 
-            if (_32a === true) {
+            if (_32a) {
                 something();
                 initializeAutoSolverBoxButtonInteractiveness();
                 _32a = false;
@@ -1435,12 +1393,12 @@ function initializeAutoSolverBoxButtonInteractiveness() {
 
 
     if (autoSolverBoxRepeatAmount === 0 && !DuolingoProSettingsNeverEndMode) {
-        wasAutoSolverBoxRepeatStartButtonPressed = false;
-        sessionStorage.setItem('wasAutoSolverBoxRepeatStartButtonPressed', wasAutoSolverBoxRepeatStartButtonPressed);
+        autoSolverBoxAutomatedSolvingActive = false;
+        updateMode('automatedsolving', autoSolverBoxAutomatedSolvingActive);
         AutoSolverBoxRepeatStartButton.textContent = 'START';
     }
 
-    if (wasAutoSolverBoxRepeatStartButtonPressed === true) {
+    if (autoSolverBoxAutomatedSolvingActive === true) {
         AutoSolverBoxRepeatStartButton.textContent = 'STOP';
         AutoSolverBoxRepeatStartButtonActions();
     }
@@ -1449,8 +1407,8 @@ function initializeAutoSolverBoxButtonInteractiveness() {
         AutoSolverBoxRepeatStartButton.addEventListener('click', () => {
             if (autoSolverBoxRepeatAmount > 0 || DuolingoProSettingsNeverEndMode) {
                 AutoSolverBoxRepeatStartButton.textContent = AutoSolverBoxRepeatStartButton.textContent === 'START' ? 'STOP' : 'START';
-                wasAutoSolverBoxRepeatStartButtonPressed = !wasAutoSolverBoxRepeatStartButtonPressed;
-                sessionStorage.setItem('wasAutoSolverBoxRepeatStartButtonPressed', wasAutoSolverBoxRepeatStartButtonPressed);
+                autoSolverBoxAutomatedSolvingActive = !autoSolverBoxAutomatedSolvingActive;
+                updateMode('automatedsolving', autoSolverBoxAutomatedSolvingActive);
             }
             AutoSolverBoxRepeatStartButtonActions();
         });
@@ -1465,15 +1423,15 @@ function initializeAutoSolverBoxButtonInteractiveness() {
         AutoSolverBoxToggleT1ID1.addEventListener('click', () => {
             if (autoSolverBoxPracticeOnlyMode) {
                 autoSolverBoxPracticeOnlyMode = !autoSolverBoxPracticeOnlyMode;
-                sessionStorage.setItem('autoSolverBoxPracticeOnlyMode', autoSolverBoxPracticeOnlyMode);
+                updateMode('practicemode', autoSolverBoxPracticeOnlyMode);
                 updateAutoSolverToggles(AutoSolverBoxToggleT1ID1, autoSolverBoxPracticeOnlyMode);
             } else if (!autoSolverBoxPracticeOnlyMode) {
                 autoSolverBoxPracticeOnlyMode = !autoSolverBoxPracticeOnlyMode;
                 autoSolverBoxRepeatLessonMode = !autoSolverBoxPracticeOnlyMode;
                 autoSolverBoxListeningOnlyMode = !autoSolverBoxPracticeOnlyMode;
-                sessionStorage.setItem('autoSolverBoxPracticeOnlyMode', autoSolverBoxPracticeOnlyMode);
-                sessionStorage.setItem('autoSolverBoxRepeatLessonMode', autoSolverBoxRepeatLessonMode);
-                sessionStorage.setItem('autoSolverBoxListeningOnlyMode', autoSolverBoxListeningOnlyMode);
+                updateMode('practicemode', autoSolverBoxPracticeOnlyMode);
+                updateMode('lessonmode', autoSolverBoxRepeatLessonMode);
+                updateMode('listeningmode', autoSolverBoxListeningOnlyMode);
                 updateAutoSolverToggles(AutoSolverBoxToggleT1ID1, autoSolverBoxPracticeOnlyMode);
                 updateAutoSolverToggles(AutoSolverBoxToggleT1ID2, autoSolverBoxRepeatLessonMode);
                 updateAutoSolverToggles(AutoSolverBoxToggleT1ID3, autoSolverBoxListeningOnlyMode);
@@ -1483,15 +1441,15 @@ function initializeAutoSolverBoxButtonInteractiveness() {
         AutoSolverBoxToggleT1ID2.addEventListener('click', () => {
             if (autoSolverBoxRepeatLessonMode) {
                 autoSolverBoxRepeatLessonMode = !autoSolverBoxRepeatLessonMode;
-                sessionStorage.setItem('autoSolverBoxRepeatLessonMode', autoSolverBoxRepeatLessonMode);
+                updateMode('lessonmode', autoSolverBoxRepeatLessonMode);
                 updateAutoSolverToggles(AutoSolverBoxToggleT1ID2, autoSolverBoxRepeatLessonMode);
             } else if (!autoSolverBoxRepeatLessonMode) {
                 autoSolverBoxRepeatLessonMode = !autoSolverBoxRepeatLessonMode;
                 autoSolverBoxPracticeOnlyMode = !autoSolverBoxRepeatLessonMode;
                 autoSolverBoxListeningOnlyMode = !autoSolverBoxRepeatLessonMode;
-                sessionStorage.setItem('autoSolverBoxPracticeOnlyMode', autoSolverBoxPracticeOnlyMode);
-                sessionStorage.setItem('autoSolverBoxRepeatLessonMode', autoSolverBoxRepeatLessonMode);
-                sessionStorage.setItem('autoSolverBoxListeningOnlyMode', autoSolverBoxListeningOnlyMode);
+                updateMode('practicemode', autoSolverBoxPracticeOnlyMode);
+                updateMode('lessonmode', autoSolverBoxRepeatLessonMode);
+                updateMode('listeningmode', autoSolverBoxListeningOnlyMode);
                 updateAutoSolverToggles(AutoSolverBoxToggleT1ID1, autoSolverBoxPracticeOnlyMode);
                 updateAutoSolverToggles(AutoSolverBoxToggleT1ID2, autoSolverBoxRepeatLessonMode);
                 updateAutoSolverToggles(AutoSolverBoxToggleT1ID3, autoSolverBoxListeningOnlyMode);
@@ -1501,25 +1459,19 @@ function initializeAutoSolverBoxButtonInteractiveness() {
         AutoSolverBoxToggleT1ID3.addEventListener('click', () => {
             if (autoSolverBoxListeningOnlyMode) {
                 autoSolverBoxListeningOnlyMode = !autoSolverBoxListeningOnlyMode;
-                sessionStorage.setItem('autoSolverBoxListeningOnlyMode', autoSolverBoxListeningOnlyMode);
+                updateMode('listeningmode', autoSolverBoxListeningOnlyMode);
                 updateAutoSolverToggles(AutoSolverBoxToggleT1ID3, autoSolverBoxListeningOnlyMode);
             } else {
                 autoSolverBoxListeningOnlyMode = !autoSolverBoxListeningOnlyMode;
                 autoSolverBoxPracticeOnlyMode = !autoSolverBoxListeningOnlyMode;
                 autoSolverBoxRepeatLessonMode = !autoSolverBoxListeningOnlyMode;
-                sessionStorage.setItem('autoSolverBoxPracticeOnlyMode', autoSolverBoxPracticeOnlyMode);
-                sessionStorage.setItem('autoSolverBoxListeningOnlyMode', autoSolverBoxListeningOnlyMode);
-                sessionStorage.setItem('autoSolverBoxRepeatLessonMode', autoSolverBoxRepeatLessonMode);
+                updateMode('practicemode', autoSolverBoxPracticeOnlyMode);
+                updateMode('lessonmode', autoSolverBoxRepeatLessonMode);
+                updateMode('listeningmode', autoSolverBoxListeningOnlyMode);
                 updateAutoSolverToggles(AutoSolverBoxToggleT1ID1, autoSolverBoxPracticeOnlyMode);
                 updateAutoSolverToggles(AutoSolverBoxToggleT1ID2, autoSolverBoxRepeatLessonMode);
                 updateAutoSolverToggles(AutoSolverBoxToggleT1ID3, autoSolverBoxListeningOnlyMode);
             }
-        });
-
-        AutoSolverBoxToggleT1ID1.addEventListener('click', () => {
-            updateAutoSolverToggles(AutoSolverBoxToggleT1ID1, autoSolverBoxPracticeOnlyMode);
-            updateAutoSolverToggles(AutoSolverBoxToggleT1ID2, autoSolverBoxRepeatLessonMode);
-            updateAutoSolverToggles(AutoSolverBoxToggleT1ID3, autoSolverBoxListeningOnlyMode);
         });
 
         updateAutoSolverToggles(AutoSolverBoxToggleT1ID1, autoSolverBoxPracticeOnlyMode);
@@ -1596,7 +1548,7 @@ function pKVKQrfVcqrLWnpH() {
 function PjYdVpmxDsskMlRs() {
     try {
         const imageUrl = 'https://d35aaqx5ub95lt.cloudfront.net/images/path/09f977a3e299d1418fde0fd053de0beb.svg';
-        const images = document.querySelectorAll('._2Zucs');
+        const images = document.querySelectorAll('._1pj5W');
         if (!images.length) {
             XyEOALuaeQicpGHW();
         } else {
@@ -1621,7 +1573,7 @@ function PjYdVpmxDsskMlRs() {
     }
 };
 function XyEOALuaeQicpGHW() {
-    if ((DuolingoProSettingsNeverEndMode || autoSolverBoxRepeatAmount > 0) && wasAutoSolverBoxRepeatStartButtonPressed) {
+    if ((DuolingoProSettingsNeverEndMode || autoSolverBoxRepeatAmount > 0) && autoSolverBoxAutomatedSolvingActive) {
         if (autoSolverBoxPracticeOnlyMode) {
             window.location.href = "https://duolingo.com/practice";
         } else if (autoSolverBoxRepeatLessonMode) {
@@ -1639,7 +1591,7 @@ function checkURLForAutoSolverBox() {
     if (window.location.pathname === '/practice-hub/listening-practice' || window.location.pathname.includes('/lesson') || window.location.pathname === '/practice') {
         let jfgsdodhgsf = document.querySelector('#solveAllButton');
         if (jfgsdodhgsf) {
-            if (wasAutoSolverBoxRepeatStartButtonPressed === true) {
+            if (autoSolverBoxAutomatedSolvingActive === true) {
                 solving();
             }
         } else {
@@ -1835,11 +1787,11 @@ const SendFeedbackBoxHTML = `
             <div class="HStack selfFill" style="gap: 8px;">
                 <div class="SendFeebackBoxSectionFourButtonOneBackground" id="SendFeebackTypeButtonOne">
                     <div class="SendFeebackBoxSectionFourButtonOneIconOne"/></div>
-                    <p class="SendFeebackBoxSectionFourButtonOneTextOne">Bug Report</p>
+                    <p class="paragraphText noSelect textFill" id="SendFeebackBoxSectionFourButtonOneTextOne">Bug Report</p>
                 </div>
                 <div class="SendFeebackBoxSectionFourButtonOneBackground" id="SendFeebackTypeButtonTwo">
                     <div class="SendFeebackBoxSectionFourButtonOneIconOne"/></div>
-                    <p class="SendFeebackBoxSectionFourButtonOneTextOne">Suggestion</p>
+                    <p class="paragraphText noSelect textFill" id="SendFeebackBoxSectionFourButtonOneTextOne">Suggestion</p>
                 </div>
             </div>
 
@@ -2036,23 +1988,6 @@ const SendFeedbackBoxCSS = `
     opacity: 100% !important;
 
     cursor: pointer;
-}
-
-.SendFeebackBoxSectionFourButtonOneTextOne {
-    flex: 1 0 0;
-
-    color: rgb(var(--color-swan));
-    font-size: 16px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: normal;
-
-    margin: 0px;
-
-    user-select: none;
-    -moz-user-select: none;
-    -webkit-text-select: none;
-    -webkit-user-select: none;
 }
 
 .SendFeebackBoxSectionFourButtonOneIconTwoBox {
@@ -2494,7 +2429,7 @@ function SendFeedBackBox(visibility) {
 
 
             function updateDuolingoProSendFeedbackButtons(element, value) {
-                let textElement = element.querySelector('.SendFeebackBoxSectionFourButtonOneTextOne');
+                let textElement = element.querySelector('#SendFeebackBoxSectionFourButtonOneTextOne');
                 let iconElement = element.querySelector('.SendFeebackBoxSectionFourButtonOneIconOne');
 
                 if (value === 'Bug Report') {
@@ -2516,7 +2451,7 @@ function SendFeedBackBox(visibility) {
             }
 
             function updateDuolingoProSendFeedbackButtonsTwo(element, value) {
-                let textElement = element.querySelector('.SendFeebackBoxSectionFourButtonOneTextOne');
+                let textElement = element.querySelector('#SendFeebackBoxSectionFourButtonOneTextOne');
                 let iconElement = element.querySelector('.SendFeebackBoxSectionFourButtonOneIconOne');
 
                 if (value === 'Suggestion') {
@@ -2607,9 +2542,9 @@ const DuolingoProSettingsBoxHTML = `
     <div class="DPLBoxStyleT1" id="DuolingoProSettingsBoxBackground" style="overflow-y: visible; overflow: hidden; padding: 0; padding-right: 16px; padding-left: 16px;">
         <div class="DuolingoProSettingsBoxLayers">
             <div class="DuolingoProSettingsBoxSectionOne">
-                <p class="DuolingoProSettingsBoxSectionOneTextOne">Settings</p>
+                <p class="paragraphText noSelect textFill" style="font-size: 24px; line-height: 32px;">Settings</p>
                 <div class="DuolingoProSettingsBoxSectionOneBoxOne">
-                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne">2.0 BETA 9.6.4</p>
+                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne">2.0 BETA 9.6.5</p>
                 </div>
             </div>
             <div class="DuolingoProSettingsBoxSectionTwo">
@@ -2689,11 +2624,15 @@ const DuolingoProSettingsBoxHTML = `
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px; align-self: stretch;">
                         <p class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);">Questions Solved:</p>
-                        <p id="eASGBnBrCZmjwbBq" class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);">NaN</p>
+                        <p id="eASGBnBrCZmjwbBq" class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);">0</p>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px; align-self: stretch;">
                         <p class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);">Lessons Solved:</p>
-                        <p id="WuLExbHJuqjJkLpE" class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);">NaN</p>
+                        <p id="WuLExbHJuqjJkLpE" class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);">0</p>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; align-self: stretch;">
+                        <p class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);">XP Gained:</p>
+                        <p id="OZIoPjGvTCPohXmD" class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);">0</p>
                     </div>
                 </div>
 
@@ -2707,7 +2646,7 @@ const DuolingoProSettingsBoxHTML = `
                             <path d="M9 16.6172C4.47656 16.6172 0.75 12.8906 0.75 8.35938C0.75 3.83594 4.46875 0.109375 9 0.109375C13.5234 0.109375 17.25 3.83594 17.25 8.35938C17.25 12.8906 13.5312 16.6172 9 16.6172ZM8.99219 5.86719C9.65625 5.86719 10.2031 5.3125 10.2031 4.64844C10.2031 3.96094 9.65625 3.42188 8.99219 3.42188C8.32031 3.42188 7.76562 3.96094 7.76562 4.64844C7.76562 5.3125 8.32031 5.86719 8.99219 5.86719ZM7.52344 12.8125H10.8438C11.2734 12.8125 11.6094 12.5156 11.6094 12.0703C11.6094 11.6562 11.2734 11.3281 10.8438 11.3281H10.1094V7.95312C10.1094 7.36719 9.82031 6.99219 9.27344 6.99219H7.67969C7.25 6.99219 6.91406 7.32031 6.91406 7.72656C6.91406 8.16406 7.25 8.47656 7.67969 8.47656H8.42969V11.3281H7.52344C7.09375 11.3281 6.75781 11.6562 6.75781 12.0703C6.75781 12.5156 7.09375 12.8125 7.52344 12.8125Z" fill="#007AFF"/>
                         </svg>
                     </div>
-                    <p class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);"><a href="https://github.com/anonymoushackerIV" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">anonymoushackerIV</a>, <a href="https://github.com/surebrec" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">surebrec</a>, <a href="https://github.com/ByThon1" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">ByThon1</a>, <a href="https://github.com/SicariusBlack" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">SicariusBlack</a>, <a href="https://github.com/fakeduo" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">fakeduo</a>, <a href="https://github.com/JxxIT" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">JxxIT</a>, <a href="https://github.com/tkwon09137" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">tkwon09137</a></p>
+                    <p class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);"><a href="https://github.com/anonymoushackerIV" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">anonymoushackerIV</a>, <a href="https://github.com/tkwon09137" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">Eclipse</a>, <a href="https://github.com/ByThon1" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">ByThon1</a>, <a href="https://github.com/surebrec" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">surebrec</a>, <a href="https://github.com/SicariusBlack" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">SicariusBlack</a>, <a href="https://github.com/fakeduo" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">fakeduo</a>, <a href="https://github.com/JxxIT" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">JxxIT</a></p>
                 </div>
 
             </div>
@@ -2740,17 +2679,6 @@ const DuolingoProSettingsBoxCSS = `
     justify-content: space-between;
     align-items: center;
     align-self: stretch;
-}
-
-.DuolingoProSettingsBoxSectionOneTextOne {
-    color: rgb(var(--color-eel));
-    font-size: 24px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: normal;
-
-    margin: 0px;
-    cursor: default;
 }
 
 .DuolingoProSettingsBoxSectionOneBoxOne {
@@ -2891,7 +2819,6 @@ function injectDuolingoProSettingsBox() {
                 setTimeout(function() {
                     wasDuolingoProSettingsButtonOnePressed = false;
 
-                    AutoSolverSettingsShowAutoSolverBox = JSON.parse(localStorage.getItem('AutoSolverSettingsShowAutoSolverBox'));
                     //AutoSolverSettingsShowPracticeOnlyModeForAutoSolverBox = JSON.parse(localStorage.getItem('AutoSolverSettingsShowPracticeOnlyModeForAutoSolverBox'));
                     //AutoSolverSettingsShowRepeatLessonModeForAutoSolverBox = JSON.parse(localStorage.getItem('AutoSolverSettingsShowRepeatLessonModeForAutoSolverBox'));
                     AutoSolverSettingsLowPerformanceMode = JSON.parse(localStorage.getItem('AutoSolverSettingsLowPerformanceMode'));
@@ -2969,6 +2896,12 @@ function injectDuolingoProSettingsBox() {
             DuolingoProSettingsBoxToggleT1ID2.addEventListener('click', () => {
                 DuolingoProAntiStuckProtectionMode = !DuolingoProAntiStuckProtectionMode;
                 updateDuolingoProSettingsToggle(1, DuolingoProSettingsBoxToggleT1ID2, DuolingoProAntiStuckProtectionMode);
+            });
+
+            const DuolingoProSettingsBoxToggleT3ID1 = document.querySelector('#DLPSettingsToggleT3ID3');
+            DuolingoProSettingsBoxToggleT1ID2.addEventListener('click', () => {
+                //DuolingoProAntiStuckProtectionMode = !DuolingoProAntiStuckProtectionMode;
+                //updateDuolingoProSettingsToggle(1, DuolingoProSettingsBoxToggleT1ID2, DuolingoProAntiStuckProtectionMode);
             });
 
             function slideEventForT22() {
@@ -3072,6 +3005,8 @@ function updateDuolingoProSettingsToggle(id, element, variable) {
             elementTB.style.width = "80px";
             elementTBT.textContent = String(variable);
         }
+    } else if (id === 3) {
+
     }
 }
 
@@ -3159,7 +3094,7 @@ if (String(localStorage.getItem('duolingoProLastInstalledVersion')) === null || 
             localStorage.setItem('duolingoProLastInstalledVersion', duolingoProCurrentVersion);
         } else if (downloadStuffVar === 'error') {
             setTimeout(function() {
-                versionServerStuff('download', 'Download', duolingoProCurrentVersion);
+                versionServerStuff('download', duolingoProCurrentVersion);
                 checkFlagTwo();
             }, 1000);
         } else if (downloadStuffVar === 'empty') {
@@ -3187,7 +3122,7 @@ if (String(localStorage.getItem('duolingoProLastInstalledVersion')) === null || 
             localStorage.setItem('duolingoProLastInstalledVersion', duolingoProCurrentVersion);
         } else if (updateStuffVar === 'error') {
             setTimeout(function() {
-                versionServerStuff('update', "Update", duolingoProCurrentVersion, String(localStorage.getItem('duolingoProLastInstalledVersion')));
+                versionServerStuff('update', duolingoProCurrentVersion, String(localStorage.getItem('duolingoProLastInstalledVersion')));
                 checkFlagThree();
             }, 1000);
         } else if (updateStuffVar === 'empty') {
@@ -3393,7 +3328,7 @@ let injectedDuolingoProShadeElement = null;
 let injectedDuolingoProShadeStyle = null;
 
 function injectDuolingoProShade() {
-    if (window.location.pathname.includes('/lesson') && wasAutoSolverBoxRepeatStartButtonPressed && DuolingoProShadeLessonsMode) {
+    if (window.location.pathname.includes('/lesson') && autoSolverBoxAutomatedSolvingActive && DuolingoProShadeLessonsMode) {
         if (!injectedDuolingoProShadeElement) {
             injectedDuolingoProShadeElement = document.createElement('div');
             injectedDuolingoProShadeElement.innerHTML = DuolingoProShadeHTML;
@@ -3446,96 +3381,6 @@ setInterval(injectDuolingoProShade, 100);
 
 
 
-
-const DuolingoProSolveJustThisBoxButtonHTML = `
-<div class="DPJustSolveThisLessonButtonOne noSelect">AUTOSOLVE LESSON</div>
-`;
-
-const DuolingoProSolveJustThisBoxButtonCSS = `
-.DPJustSolveThisLessonButtonOne {
-    position: relative;
-    display: flex;
-    height: 48px;
-    width: calc(100% - 0px);
-    padding: 16px 16px 16px 16px;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-
-    border-radius: 8px;
-    border: 2px solid rgba(0, 0, 0, 0.20);
-    border-bottom: 4px solid rgba(0, 0, 0, 0.20);
-    background: #007AFF;
-
-    cursor: pointer;
-    transition: .1s;
-    width: auto;
-    margin-top: 16px;
-
-    font-size: 16px;
-    font-weight: 700;
-    text-align: center;
-    color: #fff;
-}
-.DPJustSolveThisLessonButtonOne:hover {
-    filter: brightness(0.95);
-}
-.DPJustSolveThisLessonButtonOne:active {
-    height: 46px;
-    margin-top: 18px;
-    border-bottom: 2px solid rgba(0, 0, 0, 0.20);
-    filter: brightness(0.9);
-}
-`;
-
-let injectedDuolingoProSolveJustThisBoxButtonElement = null;
-let injectedDuolingoProSolveJustThisBoxButtonStyle = null;
-
-function DuolingoProSolveJustThisBoxExtraButtonFunction() {
-    try {
-        let targetDivTwo = document.querySelector('._3lZ4K');
-        if (targetDivTwo) {
-            if (!injectedDuolingoProSolveJustThisBoxButtonElement) {
-                targetDivTwo.insertAdjacentHTML('beforeend', DuolingoProSolveJustThisBoxButtonHTML);
-                injectedDuolingoProSolveJustThisBoxButtonElement = DuolingoProSolveJustThisBoxButtonHTML;
-
-                injectedDuolingoProSolveJustThisBoxButtonStyle = document.createElement('style');
-                injectedDuolingoProSolveJustThisBoxButtonStyle.type = 'text/css';
-                injectedDuolingoProSolveJustThisBoxButtonStyle.innerHTML = DuolingoProSolveJustThisBoxButtonCSS;
-                document.head.appendChild(injectedDuolingoProSolveJustThisBoxButtonStyle);
-
-                const DuolingoProJustSolveThisLessonButtonOneDivBox = document.querySelector('.DPJustSolveThisLessonButtonOne');
-                DuolingoProJustSolveThisLessonButtonOneDivBox.addEventListener('click', () => {
-                    let DuolingoProJustSolveThisLessonButtonOneDivBoxButtonToPress = document.querySelector('[data-test="skill-path-state-passed skill-path-unit-test-0"]');
-                    if (DuolingoProJustSolveThisLessonButtonOneDivBoxButtonToPress) {
-                        wasDuolingoProJustSolveThisLessonButtonOnePressed = true;
-                        sessionStorage.setItem('wasDuolingoProJustSolveThisLessonButtonOnePressed', wasDuolingoProJustSolveThisLessonButtonOnePressed);
-
-                        DuolingoProJustSolveThisLessonButtonOneDivBoxButtonToPress.click();
-                    }
-                });
-            } else {
-            }
-        } else {
-            if (injectedDuolingoProSolveJustThisBoxButtonElement) {
-                injectedDuolingoProSolveJustThisBoxButtonElement = null;
-            }
-        }
-    } catch(error) {}
-}
-if (ASTL464) {
-    setInterval(DuolingoProSolveJustThisBoxExtraButtonFunction, 100);
-}
-
-if (wasDuolingoProJustSolveThisLessonButtonOnePressed) {
-    setTimeout(function() {
-        solving(true);
-    }, 1000);
-    wasDuolingoProJustSolveThisLessonButtonOnePressed = false;
-    sessionStorage.setItem('wasDuolingoProJustSolveThisLessonButtonOnePressed', wasDuolingoProJustSolveThisLessonButtonOnePressed);
-}
-
-
 let duolingoProCurrentNewVersion;
 function checkForUpdatesVersion() {
     async function updateWarningsFromURL(url, currentVersion) {
@@ -3559,7 +3404,7 @@ function checkForUpdatesVersion() {
                 UpdateAvailableAutoSolverBoxAlertFunction();
             }
         } catch (error) {
-            console.log(`Error getting data: ${error.message}`);
+            console.log(`Error getting data #2: ${error.message}`);
         }
     }
     updateWarningsFromURL('https://raw.githubusercontent.com/anonymoushackerIV/Duolingo-Pro-Assets/main/resources/issues-and-fixes.json', duolingoProFormalCurrentVersion);
@@ -4122,7 +3967,7 @@ let injectedDuolingoProCounterOneElement = null;
 let injectedDuolingoProCounterOneStyle = null;
 
 function DuolingoProCounterOneFunction() {
-    if ((window.location.pathname.includes('/lesson') || window.location.pathname.includes('/practice')) && wasAutoSolverBoxRepeatStartButtonPressed) {
+    if ((window.location.pathname.includes('/lesson') || window.location.pathname.includes('/practice')) && autoSolverBoxAutomatedSolvingActive) {
         if (!injectedDuolingoProCounterOneElement) {
             injectedDuolingoProCounterOneStyle = document.createElement('style');
             injectedDuolingoProCounterOneStyle.type = 'text/css';
@@ -4534,7 +4379,7 @@ function CurrentIssuesPopUpFunction(status) {
                         alert(`Warnings not found for Duolingo Pro ${duolingoProFormalCurrentVersion}, this version may be deprecated. `);
                     }
                 } catch (error) {
-                    alert(`Error getting data: ${error.message}`);
+                    console.log(`Error getting data #3: ${error.message}`);
                 }
             }
             updateWarningsFromURL('https://raw.githubusercontent.com/anonymoushackerIV/Duolingo-Pro-Assets/main/resources/issues-and-fixes.json', duolingoProFormalCurrentVersion);
@@ -4567,7 +4412,7 @@ function hgfem() {
 
 
 let EGxjxpyyQVICYLlt = `
-<div class="djwod">
+<div class="gFyuyoyv">
     <div class="rjtso" style="display: flex; justify-content: space-between; align-items: flex-start; align-self: stretch; margin-bottom: 4px;">
         <div class="OuCoTKrL" style="opacity: 0; filter: blur(8px); transition: .4s; position: relative; display: flex; justify-content: center; align-items: center;"></div>
         <svg class="closeIcon094" style="transition: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);" width="15" height="14" viewBox="0 0 15 14" fill="rgba(255, 255, 255, 0.5)" xmlns="http://www.w3.org/2000/svg">
@@ -4580,7 +4425,7 @@ let EGxjxpyyQVICYLlt = `
 </div>
 `;
 let lXTUDhsszBlpOzyG = `
-.djwod {
+.gFyuyoyv {
 	display: flex;
 	width: 222px;
 	padding: 16px;
@@ -4605,11 +4450,11 @@ let lXTUDhsszBlpOzyG = `
 
 	transition: scale .4s, background .8s, left .4s, box-shadow .4s, opacity .4s, filter .4s;
 }
-.djwod:hover {
+.gFyuyoyv:hover {
 	box-shadow: 0px 0px 16px 0px rgba(0, 0, 0, 0.2);
 	scale: 1.05;
 }
-.djwod:active {
+.gFyuyoyv:active {
 	box-shadow: none;
 	scale: .95;
 }
@@ -4679,7 +4524,7 @@ let EGxjxpyyQVICYLltElement = null;
 let lXTUDhsszBlpOzyGStyle = null;
 function cBcutPZB() {
     try {
-    if (!document.querySelector('.djwod')) {
+    if (!document.querySelector('.gFyuyoyv')) {
         if (!lXTUDhsszBlpOzyGStyle) {
             lXTUDhsszBlpOzyGStyle = document.createElement('style');
             lXTUDhsszBlpOzyGStyle.type = 'text/css';
@@ -4690,14 +4535,14 @@ function cBcutPZB() {
         }
         function eipwofa() {
             if (document.querySelector('._3bTT7')) {
-                try { document.querySelector('.djwod').style.display = ''; } catch (error) {}
+                try { document.querySelector('.gFyuyoyv').style.display = ''; } catch (error) {}
             } else {
-                try { document.querySelector('.djwod').style.display = 'none'; } catch (error) {}
+                try { document.querySelector('.gFyuyoyv').style.display = 'none'; } catch (error) {}
             }
         }
         setInterval(eipwofa, 1000);
 
-        let djwodElement = document.querySelector('.djwod');
+        let djwodElement = document.querySelector('.gFyuyoyv');
 
         let smallView = false;
         if (window.innerWidth < 1160) {
@@ -4711,7 +4556,7 @@ function cBcutPZB() {
         let currentNumber = 1;
 
         let isHoveringCloseButton094 = false;
-        let currentURL = "https://example.com/";
+        let currentURL = "";
         document.querySelector('.closeIcon094').addEventListener('mouseover', function() {
             isHoveringCloseButton094 = true;
         });
@@ -4751,7 +4596,7 @@ function cBcutPZB() {
         OuCoTKrL.style.filter = "blur(0px)";
         OuCoTKrL.style.opacity = "1";
 
-        document.querySelector(".djwod").style.background = BubbleResult.bubbles[0].background;
+        document.querySelector(".gFyuyoyv").style.background = BubbleResult.bubbles[0].background;
 
         if (!smallView) {
             djwodElement.style.left = "16px";
@@ -4837,7 +4682,7 @@ function cBcutPZB() {
                 jfei1fheksElement.style.width = "100%";
             }, 50);
 
-            document.querySelector(".djwod").style.background = BubbleResult.bubbles[currentNumber - 1].background;
+            document.querySelector(".gFyuyoyv").style.background = BubbleResult.bubbles[currentNumber - 1].background;
 
             ifhji();
             function ifhji() {
@@ -4912,37 +4757,38 @@ async function fetchDatacBcutPZB(url) {
         const response = await fetch(url);
         if (!response.ok) {
             throw new Error('Network response was not ok');
-        }
-        const data = await response.json();
-        bubbleTotal = parseInt(data["bubble-total"]);
-        const bubbleList = [];
-        for (let i = 1; i <= bubbleTotal; i++) {
-            const bubbleKey = `bubble-${i}`;
-            const bubbleInfo = {
-                icon: data[bubbleKey].icon,
-                title: {
-                    text: data[bubbleKey].title["title-text"],
-                    color: data[bubbleKey].title["title-color"],
-                    height: data[bubbleKey].title["title-height"]
-                },
-                description: {
-                    text: data[bubbleKey].description["description-text"],
-                    color: data[bubbleKey].description["description-color"],
-                    height: data[bubbleKey].description["description-height"]
-                },
-                background: data[bubbleKey].background,
-                border: data[bubbleKey].border,
-                link: data[bubbleKey].link
+        } else {
+            const data = await response.json();
+            bubbleTotal = parseInt(data["bubble-total"]);
+            const bubbleList = [];
+            for (let i = 1; i <= bubbleTotal; i++) {
+                const bubbleKey = `bubble-${i}`;
+                const bubbleInfo = {
+                    icon: data[bubbleKey].icon,
+                    title: {
+                        text: data[bubbleKey].title["title-text"],
+                        color: data[bubbleKey].title["title-color"],
+                        height: data[bubbleKey].title["title-height"]
+                    },
+                    description: {
+                        text: data[bubbleKey].description["description-text"],
+                        color: data[bubbleKey].description["description-color"],
+                        height: data[bubbleKey].description["description-height"]
+                    },
+                    background: data[bubbleKey].background,
+                    border: data[bubbleKey].border,
+                    link: data[bubbleKey].link
+                };
+                bubbleList.push(bubbleInfo);
+            }
+            BubbleResult = {
+                bubbleTotal,
+                bubbles: bubbleList
             };
-            bubbleList.push(bubbleInfo);
+            cBcutPZB();
         }
-        BubbleResult = {
-            bubbleTotal,
-            bubbles: bubbleList
-        };
-        cBcutPZB();
     } catch (error) {
-        alert(`Error getting data: ${error.message}`);
+        console.log(`Error getting data #4: ${error.message}`);
     }
 }
 async function sTvtBAMVJoWFodPG() {
@@ -4982,26 +4828,24 @@ function solve() {
     const practiceAgain = document.querySelector('[data-test="player-practice-again"]');
     const sessionCompleteSlide = document.querySelector('[data-test="session-complete-slide"]');
 
-    try {
-        let ejfkLLtg = document.querySelector('[data-test="practice-hub-ad-no-thanks-button"]');
-        if (ejfkLLtg) {
-            ejfkLLtg.click();
-        }
-    } catch (error) {}
-    try {
-        let xJiRCXrz = document.querySelector('.vpDIE');
-        if (xJiRCXrz) {
-            xJiRCXrz.click();
-        }
-    } catch (error) {}
-    try {
-        let LwLkdRDp = document.querySelector('[data-test="plus-no-thanks"]');
-        if (LwLkdRDp) {
-            LwLkdRDp.click();
-        }
-    } catch (error) {}
+    let ejfkLLtg = document.querySelector('[data-test="practice-hub-ad-no-thanks-button"]');
+    if (ejfkLLtg) {
+        ejfkLLtg.click();
+    }
+    let xJiRCXrz = document.querySelector('.vpDIE');
+    if (xJiRCXrz) {
+        xJiRCXrz.click();
+    }
+    let LwLkdRDp = document.querySelector('[data-test="plus-no-thanks"]');
+    if (LwLkdRDp) {
+        LwLkdRDp.click();
+    }
+    let ortgyuha = document.querySelector('._1N-oo._36Vd3._16r-S._1ZBYz._23KDq._1S2uf.HakPM');
+    if (ortgyuha) {
+        ortgyuha.click();
+    }
 
-    if ((practiceAgain !== null || sessionCompleteSlide !== null) && isAutoMode && wasAutoSolverBoxRepeatStartButtonPressed) {
+    if ((practiceAgain !== null || sessionCompleteSlide !== null) && isAutoMode && autoSolverBoxAutomatedSolvingActive) {
         if (!DuolingoProSettingsNeverEndMode && !hcwNIIOdaQqCZRDL) {
             hcwNIIOdaQqCZRDL = true;
             autoSolverBoxRepeatAmount--;
@@ -5091,13 +4935,13 @@ function nextClickFunc() {
                     nextButton.click();
                     mainSolveStatistics('question');
                     zXIArDomWMPkmTVf = 0;
-                    if (document.querySelector('[data-test="player-next"]') && document.querySelector('[data-test="player-next"]').classList.contains('_9C_ii')) {
+                    if (document.querySelector('[data-test="player-next"]').classList.contains('_2oGJR')) {
                         if (isAutoMode) {
                             setTimeout(function() {
                                 nextButton.click();
                             }, 50);
                         }
-                    } else if (document.querySelector('[data-test="player-next"]') && document.querySelector('[data-test="player-next"]').classList.contains('NAidc')) {
+                    } else if (document.querySelector('[data-test="player-next"]').classList.contains('_3S8jJ')) {
                         if (solveSpeed < 0.6) {
                             solveSpeed = 0.6;
                             localStorage.setItem('duopro.autoSolveDelay', solveSpeed);
@@ -5125,55 +4969,6 @@ function LhEqEHHc() {
         //const challengeAssistElement = document.querySelector('[data-test="challenge challenge-assist"]');
         const challengeAssistElement = document.querySelector('._3x0ok');
         if (challengeAssistElement) {
-            html2canvas(challengeAssistElement).then(canvas => {
-                canvas.toBlob(async blob => {
-                    const bucket = await supabase.storage.from('questionErrorLogsImages');
-
-                    const randomNameForSendFeedbackFile = randomValue + "-" + randomImageValue + ".png";
-
-                    const uploadResponse = await bucket.upload(randomNameForSendFeedbackFile, blob);
-
-                    let LQmcHoaloUlNuywh = 8;
-                    function slmEfvRdEPyrLbad() {
-                        if (LQmcHoaloUlNuywh > 0) {
-                            setTimeout(function() {
-                                LQmcHoaloUlNuywh--;
-                                document.querySelectorAll('#DuolingoProNotificationDescriptionOneID').textContent = "An error occured while sending the question error report. Refreshing lesson in " + String(LQmcHoaloUlNuywh) + " seconds.";
-                                slmEfvRdEPyrLbad();
-                            }, 1000);
-                        } else {
-                            location.reload();
-                        }
-                    }
-                    function iouyh() {
-                        if (GtPzsoCcLnDAVvjb === "sent") {
-                            notificationCall("Question Error Report Sent", "The question error report has been anonymously sent. Refreshing lesson in 8 seconds.");
-                            slmEfvRdEPyrLbad();
-                        } else if (GtPzsoCcLnDAVvjb === "error") {
-                            notificationCall("Question Error Report Not Sent", "An error occured while sending the question error report. Refreshing lesson in 8 seconds.");
-                            slmEfvRdEPyrLbad();
-                        } else {
-                            setTimeout(function() {
-                                iouyh();
-                            }, 200);
-                        }
-                    }
-                    iouyh();
-                    //notificationCall("File URL", String(uploadResponse.url));
-
-                    // Save the file URL or handle further actions
-                    // Convert canvas to data URL
-                    // const dataURL = canvas.toDataURL();
-
-                    // Create an anchor element to download the screenshot
-                    // const downloadLink = document.createElement('a');
-                    // downloadLink.href = dataURL;
-                    // downloadLink.download = 'screenshot.png';
-
-                    // Trigger a click on the anchor element to start the download
-                    // downloadLink.click();
-                }, 'image/png');
-            });
         } else {
             console.log('Element not found');
         }
@@ -5411,8 +5206,8 @@ function correctIndicesRun() {
 }
 
 function findSubReact(dom, traverseUp = 0) {
-    const key = Object.keys(dom).find(key => key.startsWith("__reactProps$"));
-    return dom.parentElement[key].children.props;
+    const key = Object.keys(dom).find(key => key.startsWith("__reactProps"));
+    return dom?.[key]?.children?.props?.slide;
 }
 
 function findReact(dom, traverseUp = 0) {
@@ -5468,7 +5263,7 @@ async function sendFeedbackServer(feedbackTextOne, feedbackTypeOne, feedbackText
             formData.append('pro_id', randomValue);
             formData.append('email', feedbackTextTwo);
             formData.append('version', duolingoProCurrentVersion);
-            const response = await fetch("https://duolingoprodb.pythonanywhere.com/feedback", {
+            const response = await fetch(duolingoProPythonanywhere + "/feedback", {
                 method: 'POST',
                 body: formData
             });
@@ -5498,14 +5293,14 @@ async function analyticsLogsSend(text, value) {
 async function versionServerStuff(option, to, from) {
     let versionStuffTable = 'cwzvjDfz';
     if (option === 'update') {
-        if (to && from) {
+        try {
             const objectData = {
                 from: from,
                 to: to,
                 pro_id: randomValue,
                 table: versionStuffTable
             };
-            const response = await fetch("https://duolingoprodb.pythonanywhere.com/updateanalytics", {
+            const response = await fetch(duolingoProPythonanywhere + "/updateanalytics", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -5515,20 +5310,19 @@ async function versionServerStuff(option, to, from) {
             if (response.ok) {
                 updateStuffVar = 'true';
             } else {
-                updateStuffVar = 'error';
+                updateStuffVar = 'server network error';
             }
-        } else {
-            console.error("Message text is empty.");
-            updateStuffVar = 'empty';
+        } catch (error) {
+            downloadStuffVar = 'error';
         }
     } else if (option === 'download') {
-        if (to) {
+        try {
             const objectData = {
                 to: to,
                 pro_id: randomValue,
                 table: versionStuffTable
             };
-            const response = await fetch("https://duolingoprodb.pythonanywhere.com/downloadanalytics", {
+            const response = await fetch(duolingoProPythonanywhere + "/downloadanalytics", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -5536,13 +5330,12 @@ async function versionServerStuff(option, to, from) {
                 body: JSON.stringify(objectData)
             });
             if (response.ok) {
-                downloadStuffVar = 'true';
+                updateStuffVar = 'true';
             } else {
-                downloadStuffVar = 'error';
+                updateStuffVar = 'server network error';
             }
-        } else {
-            console.error("Message text is empty.");
-            downloadStuffVar = 'empty';
+        } catch (error) {
+            downloadStuffVar = 'error';
         }
     }
 }
