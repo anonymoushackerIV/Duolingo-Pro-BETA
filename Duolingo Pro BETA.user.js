@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Duolingo Pro BETA
 // @namespace    Violentmonkey Scripts
-// @version      2.0-BETA-9.6.5
+// @version      2.0-BETA-9.6.6
 // @description  Duolingo Auto Solver Tool - Working April 2024
 // @author       anonymoushackerIV (https://github.com/anonymoushackerIV)
 // @match        https://*.duolingo.com/*
@@ -25,9 +25,9 @@ const debug = false;
 let findReactMainElementClass = '_3js2_';
 
 let ASB969 = true;
-let duolingoProCurrentVersionShort = "2.0B9.6.5";
-let duolingoProCurrentVersion = "2.0 BETA 9.6.5";
-let duolingoProFormalCurrentVersion = "2.0BETA9.6.5";
+let duolingoProCurrentVersionShort = "2.0B9.6.6";
+let duolingoProCurrentVersion = "2.0 BETA 9.6.6";
+let duolingoProFormalCurrentVersion = "2.0BETA9.6.6";
 
 let solveSpeed;
 if (isNaN(parseFloat(localStorage.getItem('duopro.autoSolveDelay')))) {
@@ -248,10 +248,14 @@ function addButtons() {
             findReactMainElementClass = '_3FiYg';
             document.querySelector('._10vOG, ._2L_r0').style.display = "flex";
             document.querySelector('._10vOG, ._2L_r0').style.gap = "20px";
-        } else {
+        } else if (document.querySelector('._2sXnx') !== null) {
             findReactMainElementClass = '_3js2_';
             document.querySelector('._2sXnx').style.display = "flex";
             document.querySelector('._2sXnx').style.gap = "20px";
+        } else if (document.querySelector('.MYehf') !== null) {
+            findReactMainElementClass = 'wqSzE';
+            document.querySelector('.MYehf').style.display = "flex";
+            document.querySelector('.MYehf').style.gap = "20px";
         }
 
         const buttonsCSS = document.createElement('style');
@@ -721,7 +725,7 @@ const htmlContent = `
             <div class="AutoSolverBoxTitleSectionOne">
                 <p class="paragraphText noSelect" style="font-size: 24px;">Duolingo Pro</p>
                 <div class="AutoSolverBoxTitleSectionOneBETATagOne">
-                    <p class="paragraphText noSelect" style="color: #FFF;">2.0 BETA 9.6.5</p>
+                    <p class="paragraphText noSelect" style="color: #FFF;">2.0 BETA 9.6.6</p>
                 </div>
             </div>
             <p class="paragraphText noSelect" style="color: rgb(var(--color-wolf));">How many lessons would you like to AutoSolve?</p>
@@ -2544,7 +2548,7 @@ const DuolingoProSettingsBoxHTML = `
             <div class="DuolingoProSettingsBoxSectionOne">
                 <p class="paragraphText noSelect textFill" style="font-size: 24px; line-height: 32px;">Settings</p>
                 <div class="DuolingoProSettingsBoxSectionOneBoxOne">
-                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne">2.0 BETA 9.6.5</p>
+                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne">2.0 BETA 9.6.6</p>
                 </div>
             </div>
             <div class="DuolingoProSettingsBoxSectionTwo">
