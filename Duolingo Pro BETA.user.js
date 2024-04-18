@@ -13,9 +13,9 @@ const debug = false;
 let findReactMainElementClass = '_3js2_';
 
 let ASB969 = true;
-let duolingoProCurrentVersionShort = "2.0B9.6.4";
-let duolingoProCurrentVersion = "2.0 BETA 9.6.4";
-let duolingoProFormalCurrentVersion = "2.0BETA9.6.4";
+let duolingoProCurrentVersionShort = "2.0B9.6.5";
+let duolingoProCurrentVersion = "2.0 BETA 9.6.5";
+let duolingoProFormalCurrentVersion = "2.0BETA9.6.5";
 
 let solveSpeed;
 if (isNaN(parseFloat(localStorage.getItem('duopro.autoSolveDelay')))) {
@@ -236,10 +236,14 @@ function addButtons() {
             findReactMainElementClass = '_3FiYg';
             document.querySelector('._10vOG, ._2L_r0').style.display = "flex";
             document.querySelector('._10vOG, ._2L_r0').style.gap = "20px";
-        } else {
+        } else if (document.querySelector('._2sXnx') !== null) {
             findReactMainElementClass = '_3js2_';
             document.querySelector('._2sXnx').style.display = "flex";
             document.querySelector('._2sXnx').style.gap = "20px";
+        } else if (document.querySelector('.MYehf') !== null) {
+            findReactMainElementClass = 'wqSzE';
+            document.querySelector('.MYehf').style.display = "flex";
+            document.querySelector('.MYehf').style.gap = "20px";
         }
 
         const buttonsCSS = document.createElement('style');
@@ -709,7 +713,7 @@ const htmlContent = `
             <div class="AutoSolverBoxTitleSectionOne">
                 <p class="paragraphText noSelect" style="font-size: 24px;">Duolingo Pro</p>
                 <div class="AutoSolverBoxTitleSectionOneBETATagOne">
-                    <p class="paragraphText noSelect" style="color: #FFF;">2.0 DAWN.0002</p>
+                    <p class="paragraphText noSelect" style="color: #FFF;">2.0 DAWN.003</p>
                 </div>
             </div>
             <p class="paragraphText noSelect" style="color: rgb(var(--color-wolf));">How many lessons would you like to AutoSolve?</p>
@@ -1775,11 +1779,11 @@ const SendFeedbackBoxHTML = `
             <div class="HStack selfFill" style="gap: 8px;">
                 <div class="SendFeebackBoxSectionFourButtonOneBackground" id="SendFeebackTypeButtonOne">
                     <div class="SendFeebackBoxSectionFourButtonOneIconOne"/></div>
-                    <p class="SendFeebackBoxSectionFourButtonOneTextOne">Bug Report</p>
+                    <p class="paragraphText noSelect textFill" id="SendFeebackBoxSectionFourButtonOneTextOne">Bug Report</p>
                 </div>
                 <div class="SendFeebackBoxSectionFourButtonOneBackground" id="SendFeebackTypeButtonTwo">
                     <div class="SendFeebackBoxSectionFourButtonOneIconOne"/></div>
-                    <p class="SendFeebackBoxSectionFourButtonOneTextOne">Suggestion</p>
+                    <p class="paragraphText noSelect textFill" id="SendFeebackBoxSectionFourButtonOneTextOne">Suggestion</p>
                 </div>
             </div>
 
@@ -1976,23 +1980,6 @@ const SendFeedbackBoxCSS = `
     opacity: 100% !important;
 
     cursor: pointer;
-}
-
-.SendFeebackBoxSectionFourButtonOneTextOne {
-    flex: 1 0 0;
-
-    color: rgb(var(--color-swan));
-    font-size: 16px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: normal;
-
-    margin: 0px;
-
-    user-select: none;
-    -moz-user-select: none;
-    -webkit-text-select: none;
-    -webkit-user-select: none;
 }
 
 .SendFeebackBoxSectionFourButtonOneIconTwoBox {
@@ -2434,7 +2421,7 @@ function SendFeedBackBox(visibility) {
 
 
             function updateDuolingoProSendFeedbackButtons(element, value) {
-                let textElement = element.querySelector('.SendFeebackBoxSectionFourButtonOneTextOne');
+                let textElement = element.querySelector('#SendFeebackBoxSectionFourButtonOneTextOne');
                 let iconElement = element.querySelector('.SendFeebackBoxSectionFourButtonOneIconOne');
 
                 if (value === 'Bug Report') {
@@ -2456,7 +2443,7 @@ function SendFeedBackBox(visibility) {
             }
 
             function updateDuolingoProSendFeedbackButtonsTwo(element, value) {
-                let textElement = element.querySelector('.SendFeebackBoxSectionFourButtonOneTextOne');
+                let textElement = element.querySelector('#SendFeebackBoxSectionFourButtonOneTextOne');
                 let iconElement = element.querySelector('.SendFeebackBoxSectionFourButtonOneIconOne');
 
                 if (value === 'Suggestion') {
@@ -2547,9 +2534,9 @@ const DuolingoProSettingsBoxHTML = `
     <div class="DPLBoxStyleT1" id="DuolingoProSettingsBoxBackground" style="overflow-y: visible; overflow: hidden; padding: 0; padding-right: 16px; padding-left: 16px;">
         <div class="DuolingoProSettingsBoxLayers">
             <div class="DuolingoProSettingsBoxSectionOne">
-                <p class="DuolingoProSettingsBoxSectionOneTextOne">Settings</p>
+                <p class="paragraphText noSelect textFill" style="font-size: 24px; line-height: 32px;">Settings</p>
                 <div class="DuolingoProSettingsBoxSectionOneBoxOne">
-                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne">2.0 DAWN.0002</p>
+                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne">2.0 DAWN.003</p>
                 </div>
             </div>
             <div class="DuolingoProSettingsBoxSectionTwo">
@@ -2684,17 +2671,6 @@ const DuolingoProSettingsBoxCSS = `
     justify-content: space-between;
     align-items: center;
     align-self: stretch;
-}
-
-.DuolingoProSettingsBoxSectionOneTextOne {
-    color: rgb(var(--color-eel));
-    font-size: 24px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: normal;
-
-    margin: 0px;
-    cursor: default;
 }
 
 .DuolingoProSettingsBoxSectionOneBoxOne {
