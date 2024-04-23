@@ -1,10 +1,11 @@
-# Duolingo-Pro-2-BETA
-Duolingo Pro 2.0 BETA, an Auto Solver tool for Duolingo with automation features, working as of March 2024. 
-Join our [discord server](https://discord.gg/r8xQ7K59Mt) to get the latest news, talk with the devs, report bugs and do much more!
+# Duolingo-Pro-BETA
+Duolingo Pro 2.0 BETA, an auto solver userscript tool for gaining XP, completing quests, leveling up on the leaderboard, extending your streak and more, all with extensive automation features. 
+Working as of April 2024. 
+Join our [discord server](https://discord.gg/r8xQ7K59Mt) to get the latest news, talk with the devs, report bugs and do much more.
 
 Features:
 - Automaticly solving questions,
-- Automaticly solving set amount or infinite lessons/practices,
+- Automaticly solving set amount or infinite lessons, practices, listening practices,
 - Hide/show automation box,
 - See issues & fixes,
 - Send feedback,
