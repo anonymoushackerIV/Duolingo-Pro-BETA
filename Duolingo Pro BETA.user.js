@@ -4580,7 +4580,7 @@ function OMEGA() {
                     document.body.insertAdjacentHTML('beforeend', EGxjxpyyQVICYLlt);
                 }
                 function eipwofa() {
-                    if (document.querySelector('._3bTT7')) {
+                    if ((document.querySelector('._1ZKwW') || document.querySelector('.e1t8Z'))) { // sidebar classes
                         try { document.querySelector('.gFyuyoyv').style.display = ''; } catch (error) {}
                     } else {
                         try { document.querySelector('.gFyuyoyv').style.display = 'none'; } catch (error) {}
