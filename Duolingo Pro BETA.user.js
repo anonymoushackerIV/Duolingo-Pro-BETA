@@ -700,14 +700,19 @@ function OMEGA() {
 
                 </div>
 
-                <div class="AutoSolverBoxAlertOneBox" id="DPSeeAllCurrentIssuesButtonABButtonID" style="border: 2px solid rgba(255, 59, 48, 0.10); background: rgba(255, 59, 48, 0.10);">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 17" width="18" height="18" fill="#FF2D55">
-                        <path d="M2.96094 16.0469C1.53125 16.0469 0.59375 14.9688 0.59375 13.6797C0.59375 13.2812 0.695312 12.875 0.914062 12.4922L6.92969 1.97656C7.38281 1.19531 8.17188 0.789062 8.97656 0.789062C9.77344 0.789062 10.5547 1.1875 11.0156 1.97656L17.0312 12.4844C17.25 12.8672 17.3516 13.2812 17.3516 13.6797C17.3516 14.9688 16.4141 16.0469 14.9844 16.0469H2.96094ZM8.98438 10.4609C9.52344 10.4609 9.83594 10.1562 9.86719 9.59375L9.99219 6.22656C10.0234 5.64062 9.59375 5.23438 8.97656 5.23438C8.35156 5.23438 7.92969 5.63281 7.96094 6.22656L8.08594 9.60156C8.10938 10.1562 8.42969 10.4609 8.98438 10.4609ZM8.98438 13.2812C9.60156 13.2812 10.0859 12.8906 10.0859 12.2891C10.0859 11.7031 9.60938 11.3047 8.98438 11.3047C8.35938 11.3047 7.875 11.7031 7.875 12.2891C7.875 12.8906 8.35938 13.2812 8.98438 13.2812Z"/>
-                    </svg>
-                    <p class="paragraphText noSelect textFill" style="color: #FF4B4B; width: 100%;">Issues & Fixes</p>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 15" width="9" height="15" fill="#FF2D55">
-                        <path d="M8.57031 7.35938C8.57031 7.74219 8.4375 8.0625 8.10938 8.375L2.20312 14.1641C1.96875 14.3984 1.67969 14.5156 1.33594 14.5156C0.648438 14.5156 0.0859375 13.9609 0.0859375 13.2734C0.0859375 12.9219 0.226562 12.6094 0.484375 12.3516L5.63281 7.35156L0.484375 2.35938C0.226562 2.10938 0.0859375 1.78906 0.0859375 1.44531C0.0859375 0.765625 0.648438 0.203125 1.33594 0.203125C1.67969 0.203125 1.96875 0.320312 2.20312 0.554688L8.10938 6.34375C8.42969 6.64844 8.57031 6.96875 8.57031 7.35938Z"/>
-                    </svg>
+                <div class="AutoSolverBoxAlertSectionOneSystemSection">
+                    <div class="AutoSolverBoxAlertOneBox" id="DPSeeAllCurrentIssuesButtonABButtonID" style="flex: 1 0 0; border: 2px solid rgba(255, 59, 48, 0.10); background: rgba(255, 59, 48, 0.10);">
+                        <svg width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M2.75 15.3359C0.96875 15.3359 -0.0078125 14.3672 -0.0078125 12.5938V3.14062C-0.0078125 1.36719 0.96875 0.398438 2.75 0.398438H13.6328C15.4219 0.398438 16.3906 1.36719 16.3906 3.14062V12.5938C16.3906 14.3672 15.4219 15.3359 13.6328 15.3359H2.75ZM2.89844 13.3203H13.4844C14.0625 13.3203 14.375 13.0391 14.375 12.4219V5.47656C14.375 4.85938 14.0625 4.57812 13.4844 4.57812H2.89844C2.3125 4.57812 2.00781 4.85938 2.00781 5.47656V12.4219C2.00781 13.0391 2.3125 13.3203 2.89844 13.3203ZM4.22656 7.23438C3.91406 7.23438 3.69531 7 3.69531 6.71094C3.69531 6.42188 3.91406 6.19531 4.22656 6.19531H12.1797C12.4766 6.19531 12.7031 6.42188 12.7031 6.71094C12.7031 7 12.4766 7.23438 12.1797 7.23438H4.22656ZM4.22656 9.46875C3.91406 9.46875 3.69531 9.25 3.69531 8.96094C3.69531 8.66406 3.91406 8.42969 4.22656 8.42969H12.1797C12.4766 8.42969 12.7031 8.66406 12.7031 8.96094C12.7031 9.25 12.4766 9.46875 12.1797 9.46875H4.22656ZM4.22656 11.7031C3.91406 11.7031 3.69531 11.4766 3.69531 11.1953C3.69531 10.8984 3.91406 10.6641 4.22656 10.6641H9.1875C9.48438 10.6641 9.71094 10.8984 9.71094 11.1953C9.71094 11.4766 9.48438 11.7031 9.1875 11.7031H4.22656Z" fill="#FF2D55"/>
+                        </svg>
+                        <p class="paragraphText noSelect textFill" style="color: #FF4B4B; width: 100%;">Release Notes</p>
+                    </div>
+
+                    <div class="AutoSolverBoxAlertOneBox activatorThingDPHDJ" id="DPMainMenuJoinDiscordButtonID" style="width: 60px; justify-content: center; border: 2px solid rgba(0, 0, 0, 0.20); background: #5865F2;" aria-label="Duolingo Pro Discord Server">
+                        <svg width="22" height="16" viewBox="0 0 22 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M18.289 1.34C16.9296 0.714 15.4761 0.259052 13.9565 0C13.7699 0.332095 13.5519 0.77877 13.4016 1.1341C11.7862 0.894993 10.1857 0.894993 8.60001 1.1341C8.44972 0.77877 8.22674 0.332095 8.03844 0C6.51721 0.259052 5.06204 0.715671 3.70267 1.34331C0.960812 5.42136 0.21754 9.39811 0.589177 13.3184C2.40772 14.655 4.17011 15.467 5.90275 15.9984C6.33055 15.4189 6.71209 14.8028 7.04078 14.1536C6.41478 13.9195 5.81521 13.6306 5.24869 13.2952C5.39898 13.1856 5.546 13.071 5.68803 12.9531C9.14342 14.5438 12.8978 14.5438 16.3119 12.9531C16.4556 13.071 16.6026 13.1856 16.7512 13.2952C16.183 13.6322 15.5818 13.9211 14.9558 14.1553C15.2845 14.8028 15.6644 15.4205 16.0939 16C17.8282 15.4687 19.5922 14.6567 21.4107 13.3184C21.8468 8.77378 20.6658 4.83355 18.289 1.34ZM7.51153 10.9075C6.47426 10.9075 5.62361 9.95435 5.62361 8.7937C5.62361 7.63305 6.45609 6.67831 7.51153 6.67831C8.56699 6.67831 9.41761 7.63138 9.39945 8.7937C9.40109 9.95435 8.56699 10.9075 7.51153 10.9075ZM14.4884 10.9075C13.4511 10.9075 12.6005 9.95435 12.6005 8.7937C12.6005 7.63305 13.4329 6.67831 14.4884 6.67831C15.5438 6.67831 16.3945 7.63138 16.3763 8.7937C16.3763 9.95435 15.5438 10.9075 14.4884 10.9075Z" fill="white"/>
+                        </svg>
+                    </div>
                 </div>
 
             </div>
@@ -724,7 +729,7 @@ function OMEGA() {
                     <div class="AutoSolverBoxRepeatNumberDisplay paragraphText noSelect" id="AutoSolverBoxNumberDisplayID">0</div>
                     <button class="AutoSolverBoxRepeatAmountButton activatorThingDPHDJ" id="DPASBauB1" aria-label="Add">+</button>
                     <button class="AutoSolverBoxRepeatAmountButton activatorThingDPHDJ" id="DPASBfmB1" aria-label="Toggle Infinity Mode" style="font-size: 20px;">∞</button>
-                    <button class="AutoSolverBoxRepeatAmountButton activatorThingDPHDJ" id="DLPIDxpMB1ID1" aria-label="Toggle XP Mode">XP</button>
+                    <button class="AutoSolverBoxRepeatAmountButton activatorThingDPHDJ" id="DLPIDxpMB1ID1" aria-label="Toggle XP Mode (not available yet)">XP</button>
                 </div>
                 <div class="AutoSolverBoxSectionThreeBoxSectionTwo" id="AutoSolverBoxSectionThreeBoxSectionTwoIDOne">
                     <div class="paragraphText noSelect textFill">Practice Only Mode</div>
@@ -1138,6 +1143,11 @@ function OMEGA() {
                     }
                 } catch(error) {
                 }
+
+                document.getElementById("DPMainMenuJoinDiscordButtonID").addEventListener("click", function() {
+                    var url = "https://discord.gg/r8xQ7K59Mt";
+                    window.open(url, "_blank");
+                });
             }
         } else {
             if (injectedContainer) {
@@ -1771,7 +1781,7 @@ function OMEGA() {
                     </svg>
                     <p class="paragraphText noSelect" style="flex: 1 0 0; color: #5865F2;">Join our new Discord community, give feedback faster</p>
                 </div>
-                <p class="paragraphText noSelect" style="align-self: stretch; color: rgba(88, 101, 242, 0.50);">Our new Discord server is a great place to give feedback, as well as get up-to-date with the newest updates. <a href="https://discord.gg/r8xQ7K59Mt" target="_blank" rel="noopener noreferrer" class="DuolingoProFeedbackBoxPromotionLinkPurple">Join here</a></p>
+                <p class="paragraphText noSelect" style="align-self: stretch; color: rgba(88, 101, 242, 0.50);">Our new Discord server is a great place to give feedback, as well as get up-to-date with the newest updates. <a href="https://discord.gg/r8xQ7K59Mt" target="_blank" rel="noopener noreferrer" class="DuolingoProFeedbackBoxPromotionLinkPurple paragraphText">Join Here</a></p>
             </div>
 
             <textarea class="DLPFeedbackTextFieldT1" id="SendFeebackBoxSectionTwoID" style="resize: vertical; height: 128px;" placeholder="Write here as much as you can with as many details as possible."/></textarea>
@@ -1788,10 +1798,10 @@ function OMEGA() {
                 </div>
             </div>
 
-            <p class="selfFill paragraphText noSelect" style="line-height: 32px;">Upload Photo <a style="color: rgb(var(--color-eel), 0.5)">- Optional</a></p>
+            <p class="selfFill paragraphText noSelect" style="line-height: 32px;">Upload Photo <a class=" paragraphText" style="color: rgb(var(--color-eel), 0.5)">- Optional</a></p>
             <input type="file" accept="image/png, image/jpeg" class="loldonttouchthisbit" id="SendFeedbackFileUploadButtonIDOne" onchange="showFileName()"/>
 
-            <p class="selfFill paragraphText noSelect" style="line-height: 32px;">Email <a style="color: rgb(var(--color-eel), 0.5)">- Optional, can help us reach back</a></p>
+            <p class="selfFill paragraphText noSelect" style="line-height: 32px;">Email <a class=" paragraphText" style="color: rgb(var(--color-eel), 0.5)">- Optional, can help us reach back</a></p>
             <input class="DLPFeedbackTextFieldT1" id="DLPFeedbackTextField2" type="email" style="resize: none; height: 54px;" placeholder="Email address">
 
             <div class="SendFeedbackBoxSectionEight">
@@ -2537,15 +2547,15 @@ function OMEGA() {
             <div class="DuolingoProSettingsBoxSectionOne">
                 <p class="paragraphText noSelect textFill" style="font-size: 24px; line-height: 32px;">Settings</p>
                 <div class="DuolingoProSettingsBoxSectionOneBoxOne">
-                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne">2.0 BETA 9.6.7</p>
+                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne paragraphText">2.0 BETA 9.6.7</p>
                 </div>
             </div>
             <div class="DuolingoProSettingsBoxSectionTwo">
                 <div class="DuolingoProSettingsBoxSectionTwoBoxOne">
                     <div class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOne">
-                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextThree" style="color: #FF2D55;">BETA</p>
-                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextOne">Shade</p>
-                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextTwo">Duolingo Pro adds a view on top of your lesson to hide what AutoSolver is doing behind.</p>
+                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextThree paragraphText" style="color: #FF2D55;">BETA</p>
+                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextOne paragraphText">Shade</p>
+                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextTwo paragraphText">Duolingo Pro adds a view on top of your lesson to hide what AutoSolver is doing behind.</p>
                     </div>
                     <div id="DuolingoProSettingsBoxToggleT1ID1" class="DLPSettingsToggleT1 DLPSettingsToggleT1ON DLPSettingsToggleRmElement">
                         <div class="DLPSettingsToggleT1B1 DLPSettingsToggleT1ONB1 DLPSettingsToggleRmElement">
@@ -2561,9 +2571,9 @@ function OMEGA() {
 
                 <div class="DuolingoProSettingsBoxSectionTwoBoxOne">
                     <div class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOne">
-                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextThree" style="color: #FF2D55;">BETA</p>
-                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextOne">Question Solve Delay</p>
-                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextTwo">Adjust how many seconds it takes for each question to get solved. A lower number will solve faster, and a higher number will solve slower. Use a higher number if your computer is slow or AutoSolver answers incorrectly. Continue clicking on the toggle to enter custom timing.</p>
+                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextThree paragraphText" style="color: #FF2D55;">BETA</p>
+                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextOne paragraphText">Question Solve Delay</p>
+                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextTwo paragraphText">Adjust how many seconds it takes for each question to get solved. A lower number will solve faster, and a higher number will solve slower. Use a higher number if your computer is slow or AutoSolver answers incorrectly. Continue clicking on the toggle to enter custom timing.</p>
                     </div>
                     <div id="DuolingoProSettingsBoxToggleT2ID2" class="DLPSettingsToggleT2 DLPSettingsToggleRmElement">
                         <div class="DLPSettingsToggleT2B1 DLPSettingsToggleRmElement">
@@ -2574,9 +2584,9 @@ function OMEGA() {
 
                 <div class="DuolingoProSettingsBoxSectionTwoBoxOne">
                     <div class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOne">
-                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextThree" style="color: #FF2D55;">BETA</p>
-                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextOne">AntiStuck</p>
-                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextTwo">In a case where Duolingo Pro fails to answer a question, AntiStuck will send an anomosus fail report, which can be used by our developers to fix AutoSolve for that type of question, and also reload the lesson, in hopes of not encountering the same question in the next lesson.</p>
+                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextThree paragraphText" style="color: #FF2D55;">BETA</p>
+                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextOn paragraphText">AntiStuck</p>
+                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextTwo paragraphText">In a case where Duolingo Pro fails to answer a question, AntiStuck will send an anomosus fail report, which can be used by our developers to fix AutoSolve for that type of question, and also reload the lesson, in hopes of not encountering the same question in the next lesson.</p>
                     </div>
                     <div id="DuolingoProSettingsBoxToggleT1ID2" class="DLPSettingsToggleT1 DLPSettingsToggleT1ON DLPSettingsToggleRmElement">
                         <div class="DLPSettingsToggleT1B1 DLPSettingsToggleT1ONB1 DLPSettingsToggleRmElement">
@@ -2592,9 +2602,9 @@ function OMEGA() {
 
                 <div class="DuolingoProSettingsBoxSectionTwoBoxOne">
                     <div class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOne">
-                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextThree" style="color: #FF2D55;">RECOMMENDED IF YOU HAVE LESS THAN 8GB OF RAM</p>
-                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextOne">Memory Saver</p>
-                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextTwo">Memory Saver gradually loads Duolingo Pro onto Duolingo, helping with memory management. If you're encountering lag or crashes with Duolingo Pro, try turning this mode ON. Please note, using an incompatible browser or having a very slow internet connection may result further complications. </p>
+                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextThree paragraphText" style="color: #FF2D55;">RECOMMENDED ONLY IF YOU HAVE LESS THAN 8GB OF RAM</p>
+                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextOne paragraphText">Memory Saver</p>
+                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextTwo paragraphText">Memory Saver gradually loads Duolingo Pro onto Duolingo, helping with memory management. If you're encountering lag or crashes with Duolingo Pro, try turning this mode ON. Please note, using an incompatible browser or having a very slow internet connection may result further complications. </p>
                     </div>
                     <div id="DuolingoProSettingsBoxToggleT1ID3" class="DLPSettingsToggleT1 DLPSettingsToggleT1ON DLPSettingsToggleRmElement">
                         <div class="DLPSettingsToggleT1B1 DLPSettingsToggleT1ONB1 DLPSettingsToggleRmElement">
@@ -2610,9 +2620,9 @@ function OMEGA() {
 
                 <div class="DuolingoProSettingsBoxSectionTwoBoxOne">
                     <div class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOne">
-                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextThree" style="color: #007AFF;">DISABLED UNTIL NEXT MONTH</p>
-                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextOne">Manually Check for an Update</p>
-                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextTwo">Duolingo Pro automatically performs periodic checks for updates. Alternatively, you can manually check for updates too.</p>
+                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextThree paragraphText" style="color: #007AFF;">CURRENTLY DISABLED</p>
+                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextOne paragraphText">Manually Check for an Update</p>
+                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextTwo paragraphText">Duolingo Pro automatically performs periodic checks for updates. Alternatively, you can manually check for updates too.</p>
                     </div>
                     <div id="DLPSettingsToggleT3ID3" class="DLPSettingsToggleT3">
                         <div class="DLPSettingsToggleT3B1">
@@ -2657,7 +2667,7 @@ function OMEGA() {
                             <path d="M9 16.6172C4.47656 16.6172 0.75 12.8906 0.75 8.35938C0.75 3.83594 4.46875 0.109375 9 0.109375C13.5234 0.109375 17.25 3.83594 17.25 8.35938C17.25 12.8906 13.5312 16.6172 9 16.6172ZM8.99219 5.86719C9.65625 5.86719 10.2031 5.3125 10.2031 4.64844C10.2031 3.96094 9.65625 3.42188 8.99219 3.42188C8.32031 3.42188 7.76562 3.96094 7.76562 4.64844C7.76562 5.3125 8.32031 5.86719 8.99219 5.86719ZM7.52344 12.8125H10.8438C11.2734 12.8125 11.6094 12.5156 11.6094 12.0703C11.6094 11.6562 11.2734 11.3281 10.8438 11.3281H10.1094V7.95312C10.1094 7.36719 9.82031 6.99219 9.27344 6.99219H7.67969C7.25 6.99219 6.91406 7.32031 6.91406 7.72656C6.91406 8.16406 7.25 8.47656 7.67969 8.47656H8.42969V11.3281H7.52344C7.09375 11.3281 6.75781 11.6562 6.75781 12.0703C6.75781 12.5156 7.09375 12.8125 7.52344 12.8125Z" fill="#007AFF"/>
                         </svg>
                     </div>
-                    <p class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);"><a href="https://github.com/anonymoushackerIV" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">anonymoushackerIV</a>, <a href="https://github.com/tkwon09137" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">Eclipse</a>, <a href="https://github.com/ByThon1" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">ByThon1</a>, <a href="https://github.com/surebrec" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">surebrec</a>, <a href="https://github.com/SicariusBlack" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">SicariusBlack</a>, <a href="https://github.com/fakeduo" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">fakeduo</a>, <a href="https://github.com/JxxIT" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink">JxxIT</a></p>
+                    <p class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);"><a href="https://github.com/anonymoushackerIV" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink paragraphText">anonymoushackerIV</a>, <a href="https://github.com/ByThon1" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink paragraphText">ByThon1</a>, <a href="https://github.com/JxxIT" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink paragraphText">JxxIT</a>, <a href="https://github.com/tkwon09137" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink paragraphText">Eclipse</a>, <a href="https://github.com/surebrec" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink paragraphText">surebrec</a>, <a href="https://github.com/SicariusBlack" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink paragraphText">SicariusBlack</a>, <a href="https://github.com/fakeduo" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink paragraphText">fakeduo</a></p>
                 </div>
 
             </div>
@@ -3434,10 +3444,10 @@ function OMEGA() {
     const DuolingoProNotificationBoxHTML = `
 <div class="BlockedByDuolingoProBoxBackground" id="DuolingoProNotificationBackgroundOneID">
     <div class="BlockedByDuolingoProBoxSectionOne">
-        <p class="BlockedByDuolingoProBoxSectionOneTextOne" id="DuolingoProNotificationTitleOneID">Title</p>
-        <p class="BlockedByDuolingoProBoxSectionOneTextTwo noSelect" id="DuolingoProNotificationHideButtonOneID">DISMISS</p>
+        <p class="BlockedByDuolingoProBoxSectionOneTextOne paragraphText" id="DuolingoProNotificationTitleOneID">Title</p>
+        <p class="BlockedByDuolingoProBoxSectionOneTextTwo noSelect paragraphText" id="DuolingoProNotificationHideButtonOneID">DISMISS</p>
     </div>
-    <p class="BlockedByDuolingoProBoxSectionTwoTextOne" id="DuolingoProNotificationDescriptionOneID">Description</p>
+    <p class="BlockedByDuolingoProBoxSectionTwoTextOne paragraphText" id="DuolingoProNotificationDescriptionOneID">Description</p>
 </div>
 `;
 
@@ -3592,7 +3602,7 @@ function OMEGA() {
 
 
     const asdgfhjklHTML = `
-<div class="jfie" id="dshuigf" style="transition: all 0.5s cubic-bezier(0.16, 1, 0.32, 1); position: fixed; bottom: 16px; left: 16px; z-index: 1024; display: inline-flex; padding: 8px 12px; flex-direction: column; justify-content: center; align-items: center; border-radius: 32px; border: 2px solid rgb(var(--color-swan), 0.84); background: rgb(var(--color-snow), 0.84); box-shadow: 0px 0px 16px 0px rgba(0, 0, 0, 0.08); backdrop-filter: blur(16px); color: rgb(var(--color-eel), 0.64); font-size: 16px; font-weight: 700;">null</div>
+<div class="jfie paragraphText" id="dshuigf" style="transition: all 0.5s cubic-bezier(0.16, 1, 0.32, 1); position: fixed; bottom: 16px; left: 16px; z-index: 1024; display: inline-flex; padding: 8px 12px; flex-direction: column; justify-content: center; align-items: center; border-radius: 32px; border: 2px solid rgb(var(--color-swan), 0.84); background: rgb(var(--color-snow), 0.84); box-shadow: 0px 0px 16px 0px rgba(0, 0, 0, 0.08); backdrop-filter: blur(16px); color: rgb(var(--color-eel), 0.64); font-size: 16px; font-weight: 700;">null</div>
 `;
 
     let asdgfhjklElement = null;
@@ -3855,7 +3865,12 @@ function OMEGA() {
     function DPAutoServerButtonMainMenuFunction() {
         if (ASB969) {
             try {
-                let targetDiv = document.querySelector('._1ZKwW');
+                let targetDiv;
+                if (document.querySelector('.e1t8Z')) {
+                    targetDiv = document.querySelector('.e1t8Z');
+                } else {
+                    targetDiv = document.querySelector('._1ZKwW');
+                }
                 if (targetDiv && !document.querySelector('.DPAutoServerButtonMainMenu')) {
                     DPAutoServerButtonMainMenuStyle = document.createElement('style');
                     DPAutoServerButtonMainMenuStyle.type = 'text/css';
@@ -4155,15 +4170,15 @@ function OMEGA() {
     <div class="DPLBoxStyleT1" id="SendFeebackBoxBackground">
         <div class="DPIPUB1">
             <div class="DPIPUL1">
-                <h2 class="DPIPUL1T1">Issues & Fixes</h2>
-                <p class="DPIPUL1T2" id="DPIPUL1T2DATE">Loading...</p>
+                <p class="paragraphText noSelect textFill" style="font-size: 24px; line-height: 32px;">Release Notes</p>
+                <p class="DPIPUL1T2 paragraphText" id="DPIPUL1T2DATE">Loading...</p>
             </div>
             <div class="DPIPUL2">
 
             </div>
             <div class="DPIPUL3" style="display: flex; justify-content: center; align-items: flex-start; gap: 8px; align-self: stretch;">
-                <div class="DPIPUL3B1 noSelect" id="DPIPUL3BLearnMoreID">LEARN MORE</div>
-                <div class="DPIPUL3B1 noSelect" id="DPIPUL3BDissmissID">OK</div>
+                <div class="DPIPUL3B1 noSelect paragraphText" id="DPIPUL3BLearnMoreID">LEARN MORE</div>
+                <div class="DPIPUL3B1 noSelect paragraphText" id="DPIPUL3BDissmissID">OK</div>
             </div>
         </div>
     </div>
@@ -4328,13 +4343,13 @@ function OMEGA() {
                 });
                 let dhbGkaCU = document.querySelector('#DPIPUL3BLearnMoreID');
                 dhbGkaCU.addEventListener('click', () => {
-                    window.open("discord.gg/r8xQ7K59Mt", "_blank");
+                    window.open("https://discord.gg/r8xQ7K59Mt", "_blank");
                 });
 
-                let HighWarningComponent1 = `<div class="DPIPUL2TI1"><svg width="18" height="16" viewBox="0 0 18 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.96094 15.5469C1.53125 15.5469 0.59375 14.4688 0.59375 13.1797C0.59375 12.7812 0.695312 12.375 0.914062 11.9922L6.92969 1.47656C7.38281 0.695312 8.17188 0.289062 8.97656 0.289062C9.77344 0.289062 10.5547 0.6875 11.0156 1.47656L17.0312 11.9844C17.25 12.3672 17.3516 12.7812 17.3516 13.1797C17.3516 14.4688 16.4141 15.5469 14.9844 15.5469H2.96094ZM8.98438 9.96094C9.52344 9.96094 9.83594 9.65625 9.86719 9.09375L9.99219 5.72656C10.0234 5.14062 9.59375 4.73438 8.97656 4.73438C8.35156 4.73438 7.92969 5.13281 7.96094 5.72656L8.08594 9.10156C8.10938 9.65625 8.42969 9.96094 8.98438 9.96094ZM8.98438 12.7812C9.60156 12.7812 10.0859 12.3906 10.0859 11.7891C10.0859 11.2031 9.60938 10.8047 8.98438 10.8047C8.35938 10.8047 7.875 11.2031 7.875 11.7891C7.875 12.3906 8.35938 12.7812 8.98438 12.7812Z" fill="#FF2D55"/></svg><p id="DPIPUL2TI1T1ID" class="DPIPUL2TI1T1 DPIPUL2TI1T1R">Warning Title</p></div>`;
-                let MediumWarningComponent1 = `<div class="DPIPUL2TI1"><svg width="17" height="18" viewBox="0 0 17 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.64844 17.1172C4.125 17.1172 0.398438 13.3906 0.398438 8.85938C0.398438 4.33594 4.11719 0.609375 8.64844 0.609375C13.1719 0.609375 16.8984 4.33594 16.8984 8.85938C16.8984 13.3906 13.1797 17.1172 8.64844 17.1172ZM8.65625 10.0312C9.19531 10.0312 9.50781 9.72656 9.53906 9.16406L9.66406 5.79688C9.69531 5.21094 9.26562 4.80469 8.64844 4.80469C8.02344 4.80469 7.60156 5.20312 7.63281 5.79688L7.75781 9.17188C7.78125 9.72656 8.10156 10.0312 8.65625 10.0312ZM8.65625 12.8516C9.27344 12.8516 9.75 12.4609 9.75 11.8594C9.75 11.2734 9.28125 10.875 8.65625 10.875C8.03125 10.875 7.54688 11.2734 7.54688 11.8594C7.54688 12.4609 8.03125 12.8516 8.65625 12.8516Z" fill="#FF9500"/></svg><p id="DPIPUL2TI1T1ID" class="DPIPUL2TI1T1 DPIPUL2TI1T1O">Warning Title</p></div>`;
-                let LowWarningComponent1 = `<div class="DPIPUL2TI1"><svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.64844 16.6172C4.125 16.6172 0.398438 12.8906 0.398438 8.35938C0.398438 3.83594 4.11719 0.109375 8.64844 0.109375C13.1719 0.109375 16.8984 3.83594 16.8984 8.35938C16.8984 12.8906 13.1797 16.6172 8.64844 16.6172Z" fill="rgb(var(--color-eel))"/></svg><p id="DPIPUL2TI1T1ID" class="DPIPUL2TI1T1 DPIPUL2TI1T1B">Warning Title</p></div>`;
-                let FixedWarningComponent1 = `<div class="DPIPUL2TI1"><svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.64844 16.6172C4.125 16.6172 0.398438 12.8906 0.398438 8.35938C0.398438 3.83594 4.11719 0.109375 8.64844 0.109375C13.1719 0.109375 16.8984 3.83594 16.8984 8.35938C16.8984 12.8906 13.1797 16.6172 8.64844 16.6172ZM7.78906 12.2812C8.125 12.2812 8.42969 12.1094 8.63281 11.8125L12.2578 6.26562C12.3984 6.0625 12.4766 5.85156 12.4766 5.65625C12.4766 5.17188 12.0469 4.82812 11.5781 4.82812C11.2734 4.82812 11.0156 4.99219 10.8125 5.32031L7.76562 10.1641L6.40625 8.48438C6.19531 8.23438 5.97656 8.125 5.69531 8.125C5.21875 8.125 4.82812 8.50781 4.82812 8.99219C4.82812 9.21875 4.89844 9.41406 5.07812 9.63281L6.91406 11.8203C7.16406 12.125 7.4375 12.2812 7.78906 12.2812Z" fill="#34C759"/></svg><p id="DPIPUL2TI1T1ID" class="DPIPUL2TI1T1 DPIPUL2TI1T1G">Warning Title</p></div>`;
+                let HighWarningComponent1 = `<div class="DPIPUL2TI1"><svg width="18" height="16" viewBox="0 0 18 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.96094 15.5469C1.53125 15.5469 0.59375 14.4688 0.59375 13.1797C0.59375 12.7812 0.695312 12.375 0.914062 11.9922L6.92969 1.47656C7.38281 0.695312 8.17188 0.289062 8.97656 0.289062C9.77344 0.289062 10.5547 0.6875 11.0156 1.47656L17.0312 11.9844C17.25 12.3672 17.3516 12.7812 17.3516 13.1797C17.3516 14.4688 16.4141 15.5469 14.9844 15.5469H2.96094ZM8.98438 9.96094C9.52344 9.96094 9.83594 9.65625 9.86719 9.09375L9.99219 5.72656C10.0234 5.14062 9.59375 4.73438 8.97656 4.73438C8.35156 4.73438 7.92969 5.13281 7.96094 5.72656L8.08594 9.10156C8.10938 9.65625 8.42969 9.96094 8.98438 9.96094ZM8.98438 12.7812C9.60156 12.7812 10.0859 12.3906 10.0859 11.7891C10.0859 11.2031 9.60938 10.8047 8.98438 10.8047C8.35938 10.8047 7.875 11.2031 7.875 11.7891C7.875 12.3906 8.35938 12.7812 8.98438 12.7812Z" fill="#FF2D55"/></svg><p id="DPIPUL2TI1T1ID" class="DPIPUL2TI1T1 DPIPUL2TI1T1R paragraphText">Warning Title</p></div>`;
+                let MediumWarningComponent1 = `<div class="DPIPUL2TI1"><svg width="17" height="18" viewBox="0 0 17 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.64844 17.1172C4.125 17.1172 0.398438 13.3906 0.398438 8.85938C0.398438 4.33594 4.11719 0.609375 8.64844 0.609375C13.1719 0.609375 16.8984 4.33594 16.8984 8.85938C16.8984 13.3906 13.1797 17.1172 8.64844 17.1172ZM8.65625 10.0312C9.19531 10.0312 9.50781 9.72656 9.53906 9.16406L9.66406 5.79688C9.69531 5.21094 9.26562 4.80469 8.64844 4.80469C8.02344 4.80469 7.60156 5.20312 7.63281 5.79688L7.75781 9.17188C7.78125 9.72656 8.10156 10.0312 8.65625 10.0312ZM8.65625 12.8516C9.27344 12.8516 9.75 12.4609 9.75 11.8594C9.75 11.2734 9.28125 10.875 8.65625 10.875C8.03125 10.875 7.54688 11.2734 7.54688 11.8594C7.54688 12.4609 8.03125 12.8516 8.65625 12.8516Z" fill="#FF9500"/></svg><p id="DPIPUL2TI1T1ID" class="DPIPUL2TI1T1 DPIPUL2TI1T1O paragraphText">Warning Title</p></div>`;
+                let LowWarningComponent1 = `<div class="DPIPUL2TI1"><svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.64844 16.6172C4.125 16.6172 0.398438 12.8906 0.398438 8.35938C0.398438 3.83594 4.11719 0.109375 8.64844 0.109375C13.1719 0.109375 16.8984 3.83594 16.8984 8.35938C16.8984 12.8906 13.1797 16.6172 8.64844 16.6172Z" fill="rgb(var(--color-eel))"/></svg><p id="DPIPUL2TI1T1ID" class="DPIPUL2TI1T1 DPIPUL2TI1T1B paragraphText">Warning Title</p></div>`;
+                let FixedWarningComponent1 = `<div class="DPIPUL2TI1"><svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.64844 16.6172C4.125 16.6172 0.398438 12.8906 0.398438 8.35938C0.398438 3.83594 4.11719 0.109375 8.64844 0.109375C13.1719 0.109375 16.8984 3.83594 16.8984 8.35938C16.8984 12.8906 13.1797 16.6172 8.64844 16.6172ZM7.78906 12.2812C8.125 12.2812 8.42969 12.1094 8.63281 11.8125L12.2578 6.26562C12.3984 6.0625 12.4766 5.85156 12.4766 5.65625C12.4766 5.17188 12.0469 4.82812 11.5781 4.82812C11.2734 4.82812 11.0156 4.99219 10.8125 5.32031L7.76562 10.1641L6.40625 8.48438C6.19531 8.23438 5.97656 8.125 5.69531 8.125C5.21875 8.125 4.82812 8.50781 4.82812 8.99219C4.82812 9.21875 4.89844 9.41406 5.07812 9.63281L6.91406 11.8203C7.16406 12.125 7.4375 12.2812 7.78906 12.2812Z" fill="#34C759"/></svg><p id="DPIPUL2TI1T1ID" class="DPIPUL2TI1T1 DPIPUL2TI1T1G paragraphText">Warning Title</p></div>`;
 
                 function createWarningElement(warning) {
                     let htmlContent = '';
@@ -4363,7 +4378,7 @@ function OMEGA() {
 
                 let NextUpdateTrackerComponent1 = `
             <div class="DPIPUL2TI2">
-                <p class="DPIPUL2TI1T1">Next Update Tracker</p>
+                <p class="DPIPUL2TI1T1 paragraphText">Next Update Tracker</p>
                 <div class="DPIPUL2TI1">
                     <svg width="17" height="18" viewBox="0 0 17 18" fill="rgb(var(--color-swan))" xmlns="http://www.w3.org/2000/svg">
                         <path d="M8.64844 17.1172C4.125 17.1172 0.398438 13.3906 0.398438 8.85938C0.398438 4.33594 4.11719 0.609375 8.64844 0.609375C13.1719 0.609375 16.8984 4.33594 16.8984 8.85938C16.8984 13.3906 13.1797 17.1172 8.64844 17.1172ZM8.64844 15.0625C12.0859 15.0625 14.8438 12.2969 14.8438 8.85938C14.8438 5.42969 12.0781 2.66406 8.64844 2.66406C5.21094 2.66406 2.46094 5.42969 2.46094 8.85938C2.46094 12.2969 5.21875 15.0625 8.64844 15.0625Z"/>
@@ -4816,18 +4831,20 @@ function OMEGA() {
                     bubbleTotal,
                     bubbles: bubbleList
                 };
-                cBcutPZB();
+                if (!document.querySelector('.gFyuyoyv')) {
+                    cBcutPZB();
+                }
             }
         } catch (error) {
             console.log(`Error getting data #4: ${error.message}`);
         }
     }
     async function sTvtBAMVJoWFodPG() {
-        if (DLPpromotionBubbleVisibility && document.querySelector('._1ZKwW')) {
+        if (DLPpromotionBubbleVisibility && !document.querySelector('.gFyuyoyv') && (document.querySelector('._1ZKwW') || document.querySelector('.e1t8Z'))) {
             await fetchDatacBcutPZB("https://raw.githubusercontent.com/anonymoushackerIV/Duolingo-Pro-Assets/main/resources/promotion-bubble.json");
         }
     }
-    setInterval(sTvtBAMVJoWFodPG, 1000);
+    setInterval(sTvtBAMVJoWFodPG, 2000);
 
 
 
@@ -4859,26 +4876,21 @@ function OMEGA() {
         const practiceAgain = document.querySelector('[data-test="player-practice-again"]');
         const sessionCompleteSlide = document.querySelector('[data-test="session-complete-slide"]');
 
-        let ejfkLLtg = document.querySelector('[data-test="practice-hub-ad-no-thanks-button"]');
-        if (ejfkLLtg) {
-            ejfkLLtg.click();
-        }
-        let xJiRCXrz = document.querySelector('.vpDIE');
-        if (xJiRCXrz) {
-            xJiRCXrz.click();
-        }
-        let LwLkdRDp = document.querySelector('[data-test="plus-no-thanks"]');
-        if (LwLkdRDp) {
-            LwLkdRDp.click();
-        }
-        let ortgyuha = document.querySelector('._1N-oo._36Vd3._16r-S._1ZBYz._23KDq._1S2uf.HakPM');
-        if (ortgyuha) {
-            ortgyuha.click();
-        }
-        let iohuygty = document.querySelector('._8AMBh._2vfJy._3Qy5R._28UWu._3h0lA._1S2uf._1E9sc');
-        if (iohuygty) {
-            iohuygty.click();
-        }
+        const selectorsForSkip = [
+            '[data-test="practice-hub-ad-no-thanks-button"]',
+            '.vpDIE',
+            '[data-test="plus-no-thanks"]',
+            '._1N-oo._36Vd3._16r-S._1ZBYz._23KDq._1S2uf.HakPM',
+            '._8AMBh._2vfJy._3Qy5R._28UWu._3h0lA._1S2uf._1E9sc',
+            '._1Qh5D._36g4N._2YF0P._28UWu._3h0lA._1S2uf._1E9sc'
+        ];
+        selectorsForSkip.forEach(selector => {
+            const element = document.querySelector(selector);
+            if (element) {
+                element.click();
+                return;
+            }
+        });
 
         if ((practiceAgain !== null || sessionCompleteSlide !== null) && isAutoMode && autoSolverBoxAutomatedSolvingActive) {
             if (!DuolingoProSettingsNeverEndMode && !hcwNIIOdaQqCZRDL) {
@@ -5382,7 +5394,7 @@ function OMEGAmaintainer() {
         if (document.readyState === "complete") {
             DLPOMEGA = true;
             OMEGA();
-        } else if (OMEGAmaintainerHelper <= 30) {
+        } else if (OMEGAmaintainerHelper <= 50) {
             OMEGAmaintainerHelper++;
             setTimeout(function() {
                 OMEGAmaintainer();
