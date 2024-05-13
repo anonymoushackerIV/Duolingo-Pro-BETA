@@ -5125,21 +5125,8 @@ function OMEGA() {
                 elm.dispatchEvent(inputEvent);
             }
 
-            // Choice
-            if (window.sol.correctTokens !== undefined) {
-                correctTokensRun();
-            } else if (window.sol.correctIndex !== undefined) {
-                document.querySelectorAll('[data-test="challenge-choice"]')[window.sol.correctIndex].click();
-            } else if (window.sol.correctSolutions !== undefined) {
-                try {
-                    let xpath = `//*[@data-test="challenge-choice" and ./*[@data-test="challenge-judge-text"]/text()="${window.sol.correctSolutions[0].split(/(?<=^\S+)\s/)[0]}"]`;
-                    document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue?.click();
-                } catch (error) {
-                }
-            }
-
         } else if (challengeType === 'Pairs') {
-            let nl = document.querySelectorAll('[data-test$="challenge-tap-token"]');
+            let nl = document.querySelectorAll('[data-test*="challenge-tap-token"]:not(span)');
             if (document.querySelectorAll('[data-test="challenge-tap-token-text"]').length === nl.length) {
                 window.sol.pairs?.forEach((pair) => {
                     for (let i = 0; i < nl.length; i++) {
