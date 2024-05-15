@@ -3905,14 +3905,12 @@ function OMEGA() {
                             otherTargetDiv.classList.add('DPAutoServerButtonMainMenuLarge');
                             urhef();
                             function urhef() {
-                                window.onresize = function(){
-                                    if (targetDiv.offsetWidth !== 222) {
-                                        otherTargetDiv.remove();
-                                        DPAutoServerButtonMainMenuFunction();
-                                    } else {
-                                        urhef();
-                                    }
-                                };
+                                if (targetDiv.offsetWidth !== 222) {
+                                    otherTargetDiv.remove();
+                                    DPAutoServerButtonMainMenuFunction();
+                                } else {
+                                    setTimeout(function() { urhef(); }, 100);
+                                }
                             }
                         }
                     }
