@@ -5114,7 +5114,7 @@ function OMEGA() {
             }
 
         } else if (challengeType === 'Pairs') {
-			let nl = document.querySelectorAll('[data-test$="challenge-tap-token"]');
+			let nl = document.querySelectorAll('[data-test*="challenge-tap-token"]:not(span)');
             if (document.querySelectorAll('[data-test="challenge-tap-token-text"]').length === nl.length) {
                 window.sol.pairs?.forEach((pair) => {
                     for (let i = 0; i < nl.length; i++) {
