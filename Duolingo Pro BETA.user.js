@@ -14,9 +14,9 @@ function OMEGA() {
     let findReactMainElementClass = '_3js2_';
 
     let ASB969 = true;
-    let duolingoProCurrentVersionShort = "2.0D.0005";
-    let duolingoProCurrentVersion = "2.0 DAWN.0005";
-    let duolingoProFormalCurrentVersion = "2.0DAWN.0005";
+    let duolingoProCurrentVersionShort = "2.0D.005";
+    let duolingoProCurrentVersion = "2.0 DAWN.005";
+    let duolingoProFormalCurrentVersion = "2.0DAWN.005";
 
     let solveSpeed;
     if (isNaN(parseFloat(localStorage.getItem('duopro.autoSolveDelay')))) {
@@ -719,7 +719,7 @@ function OMEGA() {
             <div class="AutoSolverBoxTitleSectionOne">
                 <p class="paragraphText noSelect" style="font-size: 24px;">Duolingo Pro</p>
                 <div class="AutoSolverBoxTitleSectionOneBETATagOne">
-                    <p class="paragraphText noSelect" style="color: #FFF;">2.0 DAWN.0005</p>
+                    <p class="paragraphText noSelect" style="color: #FFF;">2.0 DAWN.005</p>
                 </div>
             </div>
             <p class="paragraphText noSelect" style="color: rgb(var(--color-wolf));">How many lessons would you like to AutoSolve?</p>
@@ -2547,7 +2547,7 @@ function OMEGA() {
             <div class="DuolingoProSettingsBoxSectionOne">
                 <p class="paragraphText noSelect textFill" style="font-size: 24px; line-height: 32px;">Settings</p>
                 <div class="DuolingoProSettingsBoxSectionOneBoxOne">
-                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne paragraphText">2.0 DAWN.0005</p>
+                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne paragraphText">2.0 DAWN.005</p>
                 </div>
             </div>
             <div class="DuolingoProSettingsBoxSectionTwo">
