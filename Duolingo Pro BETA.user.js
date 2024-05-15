@@ -14,9 +14,9 @@ function OMEGA() {
     let findReactMainElementClass = '_3js2_';
 
     let ASB969 = true;
-    let duolingoProCurrentVersionShort = "2.0B9.6.8";
-    let duolingoProCurrentVersion = "2.0 BETA 9.6.8";
-    let duolingoProFormalCurrentVersion = "2.0BETA9.6.8";
+    let duolingoProCurrentVersionShort = "2.0D.0005";
+    let duolingoProCurrentVersion = "2.0 DAWN.0005";
+    let duolingoProFormalCurrentVersion = "2.0DAWN.0005";
 
     let solveSpeed;
     if (isNaN(parseFloat(localStorage.getItem('duopro.autoSolveDelay')))) {
@@ -719,7 +719,7 @@ function OMEGA() {
             <div class="AutoSolverBoxTitleSectionOne">
                 <p class="paragraphText noSelect" style="font-size: 24px;">Duolingo Pro</p>
                 <div class="AutoSolverBoxTitleSectionOneBETATagOne">
-                    <p class="paragraphText noSelect" style="color: #FFF;">2.0 BETA 9.6.8</p>
+                    <p class="paragraphText noSelect" style="color: #FFF;">2.0 DAWN.0005</p>
                 </div>
             </div>
             <p class="paragraphText noSelect" style="color: rgb(var(--color-wolf));">How many lessons would you like to AutoSolve?</p>
@@ -1798,10 +1798,10 @@ function OMEGA() {
                 </div>
             </div>
 
-            <p class="selfFill paragraphText noSelect" style="line-height: 32px;">Upload Photo <a class=" paragraphText" style="color: rgb(var(--color-eel), 0.5)">- Optional</a></p>
+            <p class="selfFill paragraphText noSelect" style="line-height: 32px;">Upload Photo <a class="paragraphText" style="color: rgb(var(--color-eel), 0.5)">- Optional</a></p>
             <input type="file" accept="image/png, image/jpeg" class="loldonttouchthisbit" id="SendFeedbackFileUploadButtonIDOne" onchange="showFileName()"/>
 
-            <p class="selfFill paragraphText noSelect" style="line-height: 32px;">Email <a class=" paragraphText" style="color: rgb(var(--color-eel), 0.5)">- Optional, can help us reach back</a></p>
+            <p class="selfFill paragraphText noSelect" style="line-height: 32px;">Email <a class="paragraphText" style="color: rgb(var(--color-eel), 0.5)">- Optional, can help us reach back</a></p>
             <input class="DLPFeedbackTextFieldT1" id="DLPFeedbackTextField2" type="email" style="resize: none; height: 54px;" placeholder="Email address">
 
             <div class="SendFeedbackBoxSectionEight">
@@ -2547,7 +2547,7 @@ function OMEGA() {
             <div class="DuolingoProSettingsBoxSectionOne">
                 <p class="paragraphText noSelect textFill" style="font-size: 24px; line-height: 32px;">Settings</p>
                 <div class="DuolingoProSettingsBoxSectionOneBoxOne">
-                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne paragraphText">2.0 BETA 9.6.8</p>
+                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne paragraphText">2.0 DAWN.0005</p>
                 </div>
             </div>
             <div class="DuolingoProSettingsBoxSectionTwo">
@@ -5113,8 +5113,21 @@ function OMEGA() {
                 elm.dispatchEvent(inputEvent);
             }
 
+            // Choice
+            if (window.sol.correctTokens !== undefined) {
+                correctTokensRun();
+            } else if (window.sol.correctIndex !== undefined) {
+                document.querySelectorAll('[data-test="challenge-choice"]')[window.sol.correctIndex].click();
+            } else if (window.sol.correctSolutions !== undefined) {
+                try {
+                    let xpath = `//*[@data-test="challenge-choice" and ./*[@data-test="challenge-judge-text"]/text()="${window.sol.correctSolutions[0].split(/(?<=^\S+)\s/)[0]}"]`;
+                    document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue?.click();
+                } catch (error) {
+                }
+            }
+
         } else if (challengeType === 'Pairs') {
-			let nl = document.querySelectorAll('[data-test*="challenge-tap-token"]:not(span)');
+            let nl = document.querySelectorAll('[data-test*="challenge-tap-token"]:not(span)');
             if (document.querySelectorAll('[data-test="challenge-tap-token-text"]').length === nl.length) {
                 window.sol.pairs?.forEach((pair) => {
                     for (let i = 0; i < nl.length; i++) {
