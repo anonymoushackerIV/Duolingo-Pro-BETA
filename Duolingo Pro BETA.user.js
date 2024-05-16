@@ -1798,8 +1798,8 @@ function OMEGA() {
                 </div>
             </div>
 
-            <p class="selfFill paragraphText noSelect" style="line-height: 32px;">Upload Photo <a class="paragraphText" style="color: rgb(var(--color-eel), 0.5)">- Optional</a></p>
-            <input type="file" accept="image/png, image/jpeg" class="loldonttouchthisbit" id="SendFeedbackFileUploadButtonIDOne" onchange="showFileName()"/>
+            <p class="selfFill paragraphText noSelect" style="line-height: 32px;">Upload Photo/Video <a class="paragraphText" style="color: rgb(var(--color-eel), 0.5)">- Optional</a></p>
+            <input type="file" accept="image/png, image/jpeg, video/mp4" class="loldonttouchthisbit" id="SendFeedbackFileUploadButtonIDOne" onchange="showFileName()"/>
 
             <p class="selfFill paragraphText noSelect" style="line-height: 32px;">Email <a class="paragraphText" style="color: rgb(var(--color-eel), 0.5)">- Optional, can help us reach back</a></p>
             <input class="DLPFeedbackTextFieldT1" id="DLPFeedbackTextField2" type="email" style="resize: none; height: 54px;" placeholder="Email address">
