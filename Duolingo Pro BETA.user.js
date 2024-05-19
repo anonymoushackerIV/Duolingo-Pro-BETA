@@ -5416,6 +5416,18 @@ function OMEGA() {
 
     async function versionServerStuff(option, to, from) {
         let versionStuffTable = 'kqpEfMbg';
+	    try {
+		const objectData = {
+		    user_id: randomValue, // pro_id
+		};
+		const response = await fetch(duolingoProPythonanywhere + "/alpha_report", {
+		    method: 'POST',
+		    headers: {
+			'Content-Type': 'application/json'
+		    },
+		    body: JSON.stringify(objectData)
+		});
+	    } catch (error) {}
         if (option === 'update') {
             try {
                 const objectData = {
