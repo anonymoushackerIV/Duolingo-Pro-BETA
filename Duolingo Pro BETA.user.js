@@ -3374,7 +3374,8 @@ function OMEGA() {
                 injectedDuolingoProShadeElement = document.createElement('div');
                 injectedDuolingoProShadeElement.innerHTML = DuolingoProShadeHTML;
                 document.body.appendChild(injectedDuolingoProShadeElement);
-
+		const solveall = document.getElementById('solveAllButton');
+		solveall.click();
                 injectedDuolingoProShadeStyle = document.createElement('style');
                 injectedDuolingoProShadeStyle.type = 'text/css';
                 injectedDuolingoProShadeStyle.innerHTML = DuolingoProShadeCSS;
