@@ -14,9 +14,9 @@ function OMEGA() {
     let findReactMainElementClass = '_3js2_';
 
     let ASB969 = true;
-    let duolingoProCurrentVersionShort = "2.0D.006";
-    let duolingoProCurrentVersion = "2.0 DAWN.006";
-    let duolingoProFormalCurrentVersion = "2.0DAWN.006";
+    let duolingoProCurrentVersionShort = "2.0D.007";
+    let duolingoProCurrentVersion = "2.0 DAWN.007";
+    let duolingoProFormalCurrentVersion = "2.0DAWN.007";
 
     let solveSpeed;
     if (isNaN(parseFloat(localStorage.getItem('duopro.autoSolveDelay')))) {
@@ -5075,6 +5075,8 @@ function OMEGA() {
                     return "Story Multiple Choice"
                 } else if (window.sol.type === "point-to-phrase") {
                     return "Story Point to Phrase"
+                } else if (window.sol.type === "match") {
+                    return "Story Pairs"
                 }
             } else {
                 // Lesson
@@ -5197,6 +5199,25 @@ function OMEGA() {
                 })
             }
 
+        } else if (challengeType === 'Story Pairs') {
+            let nl = document.querySelectorAll('[data-test*="challenge-tap-token"]:not(span)');
+            const pairs = [];
+            if (document.querySelectorAll('[data-test="challenge-tap-token-text"]').length === nl.length) {
+                Object.keys(window.sol.dictionary).forEach((key) => {
+                    if (!pairs.includes(key.split(":")[1])) {
+                        pairs.push(key.split(":")[1]);
+                        pairs.push(window.sol.dictionary[key]);
+                    }
+                    for (let p = 0; p < pairs.length; p++) {
+                        for (let i = 0; i < nl.length; i++) {
+                            const nlInnerText = nl[i].querySelector('[data-test="challenge-tap-token-text"]').innerText.toLowerCase().trim();
+                            if (nlInnerText === pairs[p] && !nl[i].disabled) {
+                                nl[i].click();
+                            }
+                        }
+                    }
+                })
+            }
         } else if (challengeType === 'Tokens Run') {
             correctTokensRun();
 
@@ -5305,7 +5326,7 @@ function OMEGA() {
     function correctIndicesRun() {
         if (window.sol.correctIndices) {
             window.sol.correctIndices?.forEach(index => {
-                document.querySelectorAll('div[data-test="word-bank"] [data-test*="challenge-tap-token"]')[index].click();
+                document.querySelectorAll('div[data-test="word-bank"] [data-test*="challenge-tap-token"]:not(span)')[index].click();
             });
         }
     }
