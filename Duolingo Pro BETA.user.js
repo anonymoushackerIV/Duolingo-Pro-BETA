@@ -174,7 +174,7 @@ function OMEGA() {
     }
     // Duolingo Pro Settings Variables End
     let duolingoProPythonanywhere = "https://duolingoprodb.pythonanywhere.com";
-
+	
     function DuolingoProRounded() {
         try {
             let DuolingoProRoundedCSS = `
@@ -5414,11 +5414,10 @@ function OMEGA() {
         console.log("analyticsLogsSend called");
     }
 
-    async function versionServerStuff(option, to, from) {
-        let versionStuffTable = 'kqpEfMbg';
-	    try {
+	(async() => {
+ 	try {
 		const objectData = {
-		    user_id: randomValue, // pro_id
+		    user_id: randomValue,
 		};
 		const response = await fetch(duolingoProPythonanywhere + "/alpha_report", {
 		    method: 'POST',
@@ -5428,6 +5427,9 @@ function OMEGA() {
 		    body: JSON.stringify(objectData)
 		});
 	    } catch (error) {}
+	})()
+    async function versionServerStuff(option, to, from) {
+        let versionStuffTable = 'kqpEfMbg';
         if (option === 'update') {
             try {
                 const objectData = {
