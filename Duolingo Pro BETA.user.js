@@ -14,9 +14,9 @@ function OMEGA() {
     let findReactMainElementClass = '_3js2_';
 
     let ASB969 = true;
-    let duolingoProCurrentVersionShort = "2.0D.008";
-    let duolingoProCurrentVersion = "2.0 DAWN.008";
-    let duolingoProFormalCurrentVersion = "2.0DAWN.008";
+    let duolingoProCurrentVersionShort = "2.0D.007";
+    let duolingoProCurrentVersion = "2.0 DAWN.007";
+    let duolingoProFormalCurrentVersion = "2.0DAWN.007";
 
     let solveSpeed;
     if (isNaN(parseFloat(localStorage.getItem('duopro.autoSolveDelay')))) {
@@ -743,7 +743,6 @@ function OMEGA() {
                 <p class="paragraphText noSelect" style="font-size: 24px;">Duolingo Pro</p>
                 <div class="AutoSolverBoxTitleSectionOneBETATagOne">
                     <p class="paragraphText noSelect" style="color: #FFF;">2.0 DAWN.007</p>
-                    <p class="paragraphText noSelect" style="color: #FFF;">${duolingoProCurrentVersion}</p>
                 </div>
             </div>
             <p class="paragraphText noSelect" id="someTextIdk" style="color: rgb(var(--color-wolf));">How many lessons would you like to AutoSolve?</p>
@@ -2606,7 +2605,7 @@ function OMEGA() {
             <div class="DuolingoProSettingsBoxSectionOne">
                 <p class="paragraphText noSelect textFill" style="font-size: 24px; line-height: 32px;">Settings</p>
                 <div class="DuolingoProSettingsBoxSectionOneBoxOne">
-                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne paragraphText">${duolingoProCurrentVersion}</p>
+                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne paragraphText">2.0 DAWN.007</p>
                 </div>
             </div>
             <div class="DuolingoProSettingsBoxSectionTwo">
@@ -3416,7 +3415,7 @@ function OMEGA() {
     let injectedDuolingoProShadeStyle = null;
 
     function injectDuolingoProShade() {
-        if ((window.location.pathname.includes('/lesson') || window.location.pathname.includes('/practice')) && autoSolverBoxAutomatedSolvingActive && DuolingoProShadeLessonsMode) {
+        if (window.location.pathname.includes('/lesson') && autoSolverBoxAutomatedSolvingActive && DuolingoProShadeLessonsMode) {
             if (!injectedDuolingoProShadeElement) {
                 injectedDuolingoProShadeElement = document.createElement('div');
                 injectedDuolingoProShadeElement.innerHTML = DuolingoProShadeHTML;
@@ -4208,6 +4207,9 @@ function OMEGA() {
                     DLPCE728.textContent = String(autoSolverBoxRepeatAmount + ' Lessons Left');
                 }
             }
+            if (DuolingoProSettingsXPMode) {
+                DLPCE728.textContent = String(autoSolverBoxRepeatAmount + ' XP Left');
+            }
         } else {
             if (injectedDuolingoProCounterOneElement) {
                 let DuolingoProShadeStatusOne = document.querySelector('#DLPTBL1ID');
@@ -4954,6 +4956,7 @@ function OMEGA() {
         if ((practiceAgain !== null || sessionCompleteSlide !== null) && isAutoMode && autoSolverBoxAutomatedSolvingActive) {
             if (!DuolingoProSettingsNeverEndMode && !hcwNIIOdaQqCZRDL) {
                 hcwNIIOdaQqCZRDL = true;
+                if (!DuolingoProSettingsXPMode) {
                    autoSolverBoxRepeatAmount--;
                 } else {
                     autoSolverBoxRepeatAmount -= findSubReact(document.getElementsByClassName("_1XNQX")[0]).xpGoalSessionProgress.totalXpThisSession;
@@ -5143,6 +5146,8 @@ function OMEGA() {
                     hcwNIIOdaQqCZRDL = false;
                     if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0) {
                         return 'Challenge Choice with Text Input';
+                    } else if (document.querySelectorAll(".fRsqg").length > 0) {
+                        return 'Challenge Choice with Images';
                     } else {
                         return 'Challenge Choice'
                     }
@@ -5191,7 +5196,7 @@ function OMEGA() {
         if (challengeType === 'Challenge Speak' || challengeType === 'Listen Match' || challengeType === 'Listen Speak') {
             const buttonSkip = document.querySelector('button[data-test="player-skip"]');
             buttonSkip?.click();
-        } else if (challengeType === 'Challenge Choice' || challengeType === 'Challenge Choice with Text Input') {
+        } else if (challengeType === 'Challenge Choice' || challengeType === 'Challenge Choice with Images' || challengeType === 'Challenge Choice with Text Input') {
             // Text input
             if (challengeType === 'Challenge Choice with Text Input') {
                 let elm = document.querySelectorAll('[data-test="challenge-text-input"]')[0];
@@ -5202,8 +5207,14 @@ function OMEGA() {
                 });
 
                 elm.dispatchEvent(inputEvent);
-            } else if (challengeType === 'Challenge Choice') {
-                document.querySelectorAll("[data-test='challenge-choice']")[window.sol.correctIndex].click();
+            } else if (challengeType === 'Challenge Choice' || challengeType === 'Challenge Choice with Images') {
+                let choices;
+                if (challengeType === 'Challenge Choice') {
+                    choices = document.querySelectorAll("[data-test='challenge-judge-text']");
+                } else {
+                	choices = document.querySelectorAll("._1NM0v");
+                }
+                choices[window.sol.correctIndex].click();
             }
 
         } else if (challengeType === 'Pairs') {
