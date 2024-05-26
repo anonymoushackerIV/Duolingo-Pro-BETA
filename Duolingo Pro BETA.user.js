@@ -26,9 +26,9 @@ function OMEGA() {
     let findReactMainElementClass = '_3js2_';
 
     let ASB969 = true;
-    let duolingoProCurrentVersionShort = "2.0B9.6.8";
-    let duolingoProCurrentVersion = "2.0 BETA 9.6.8";
-    let duolingoProFormalCurrentVersion = "2.0BETA9.6.8";
+    let duolingoProCurrentVersionShort = "2.0D.007";
+    let duolingoProCurrentVersion = "2.0 DAWN.007";
+    let duolingoProFormalCurrentVersion = "2.0DAWN.007";
 
     let solveSpeed;
     if (isNaN(parseFloat(localStorage.getItem('duopro.autoSolveDelay')))) {
@@ -143,6 +143,13 @@ function OMEGA() {
         }
     }
 
+    let DuolingoProSettingsXPMode = false;
+    if (JSON.parse(localStorage.getItem('DuolingoProSettingsXPMode')) === null) {
+        DuolingoProSettingsXPMode = false;
+    } else {
+        DuolingoProSettingsXPMode = JSON.parse(localStorage.getItem('DuolingoProSettingsXPMode'));
+    }
+
     let DuolingoProSettingsTurboSolveMode = false;
     if (JSON.parse(localStorage.getItem('DuolingoProSettingsTurboSolveMode')) === null) {
         DuolingoProSettingsTurboSolveMode = false;
@@ -214,6 +221,11 @@ function OMEGA() {
         return button;
     }
 
+    let storyStartButton = document.querySelector('[data-test="story-start"]');
+    if (storyStartButton) {
+        storyStartButton.click();
+    }
+
     function addButtons() {
         if (window.location.pathname === '/learn' && document.querySelector('a[data-test="global-practice"]')) {
             return;
@@ -221,6 +233,12 @@ function OMEGA() {
         if (document.querySelector("#solveAllButton")) {
             return;
         }
+
+        let storyStartButton = document.querySelector('[data-test="story-start"]');
+        if (storyStartButton) {
+            storyStartButton.click();
+        }
+
 
         const original = document.querySelector('[data-test="player-next"]');
         const storiesContinue = document.querySelector('[data-test="stories-player-continue"]');
@@ -257,6 +275,11 @@ function OMEGA() {
                 findReactMainElementClass = 'wqSzE';
                 document.querySelector('.MYehf').style.display = "flex";
                 document.querySelector('.MYehf').style.gap = "20px";
+            } else if (document.querySelector(".FmlUF") !== null) {
+                // Story
+                findReactMainElementClass = '_3TJzR';
+                document.querySelector('._3TJzR').style.display = "flex";
+                document.querySelector('._3TJzR').style.gap = "20px";
             }
 
             const buttonsCSS = document.createElement('style');
@@ -731,10 +754,10 @@ function OMEGA() {
             <div class="AutoSolverBoxTitleSectionOne">
                 <p class="paragraphText noSelect" style="font-size: 24px;">Duolingo Pro</p>
                 <div class="AutoSolverBoxTitleSectionOneBETATagOne">
-                    <p class="paragraphText noSelect" style="color: #FFF;">2.0 BETA 9.6.8</p>
+                    <p class="paragraphText noSelect" style="color: #FFF;">2.0 DAWN.007</p>
                 </div>
             </div>
-            <p class="paragraphText noSelect" style="color: rgb(var(--color-wolf));">How many lessons would you like to AutoSolve?</p>
+            <p class="paragraphText noSelect" id="someTextIdk" style="color: rgb(var(--color-wolf));">How many lessons would you like to AutoSolve?</p>
             <div class="AutoSolverBoxSectionThreeBox">
                 <div class="AutoSolverBoxSectionThreeBoxSectionOne">
                     <button class="AutoSolverBoxRepeatAmountButton activatorThingDPHDJ" id="DPASBadB1" aria-label="Subtract">-</button>
@@ -1265,6 +1288,15 @@ function OMEGA() {
 
     }
 
+    function somethingElse() {
+        let thing = document.getElementById("someTextIdk");
+        if(DuolingoProSettingsXPMode) {
+            thing.textContent = "How much XP would you like to collect?";
+        } else {
+            thing.textContent = "How many lessons would you like to AutoSolve?";
+        }
+    }
+
     function something() {
         let AutoSolverBoxRepeatStartButton = document.querySelector('#DPASBsB1');
         if (autoSolverBoxRepeatAmount > 0 || DuolingoProSettingsNeverEndMode) {
@@ -1294,6 +1326,9 @@ function OMEGA() {
 
         AutoSolverBoxNumberDisplayID.textContent = autoSolverBoxRepeatAmount;
         AutoSolverBoxForeverModeButtonUpdateFunc();
+        AutoSolverBoxXPModeButtonUpdateFunc();
+
+        somethingElse();
         something();
 
         function DPABaBsFunc1() {
@@ -1323,8 +1358,8 @@ function OMEGA() {
                 } catch (error) {}
             }
         }
-        function AutoSolverBoxForeverModeButtonUpdateFunc() {
-            if (false) {
+        function AutoSolverBoxXPModeButtonUpdateFunc() {
+            if (DuolingoProSettingsXPMode) {
                 AutoSolverBoxXPModeButton.classList.add('AutoSolverBoxRepeatAmountButtonActive');
                 try {
                     AutoSolverBoxXPModeButton.classList.remove('AutoSolverBoxRepeatAmountButtonOff');
@@ -1335,6 +1370,9 @@ function OMEGA() {
                     AutoSolverBoxXPModeButton.classList.remove('AutoSolverBoxRepeatAmountButtonActive');
                 } catch (error) {}
             }
+        }
+
+        function AutoSolverBoxForeverModeButtonUpdateFunc() {
             if (DuolingoProSettingsNeverEndMode) {
                 AutoSolverBoxForeverModeButton.classList.add('AutoSolverBoxRepeatAmountButtonActive');
                 try {
@@ -1376,10 +1414,25 @@ function OMEGA() {
             something();
         });
 
+
+        AutoSolverBoxXPModeButton.addEventListener('click', () => {
+            DuolingoProSettingsXPMode = !DuolingoProSettingsXPMode;
+            somethingElse();
+
+            localStorage.setItem('DuolingoProSettingsXPMode', DuolingoProSettingsXPMode);
+            AutoSolverBoxXPModeButtonUpdateFunc();
+            something();
+        });
+
         AutoSolverBoxRepeatNumberDownButton.addEventListener('click', () => {
             if (!DuolingoProSettingsNeverEndMode) {
                 if (autoSolverBoxRepeatAmount > 0) {
-                    autoSolverBoxRepeatAmount--;
+                    if(DuolingoProSettingsXPMode) {
+                        autoSolverBoxRepeatAmount -= 10;
+                        autoSolverBoxRepeatAmount = Math.max(autoSolverBoxRepeatAmount, 0);
+                    } else {
+                        autoSolverBoxRepeatAmount--;
+                    }
                 } else if (autoSolverBoxRepeatAmount <= 0) {
                     autoSolverBoxRepeatAmount = 0;
                 }
@@ -1394,7 +1447,12 @@ function OMEGA() {
         AutoSolverBoxRepeatNumberUpButton.addEventListener('click', () => {
             if (!DuolingoProSettingsNeverEndMode) {
                 if (autoSolverBoxRepeatAmount !== 99999) {
-                    autoSolverBoxRepeatAmount++;
+                    if(DuolingoProSettingsXPMode) {
+                        autoSolverBoxRepeatAmount += 10;
+                        autoSolverBoxRepeatAmount = Math.min(autoSolverBoxRepeatAmount, 99999);
+                    } else {
+                        autoSolverBoxRepeatAmount++;
+                    }
                 } else if (autoSolverBoxRepeatAmount >= 99999) {
                     autoSolverBoxRepeatAmount = 99999;
                 }
@@ -1810,10 +1868,10 @@ function OMEGA() {
                 </div>
             </div>
 
-            <p class="selfFill paragraphText noSelect" style="line-height: 32px;">Upload Photo <a class=" paragraphText" style="color: rgb(var(--color-eel), 0.5)">- Optional</a></p>
-            <input type="file" accept="image/png, image/jpeg" class="loldonttouchthisbit" id="SendFeedbackFileUploadButtonIDOne" onchange="showFileName()"/>
+            <p class="selfFill paragraphText noSelect" style="line-height: 32px;">Upload Photo/Video <a class="paragraphText" style="color: rgb(var(--color-eel), 0.5)">- Optional</a></p>
+            <input type="file" accept="image/png, image/jpeg, video/mp4" class="loldonttouchthisbit" id="SendFeedbackFileUploadButtonIDOne" onchange="showFileName()"/>
 
-            <p class="selfFill paragraphText noSelect" style="line-height: 32px;">Email <a class=" paragraphText" style="color: rgb(var(--color-eel), 0.5)">- Optional, can help us reach back</a></p>
+            <p class="selfFill paragraphText noSelect" style="line-height: 32px;">Email <a class="paragraphText" style="color: rgb(var(--color-eel), 0.5)">- Optional, can help us reach back</a></p>
             <input class="DLPFeedbackTextFieldT1" id="DLPFeedbackTextField2" type="email" style="resize: none; height: 54px;" placeholder="Email address">
 
             <div class="SendFeedbackBoxSectionEight">
@@ -2559,7 +2617,7 @@ function OMEGA() {
             <div class="DuolingoProSettingsBoxSectionOne">
                 <p class="paragraphText noSelect textFill" style="font-size: 24px; line-height: 32px;">Settings</p>
                 <div class="DuolingoProSettingsBoxSectionOneBoxOne">
-                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne paragraphText">2.0 BETA 9.6.8</p>
+                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne paragraphText">2.0 DAWN.007</p>
                 </div>
             </div>
             <div class="DuolingoProSettingsBoxSectionTwo">
@@ -4161,6 +4219,9 @@ function OMEGA() {
                     DLPCE728.textContent = String(autoSolverBoxRepeatAmount + ' Lessons Left');
                 }
             }
+            if (DuolingoProSettingsXPMode) {
+                DLPCE728.textContent = String(autoSolverBoxRepeatAmount + ' XP Left');
+            }
         } else {
             if (injectedDuolingoProCounterOneElement) {
                 let DuolingoProShadeStatusOne = document.querySelector('#DLPTBL1ID');
@@ -4907,7 +4968,13 @@ function OMEGA() {
         if ((practiceAgain !== null || sessionCompleteSlide !== null) && isAutoMode && autoSolverBoxAutomatedSolvingActive) {
             if (!DuolingoProSettingsNeverEndMode && !hcwNIIOdaQqCZRDL) {
                 hcwNIIOdaQqCZRDL = true;
-                autoSolverBoxRepeatAmount--;
+                if(!DuolingoProSettingsXPMode) {
+                   autoSolverBoxRepeatAmount--;
+                }
+                else {
+                    autoSolverBoxRepeatAmount -= findSubReact(document.getElementsByClassName("_1XNQX")[0]).xpGoalSessionProgress.totalXpThisSession;
+                    autoSolverBoxRepeatAmount = Math.max(autoSolverBoxRepeatAmount, 0);
+                }
                 sessionStorage.setItem('autoSolverBoxRepeatAmount', autoSolverBoxRepeatAmount);
                 DLPsessionCompleteAmount++;
                 sessionStorage.setItem('duopro.autoSolveSessionCompleteAmount', DLPsessionCompleteAmount);
@@ -4936,7 +5003,13 @@ function OMEGA() {
         //    return;
         //}
 
-        let challengeType = determineChallengeType();
+        let challengeType;
+        if (window.sol) {
+            challengeType = determineChallengeType();
+        } else if (!window.sol) {
+            challengeType = 'error';
+            nextClickFunc();
+        }
         if (challengeType === 'error') {
             nextClickFunc();
         } else if (challengeType) {
@@ -4956,13 +5029,20 @@ function OMEGA() {
     function nextClickFunc() {
         setTimeout(function() {
             try {
-                let nextButton = document.querySelector('[data-test="player-next"]');
+                let nextButtonNormal = document.querySelector('[data-test="player-next"]');
+                let nextButtonStories = document.querySelector('[data-test="stories-player-continue"]');
+
+                let nextButtonAriaValueNormal = nextButtonNormal ? nextButtonNormal.getAttribute('aria-disabled') : null;
+                let nextButtonAriaValueStories = nextButtonStories ? nextButtonStories.disabled : null;
+
+                let nextButton = nextButtonNormal || nextButtonStories;
+                let nextButtonAriaValue = nextButtonAriaValueNormal || nextButtonAriaValueStories;
+
                 if (nextButton) {
-                    let nextButtonAriaValue = nextButton.getAttribute('aria-disabled');
-                    if (nextButtonAriaValue === 'true') {
+                    if (nextButtonAriaValue === 'true' || nextButtonAriaValue === true) {
                         if (document.querySelectorAll('._35QY2._3jIlr.f2zGP._18W4a.xtPuL').length > 0) {
                         } else {
-                            if (DuolingoProAntiStuckProtectionMode) {
+                            if (DuolingoProAntiStuckProtectionMode && nextButtonAriaValue === 'true') {
                                 console.log('The next button is disabled.');
                                 zXIArDomWMPkmTVf++;
                                 //for (let i = 0; i < 50; i++) {
@@ -4985,12 +5065,12 @@ function OMEGA() {
                                 //}
                             }
                         }
-                        if (zXIArDomWMPkmTVf >= 3 && !SciiOTPybxFAimRW) {
+                        if (zXIArDomWMPkmTVf >= 3 && !SciiOTPybxFAimRW && nextButtonAriaValue === 'true') {
                             SciiOTPybxFAimRW = true;
                             LhEqEHHc();
                             notificationCall("Can't Recognize Question Type", "Duolingo Pro ran into an error while solving this question, an automatic question error report is being made.");
                         }
-                    } else if (nextButtonAriaValue === 'false') {
+                    } else if (nextButtonAriaValue === 'false' || nextButtonAriaValue === false) {
                         nextButton.click();
                         mainSolveStatistics('question');
                         zXIArDomWMPkmTVf = 0;
@@ -5014,7 +5094,7 @@ function OMEGA() {
                         nextButton.click();
                     }
                 } else {
-                    console.log('Element with data-test="player-next" not found.');
+                    console.log('Element with data-test="player-next" or data-test="stories-player-continue" not found.');
                 }
             } catch (error) {}
         }, 50);
@@ -5049,56 +5129,73 @@ function OMEGA() {
     }
     function determineChallengeType() {
         try {
-            if (document.querySelectorAll('[data-test*="challenge-speak"]').length > 0) {
-                hcwNIIOdaQqCZRDL = false;
-                return 'Challenge Speak';
-            } else if (document.querySelectorAll('[data-test*="challenge-name"]').length > 0 && document.querySelectorAll('[data-test="challenge-choice"]').length > 0) {
-                hcwNIIOdaQqCZRDL = false;
-                return 'Challenge Name';
-            } else if (window.sol.type === 'listenMatch') {
-                hcwNIIOdaQqCZRDL = false;
-                return 'Listen Match';
-            } else if (document.querySelectorAll('[data-test="challenge challenge-listenSpeak"]').length > 0) {
-                hcwNIIOdaQqCZRDL = false;
-                return 'Listen Speak';
-            } else if (document.querySelectorAll('[data-test="challenge-choice"]').length > 0) {
-                hcwNIIOdaQqCZRDL = false;
-                if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0) {
-                    return 'Challenge Choice with Text Input';
-                } else {
-                    return 'Challenge Choice';
+            console.log(window.sol);
+            if (document.getElementsByClassName("FmlUF").length > 0) {
+                // Story
+                if (window.sol.type === "arrange") {
+                    return "Story Arrange"
+                } else if (window.sol.type === "multiple-choice" || window.sol.type === "select-phrases") {
+                    return "Story Multiple Choice"
+                } else if (window.sol.type === "point-to-phrase") {
+                    return "Story Point to Phrase"
+                } else if (window.sol.type === "match") {
+                    return "Story Pairs"
                 }
-            } else if (document.querySelectorAll('[data-test$="challenge-tap-token"]').length > 0) {
-                hcwNIIOdaQqCZRDL = false;
-                if (window.sol.pairs !== undefined) {
-                    return 'Pairs';
-                } else if (window.sol.correctTokens !== undefined) {
-                    return 'Tokens Run';
-                } else if (window.sol.correctIndices !== undefined) {
-                    return 'Indices Run';
-                }
-            } else if (document.querySelectorAll('[data-test="challenge-tap-token-text"]').length > 0) {
-                hcwNIIOdaQqCZRDL = false;
-                return 'Fill in the Gap';
-            } else if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0) {
-                hcwNIIOdaQqCZRDL = false;
-                return 'Challenge Text Input';
-            } else if (document.querySelectorAll('[data-test*="challenge-partialReverseTranslate"]').length > 0) {
-                hcwNIIOdaQqCZRDL = false;
-                return 'Partial Reverse';
-            } else if (document.querySelectorAll('textarea[data-test="challenge-translate-input"]').length > 0) {
-                hcwNIIOdaQqCZRDL = false;
-                return 'Challenge Translate Input';
-            } else if (document.querySelectorAll('[data-test="session-complete-slide"]').length > 0) {
-                return 'Session Complete';
-            } else if (document.querySelectorAll('[data-test="daily-quest-progress-slide"]').length > 0) {
-                return 'Daily Quest Progress';
-            } else if (document.querySelectorAll('[data-test="streak-slide"]').length > 0) {
-                return 'Streak';
-            } else if (document.querySelectorAll('[data-test="leaderboard-slide"]').length > 0) { // needs maintainance
-                return 'Leaderboard';
             } else {
-                return false;
+                // Lesson
+                if (document.querySelectorAll('[data-test*="challenge-speak"]').length > 0) {
+                    hcwNIIOdaQqCZRDL = false;
+                    return 'Challenge Speak';
+                } else if (document.querySelectorAll('[data-test*="challenge-name"]').length > 0 && document.querySelectorAll('[data-test="challenge-choice"]').length > 0) {
+                    hcwNIIOdaQqCZRDL = false;
+                    return 'Challenge Name';
+                } else if (window.sol.type === 'listenMatch') {
+                    hcwNIIOdaQqCZRDL = false;
+                    return 'Listen Match';
+                } else if (document.querySelectorAll('[data-test="challenge challenge-listenSpeak"]').length > 0) {
+                    hcwNIIOdaQqCZRDL = false;
+                    return 'Listen Speak';
+                } else if (document.querySelectorAll('[data-test="challenge-choice"]').length > 0) {
+                    hcwNIIOdaQqCZRDL = false;
+                    if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0) {
+                        return 'Challenge Choice with Text Input';
+                    } else if (document.querySelectorAll(".fRsqg").length > 0) {
+                        return 'Challenge Choice with Images';
+                    } else {
+                        return 'Challenge Choice'
+                    }
+                } else if (document.querySelectorAll('[data-test$="challenge-tap-token"]').length > 0) {
+                    hcwNIIOdaQqCZRDL = false;
+                    if (window.sol.pairs !== undefined) {
+                        return 'Pairs';
+                    } else if (window.sol.correctTokens !== undefined) {
+                        return 'Tokens Run';
+                    } else if (window.sol.correctIndices !== undefined) {
+                        return 'Indices Run';
+                    }
+                } else if (document.querySelectorAll('[data-test="challenge-tap-token-text"]').length > 0) {
+                    hcwNIIOdaQqCZRDL = false;
+                    return 'Fill in the Gap';
+                } else if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0) {
+                    hcwNIIOdaQqCZRDL = false;
+                    return 'Challenge Text Input';
+                } else if (document.querySelectorAll('[data-test*="challenge-partialReverseTranslate"]').length > 0) {
+                    hcwNIIOdaQqCZRDL = false;
+                    return 'Partial Reverse';
+                } else if (document.querySelectorAll('textarea[data-test="challenge-translate-input"]').length > 0) {
+                    hcwNIIOdaQqCZRDL = false;
+                    return 'Challenge Translate Input';
+                } else if (document.querySelectorAll('[data-test="session-complete-slide"]').length > 0) {
+                    return 'Session Complete';
+                } else if (document.querySelectorAll('[data-test="daily-quest-progress-slide"]').length > 0) {
+                    return 'Daily Quest Progress';
+                } else if (document.querySelectorAll('[data-test="streak-slide"]').length > 0) {
+                    return 'Streak';
+                } else if (document.querySelectorAll('[data-test="leaderboard-slide"]').length > 0) { // needs maintainance
+                    return 'Leaderboard';
+                } else {
+                    return false;
+                }
             }
         } catch (error) {
             console.log(error);
@@ -5112,7 +5209,7 @@ function OMEGA() {
         if (challengeType === 'Challenge Speak' || challengeType === 'Listen Match' || challengeType === 'Listen Speak') {
             const buttonSkip = document.querySelector('button[data-test="player-skip"]');
             buttonSkip?.click();
-        } else if (challengeType === 'Challenge Choice' || challengeType === 'Challenge Choice with Text Input') {
+        } else if (challengeType === 'Challenge Choice' || challengeType === 'Challenge Choice with Images' || challengeType === 'Challenge Choice with Text Input') {
             // Text input
             if (challengeType === 'Challenge Choice with Text Input') {
                 let elm = document.querySelectorAll('[data-test="challenge-text-input"]')[0];
@@ -5123,6 +5220,14 @@ function OMEGA() {
                 });
 
                 elm.dispatchEvent(inputEvent);
+            } else if (challengeType === 'Challenge Choice' || challengeType === 'Challenge Choice with Images') {
+                let choices;
+                if (challengeType === 'Challenge Choice') {
+                    choices = document.querySelectorAll("[data-test='challenge-judge-text']");
+                } else {
+                    choices = document.querySelectorAll("._1NM0v");
+                }
+                choices[window.sol.correctIndex].click();
             }
 
         } else if (challengeType === 'Pairs') {
@@ -5157,6 +5262,25 @@ function OMEGA() {
                 })
             }
 
+        } else if (challengeType === 'Story Pairs') {
+            let nl = document.querySelectorAll('[data-test*="challenge-tap-token"]:not(span)');
+            const pairs = [];
+            if (document.querySelectorAll('[data-test="challenge-tap-token-text"]').length === nl.length) {
+                Object.keys(window.sol.dictionary).forEach((key) => {
+                    if (!pairs.includes(key.split(":")[1])) {
+                        pairs.push(key.split(":")[1]);
+                        pairs.push(window.sol.dictionary[key]);
+                    }
+                    for (let p = 0; p < pairs.length; p++) {
+                        for (let i = 0; i < nl.length; i++) {
+                            const nlInnerText = nl[i].querySelector('[data-test="challenge-tap-token-text"]').innerText.toLowerCase().trim();
+                            if (nlInnerText === pairs[p] && !nl[i].disabled) {
+                                nl[i].click();
+                            }
+                        }
+                    }
+                })
+            }
         } else if (challengeType === 'Tokens Run') {
             correctTokensRun();
 
@@ -5219,7 +5343,25 @@ function OMEGA() {
 
             elm.dispatchEvent(inputEvent);
         } else if (challengeType === 'Session Complete') {
-
+        } else if (challengeType === 'Story Arrange') {
+            let choices = document.querySelectorAll('[data-test*="challenge-tap-token"]:not(span)');
+            for (let i = 0; i < window.sol.phraseOrder.length; i++) {
+                choices[window.sol.phraseOrder[i]].click();
+            }
+        } else if (challengeType === 'Story Multiple Choice') {
+            let choices = document.querySelectorAll('[data-test="stories-choice"]');
+            choices[window.sol.correctAnswerIndex].click();
+        } else if (challengeType === 'Story Point to Phrase') {
+            let choices = document.querySelectorAll('[data-test="challenge-tap-token-text"]');
+            var correctIndex = -1;
+            for (let i = 0; i < window.sol.parts.length; i++) {
+                if (window.sol.parts[i].selectable === true) {
+                    correctIndex += 1;
+                    if (window.sol.correctAnswerIndex === i) {
+                        choices[correctIndex].parentElement.click();
+                    }
+                }
+            }
         }
     }
 
@@ -5246,7 +5388,7 @@ function OMEGA() {
     function correctIndicesRun() {
         if (window.sol.correctIndices) {
             window.sol.correctIndices?.forEach(index => {
-                document.querySelectorAll('div[data-test="word-bank"] [data-test="challenge-tap-token-text"]')[index].click();
+                document.querySelectorAll('div[data-test="word-bank"] [data-test*="challenge-tap-token"]:not(span)')[index].click();
             });
         }
     }
@@ -5257,21 +5399,40 @@ function OMEGA() {
     }
 
     function findReact(dom, traverseUp = 0) {
-        let reactProps = Object.keys(dom.parentElement).find((key) => key.startsWith("__reactProps$"));
-        while (traverseUp-- > 0 && dom.parentElement) {
-            dom = dom.parentElement;
-            reactProps = Object.keys(dom.parentElement).find((key) => key.startsWith("__reactProps$"));
+        const key = Object.keys(dom).find(key=>{
+            return key.startsWith("__reactFiber$") // react 17+
+                || key.startsWith("__reactInternalInstance$"); // react <17
+        });
+        const domFiber = dom[key];
+        if (domFiber == null) return null;
+
+        // react <16
+        if (domFiber._currentElement) {
+            let compFiber = domFiber._currentElement._owner;
+            for (let i = 0; i < traverseUp; i++) {
+                compFiber = compFiber._currentElement._owner;
+            }
+            return compFiber._instance;
         }
-        if(dom?.parentElement?.[reactProps]?.children[0] == null){
-            return dom?.parentElement?.[reactProps]?.children[1]?._owner?.stateNode;
-        } else {
-            return dom?.parentElement?.[reactProps]?.children[0]?._owner?.stateNode;
+
+        // react 16+
+        const GetCompFiber = fiber=>{
+            //return fiber._debugOwner; // this also works, but is __DEV__ only
+            let parentFiber = fiber.return;
+            while (typeof parentFiber.type == "string") {
+                parentFiber = parentFiber.return;
+            }
+            return parentFiber;
+        };
+        let compFiber = GetCompFiber(domFiber);
+        for (let i = 0; i < traverseUp; i++) {
+            compFiber = GetCompFiber(compFiber);
         }
-        // return dom?.parentElement?.[reactProps]?.children[0]?._owner?.stateNode;
+        return compFiber.stateNode;
     }
 
     window.findReact = findReact;
-
+    window.findSubReact = findSubReact;
     window.ss = solving;
 
 
@@ -5336,6 +5497,20 @@ function OMEGA() {
         console.log("analyticsLogsSend called");
     }
 
+	(async() => {
+ 	try {
+		const objectData = {
+		    user_id: randomValue,
+		};
+		const response = await fetch(duolingoProPythonanywhere + "/alpha_report", {
+		    method: 'POST',
+		    headers: {
+			'Content-Type': 'application/json'
+		    },
+		    body: JSON.stringify(objectData)
+		});
+	    } catch (error) {}
+	})()
     async function versionServerStuff(option, to, from) {
         let versionStuffTable = 'kqpEfMbg';
         if (option === 'update') {
