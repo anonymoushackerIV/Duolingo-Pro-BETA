@@ -181,7 +181,7 @@ function OMEGA() {
     }
     // Duolingo Pro Settings Variables End
     let duolingoProPythonanywhere = "https://duolingoprodb.pythonanywhere.com";
-
+	
     function DuolingoProRounded() {
         try {
             let DuolingoProRoundedCSS = `
@@ -4997,7 +4997,7 @@ function OMEGA() {
         } else if (!window.sol) {
             challengeType = 'error';
             nextClickFunc();
-        }
+        } 
         if (challengeType === 'error') {
             nextClickFunc();
         } else if (challengeType) {
@@ -5342,7 +5342,7 @@ function OMEGA() {
         } else if (challengeType === 'Story Point to Phrase') {
             let choices = document.querySelectorAll('[data-test="challenge-tap-token-text"]');
             var correctIndex = -1;
-            for (let i = 0; i < window.sol.parts.length; i++) {
+            for (let i = 0; i < window.sol.parts.length; i++) { 
                 if (window.sol.parts[i].selectable === true) {
                     correctIndex += 1;
                     if (window.sol.correctAnswerIndex === i) {
@@ -5393,7 +5393,6 @@ function OMEGA() {
         });
         const domFiber = dom[key];
         if (domFiber == null) return null;
-
         // react <16
         if (domFiber._currentElement) {
             let compFiber = domFiber._currentElement._owner;
@@ -5402,7 +5401,6 @@ function OMEGA() {
             }
             return compFiber._instance;
         }
-
         // react 16+
         const GetCompFiber = fiber=>{
             //return fiber._debugOwner; // this also works, but is __DEV__ only
