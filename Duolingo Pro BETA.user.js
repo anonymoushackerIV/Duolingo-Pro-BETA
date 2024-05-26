@@ -131,6 +131,13 @@ function OMEGA() {
         }
     }
 
+    let DuolingoProSettingsXPMode = false;
+    if (JSON.parse(localStorage.getItem('DuolingoProSettingsXPMode')) === null) {
+        DuolingoProSettingsXPMode = false;
+    } else {
+        DuolingoProSettingsXPMode = JSON.parse(localStorage.getItem('DuolingoProSettingsXPMode'));
+    }
+
     let DuolingoProSettingsTurboSolveMode = false;
     if (JSON.parse(localStorage.getItem('DuolingoProSettingsTurboSolveMode')) === null) {
         DuolingoProSettingsTurboSolveMode = false;
@@ -738,7 +745,7 @@ function OMEGA() {
                     <p class="paragraphText noSelect" style="color: #FFF;">2.0 DAWN.007</p>
                 </div>
             </div>
-            <p class="paragraphText noSelect" style="color: rgb(var(--color-wolf));">How many lessons would you like to AutoSolve?</p>
+            <p class="paragraphText noSelect" id="someTextIdk" style="color: rgb(var(--color-wolf));">How many lessons would you like to AutoSolve?</p>
             <div class="AutoSolverBoxSectionThreeBox">
                 <div class="AutoSolverBoxSectionThreeBoxSectionOne">
                     <button class="AutoSolverBoxRepeatAmountButton activatorThingDPHDJ" id="DPASBadB1" aria-label="Subtract">-</button>
@@ -1269,6 +1276,15 @@ function OMEGA() {
 
     }
 
+    function somethingElse() {
+        let thing = document.getElementById("someTextIdk");
+        if(DuolingoProSettingsXPMode) {
+            thing.textContent = "How much XP would you like to collect?";
+        } else {
+            thing.textContent = "How many lessons would you like to AutoSolve?";
+        }
+    }
+
     function something() {
         let AutoSolverBoxRepeatStartButton = document.querySelector('#DPASBsB1');
         if (autoSolverBoxRepeatAmount > 0 || DuolingoProSettingsNeverEndMode) {
@@ -1298,6 +1314,9 @@ function OMEGA() {
 
         AutoSolverBoxNumberDisplayID.textContent = autoSolverBoxRepeatAmount;
         AutoSolverBoxForeverModeButtonUpdateFunc();
+        AutoSolverBoxXPModeButtonUpdateFunc();
+
+        somethingElse();
         something();
 
         function DPABaBsFunc1() {
@@ -1327,8 +1346,8 @@ function OMEGA() {
                 } catch (error) {}
             }
         }
-        function AutoSolverBoxForeverModeButtonUpdateFunc() {
-            if (false) {
+        function AutoSolverBoxXPModeButtonUpdateFunc() {
+            if (DuolingoProSettingsXPMode) {
                 AutoSolverBoxXPModeButton.classList.add('AutoSolverBoxRepeatAmountButtonActive');
                 try {
                     AutoSolverBoxXPModeButton.classList.remove('AutoSolverBoxRepeatAmountButtonOff');
@@ -1339,6 +1358,9 @@ function OMEGA() {
                     AutoSolverBoxXPModeButton.classList.remove('AutoSolverBoxRepeatAmountButtonActive');
                 } catch (error) {}
             }
+        }
+
+        function AutoSolverBoxForeverModeButtonUpdateFunc() {
             if (DuolingoProSettingsNeverEndMode) {
                 AutoSolverBoxForeverModeButton.classList.add('AutoSolverBoxRepeatAmountButtonActive');
                 try {
@@ -1380,10 +1402,25 @@ function OMEGA() {
             something();
         });
 
+
+        AutoSolverBoxXPModeButton.addEventListener('click', () => {
+            DuolingoProSettingsXPMode = !DuolingoProSettingsXPMode;
+            somethingElse();
+
+            localStorage.setItem('DuolingoProSettingsXPMode', DuolingoProSettingsXPMode);
+            AutoSolverBoxXPModeButtonUpdateFunc();
+            something();
+        });
+
         AutoSolverBoxRepeatNumberDownButton.addEventListener('click', () => {
             if (!DuolingoProSettingsNeverEndMode) {
                 if (autoSolverBoxRepeatAmount > 0) {
-                    autoSolverBoxRepeatAmount--;
+                    if(DuolingoProSettingsXPMode) {
+                        autoSolverBoxRepeatAmount -= 10;
+                        autoSolverBoxRepeatAmount = Math.max(autoSolverBoxRepeatAmount, 0);
+                    } else {
+                        autoSolverBoxRepeatAmount--;
+                    }
                 } else if (autoSolverBoxRepeatAmount <= 0) {
                     autoSolverBoxRepeatAmount = 0;
                 }
@@ -1398,7 +1435,12 @@ function OMEGA() {
         AutoSolverBoxRepeatNumberUpButton.addEventListener('click', () => {
             if (!DuolingoProSettingsNeverEndMode) {
                 if (autoSolverBoxRepeatAmount !== 99999) {
-                    autoSolverBoxRepeatAmount++;
+                    if(DuolingoProSettingsXPMode) {
+                        autoSolverBoxRepeatAmount += 10;
+                        autoSolverBoxRepeatAmount = Math.min(autoSolverBoxRepeatAmount, 99999);
+                    } else {
+                        autoSolverBoxRepeatAmount++;
+                    }
                 } else if (autoSolverBoxRepeatAmount >= 99999) {
                     autoSolverBoxRepeatAmount = 99999;
                 }
@@ -4165,6 +4207,9 @@ function OMEGA() {
                     DLPCE728.textContent = String(autoSolverBoxRepeatAmount + ' Lessons Left');
                 }
             }
+            if (DuolingoProSettingsXPMode) {
+                DLPCE728.textContent = String(autoSolverBoxRepeatAmount + ' XP Left');
+            }
         } else {
             if (injectedDuolingoProCounterOneElement) {
                 let DuolingoProShadeStatusOne = document.querySelector('#DLPTBL1ID');
@@ -4911,7 +4956,13 @@ function OMEGA() {
         if ((practiceAgain !== null || sessionCompleteSlide !== null) && isAutoMode && autoSolverBoxAutomatedSolvingActive) {
             if (!DuolingoProSettingsNeverEndMode && !hcwNIIOdaQqCZRDL) {
                 hcwNIIOdaQqCZRDL = true;
-                autoSolverBoxRepeatAmount--;
+                if(!DuolingoProSettingsXPMode) {
+                   autoSolverBoxRepeatAmount--;
+                }
+                else {
+                    autoSolverBoxRepeatAmount -= findSubReact(document.getElementsByClassName("_1XNQX")[0]).xpGoalSessionProgress.totalXpThisSession;
+                    autoSolverBoxRepeatAmount = Math.max(autoSolverBoxRepeatAmount, 0);
+                }
                 sessionStorage.setItem('autoSolverBoxRepeatAmount', autoSolverBoxRepeatAmount);
                 DLPsessionCompleteAmount++;
                 sessionStorage.setItem('duopro.autoSolveSessionCompleteAmount', DLPsessionCompleteAmount);
@@ -5280,7 +5331,6 @@ function OMEGA() {
 
             elm.dispatchEvent(inputEvent);
         } else if (challengeType === 'Session Complete') {
-
         } else if (challengeType === 'Story Arrange') {
             let choices = document.querySelectorAll('[data-test*="challenge-tap-token"]:not(span)');
             for (let i = 0; i < window.sol.phraseOrder.length; i++) {
@@ -5343,7 +5393,6 @@ function OMEGA() {
         });
         const domFiber = dom[key];
         if (domFiber == null) return null;
-    
         // react <16
         if (domFiber._currentElement) {
             let compFiber = domFiber._currentElement._owner;
@@ -5352,7 +5401,6 @@ function OMEGA() {
             }
             return compFiber._instance;
         }
-    
         // react 16+
         const GetCompFiber = fiber=>{
             //return fiber._debugOwner; // this also works, but is __DEV__ only
@@ -5370,7 +5418,7 @@ function OMEGA() {
     }
 
     window.findReact = findReact;
-
+    window.findSubReact = findSubReact;
     window.ss = solving;
 
 
