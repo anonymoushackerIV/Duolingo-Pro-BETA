@@ -181,7 +181,7 @@ function OMEGA() {
     }
     // Duolingo Pro Settings Variables End
     let duolingoProPythonanywhere = "https://duolingoprodb.pythonanywhere.com";
-	
+
     function DuolingoProRounded() {
         try {
             let DuolingoProRoundedCSS = `
@@ -1032,7 +1032,7 @@ function OMEGA() {
     display: inline-flex;
     height: 48px;
     width: 100%;
-    padding: 16px;
+    padding: 16px 0;
     justify-content: center;
     align-items: center;
     gap: 8px;
@@ -4956,10 +4956,9 @@ function OMEGA() {
         if ((practiceAgain !== null || sessionCompleteSlide !== null) && isAutoMode && autoSolverBoxAutomatedSolvingActive) {
             if (!DuolingoProSettingsNeverEndMode && !hcwNIIOdaQqCZRDL) {
                 hcwNIIOdaQqCZRDL = true;
-                if(!DuolingoProSettingsXPMode) {
+                if (!DuolingoProSettingsXPMode) {
                    autoSolverBoxRepeatAmount--;
-                }
-                else {
+                } else {
                     autoSolverBoxRepeatAmount -= findSubReact(document.getElementsByClassName("_1XNQX")[0]).xpGoalSessionProgress.totalXpThisSession;
                     autoSolverBoxRepeatAmount = Math.max(autoSolverBoxRepeatAmount, 0);
                 }
@@ -4997,7 +4996,7 @@ function OMEGA() {
         } else if (!window.sol) {
             challengeType = 'error';
             nextClickFunc();
-        } 
+        }
         if (challengeType === 'error') {
             nextClickFunc();
         } else if (challengeType) {
@@ -5213,7 +5212,11 @@ function OMEGA() {
                 if (challengeType === 'Challenge Choice') {
                     choices = document.querySelectorAll("[data-test='challenge-judge-text']");
                 } else {
-                    choices = document.querySelectorAll("._1NM0v");
+                    if (document.querySelectorAll("._1NM0v")) {
+                        choices = document.querySelectorAll("._1NM0v");
+                    } else {
+                        choices = document.querySelectorAll("[data-test='challenge-choice']");
+                    }
                 }
                 choices[window.sol.correctIndex].click();
             }
@@ -5342,7 +5345,7 @@ function OMEGA() {
         } else if (challengeType === 'Story Point to Phrase') {
             let choices = document.querySelectorAll('[data-test="challenge-tap-token-text"]');
             var correctIndex = -1;
-            for (let i = 0; i < window.sol.parts.length; i++) { 
+            for (let i = 0; i < window.sol.parts.length; i++) {
                 if (window.sol.parts[i].selectable === true) {
                     correctIndex += 1;
                     if (window.sol.correctAnswerIndex === i) {
