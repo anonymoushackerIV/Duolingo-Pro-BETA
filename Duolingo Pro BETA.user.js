@@ -5212,11 +5212,7 @@ function OMEGA() {
                 if (challengeType === 'Challenge Choice') {
                     choices = document.querySelectorAll("[data-test='challenge-judge-text']");
                 } else {
-                    if (document.querySelectorAll("._1NM0v")) {
-                        choices = document.querySelectorAll("._1NM0v");
-                    } else {
-                        choices = document.querySelectorAll("[data-test='challenge-choice']");
-                    }
+                	choices = document.querySelectorAll("._1NM0v");
                 }
                 choices[window.sol.correctIndex].click();
             }
