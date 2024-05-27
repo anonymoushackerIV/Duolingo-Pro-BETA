@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Duolingo Pro BETA
 // @namespace    Violentmonkey Scripts
-// @version      2.0-BETA-9.6.8
+// @version      2.0-BETA-9.7.0
 // @description  Duolingo Auto Solver Tool - Working May 2024
 // @author       anonymoushackerIV (https://github.com/anonymoushackerIV)
 // @match        https://*.duolingo.com/*
@@ -26,9 +26,9 @@ function OMEGA() {
     let findReactMainElementClass = '_3js2_';
 
     let ASB969 = true;
-    let duolingoProCurrentVersionShort = "2.0B9.6.8";
-    let duolingoProCurrentVersion = "2.0 BETA 9.6.8";
-    let duolingoProFormalCurrentVersion = "2.0BETA9.6.8";
+    let duolingoProCurrentVersionShort = "2.0B9.7.0";
+    let duolingoProCurrentVersion = "2.0 BETA 9.7.0";
+    let duolingoProFormalCurrentVersion = "2.0BETA9.7.0";
 
     let solveSpeed;
     if (isNaN(parseFloat(localStorage.getItem('duopro.autoSolveDelay')))) {
@@ -143,6 +143,13 @@ function OMEGA() {
         }
     }
 
+    let DuolingoProSettingsXPMode = false;
+    if (JSON.parse(localStorage.getItem('DuolingoProSettingsXPMode')) === null) {
+        DuolingoProSettingsXPMode = false;
+    } else {
+        DuolingoProSettingsXPMode = JSON.parse(localStorage.getItem('DuolingoProSettingsXPMode'));
+    }
+
     let DuolingoProSettingsTurboSolveMode = false;
     if (JSON.parse(localStorage.getItem('DuolingoProSettingsTurboSolveMode')) === null) {
         DuolingoProSettingsTurboSolveMode = false;
@@ -157,9 +164,9 @@ function OMEGA() {
         DuolingoProSettingsNeverEndMode = JSON.parse(localStorage.getItem('DuolingoProSettingsNeverEndMode'));
     }
 
-    let DuolingoProShadeLessonsMode = true;
+    let DuolingoProShadeLessonsMode = false;
     if (JSON.parse(localStorage.getItem('DuolingoProShadeLessonsMode')) === null) {
-        DuolingoProShadeLessonsMode = true;
+        DuolingoProShadeLessonsMode = false;
     } else {
         DuolingoProShadeLessonsMode = JSON.parse(localStorage.getItem('DuolingoProShadeLessonsMode'));
     }
@@ -214,6 +221,11 @@ function OMEGA() {
         return button;
     }
 
+    let storyStartButton = document.querySelector('[data-test="story-start"]');
+    if (storyStartButton) {
+        storyStartButton.click();
+    }
+
     function addButtons() {
         if (window.location.pathname === '/learn' && document.querySelector('a[data-test="global-practice"]')) {
             return;
@@ -221,6 +233,12 @@ function OMEGA() {
         if (document.querySelector("#solveAllButton")) {
             return;
         }
+
+        let storyStartButton = document.querySelector('[data-test="story-start"]');
+        if (storyStartButton) {
+            storyStartButton.click();
+        }
+
 
         const original = document.querySelector('[data-test="player-next"]');
         const storiesContinue = document.querySelector('[data-test="stories-player-continue"]');
@@ -257,6 +275,11 @@ function OMEGA() {
                 findReactMainElementClass = 'wqSzE';
                 document.querySelector('.MYehf').style.display = "flex";
                 document.querySelector('.MYehf').style.gap = "20px";
+            } else if (document.querySelector(".FmlUF") !== null) {
+                // Story
+                findReactMainElementClass = '_3TJzR';
+                document.querySelector('._3TJzR').style.display = "flex";
+                document.querySelector('._3TJzR').style.gap = "20px";
             }
 
             const buttonsCSS = document.createElement('style');
@@ -393,6 +416,7 @@ function OMEGA() {
     font-family: Duolingo Pro Rounded, 'din-round' !important;
     font-size: 16px;
     font-weight: 700;
+    line-height: normal;
 
     margin: 0;
 }
@@ -731,17 +755,17 @@ function OMEGA() {
             <div class="AutoSolverBoxTitleSectionOne">
                 <p class="paragraphText noSelect" style="font-size: 24px;">Duolingo Pro</p>
                 <div class="AutoSolverBoxTitleSectionOneBETATagOne">
-                    <p class="paragraphText noSelect" style="color: #FFF;">2.0 BETA 9.6.8</p>
+                    <p class="paragraphText noSelect" style="color: #FFF;">${duolingoProCurrentVersion}</p>
                 </div>
             </div>
-            <p class="paragraphText noSelect" style="color: rgb(var(--color-wolf));">How many lessons would you like to AutoSolve?</p>
+            <p class="paragraphText noSelect" id="someTextIdk" style="color: rgb(var(--color-wolf));">How many lessons would you like to AutoSolve?</p>
             <div class="AutoSolverBoxSectionThreeBox">
                 <div class="AutoSolverBoxSectionThreeBoxSectionOne">
                     <button class="AutoSolverBoxRepeatAmountButton activatorThingDPHDJ" id="DPASBadB1" aria-label="Subtract">-</button>
                     <div class="AutoSolverBoxRepeatNumberDisplay paragraphText noSelect" id="AutoSolverBoxNumberDisplayID">0</div>
                     <button class="AutoSolverBoxRepeatAmountButton activatorThingDPHDJ" id="DPASBauB1" aria-label="Add">+</button>
                     <button class="AutoSolverBoxRepeatAmountButton activatorThingDPHDJ" id="DPASBfmB1" aria-label="Toggle Infinity Mode" style="font-size: 20px;">∞</button>
-                    <button class="AutoSolverBoxRepeatAmountButton activatorThingDPHDJ" id="DLPIDxpMB1ID1" aria-label="Toggle XP Mode (not available yet)">XP</button>
+                    <button class="AutoSolverBoxRepeatAmountButton activatorThingDPHDJ" id="DLPIDxpMB1ID1" aria-label="Toggle XP Mode">XP</button>
                 </div>
                 <div class="AutoSolverBoxSectionThreeBoxSectionTwo" id="AutoSolverBoxSectionThreeBoxSectionTwoIDOne">
                     <div class="paragraphText noSelect textFill">Practice Only Mode</div>
@@ -1013,6 +1037,24 @@ function OMEGA() {
     border-bottom: 2px solid rgb(var(--color-swan));
 }
 
+.AutoSolverBoxRepeatAmountButtonOffDeactive {
+    height: 46px;
+    margin-top: 2px;
+
+    border: 2px solid rgb(var(--color-swan));
+    background: rgb(var(--color-snow));
+
+    opacity: 0.5;
+
+    cursor: not-allowed;
+
+    color: rgb(var(--color-eel));
+}
+.AutoSolverBoxRepeatAmountButtonOffDeactive:hover {
+}
+.AutoSolverBoxRepeatAmountButtonOffDeactive:active {
+}
+
 
 .AutoSolverBoxRepeatNumberDisplay {
     position: relative;
@@ -1021,7 +1063,7 @@ function OMEGA() {
     display: inline-flex;
     height: 48px;
     width: 100%;
-    padding: 16px;
+    padding: 16px 0;
     justify-content: center;
     align-items: center;
     gap: 8px;
@@ -1265,6 +1307,15 @@ function OMEGA() {
 
     }
 
+    function somethingElse() {
+        let thing = document.getElementById("someTextIdk");
+        if(DuolingoProSettingsXPMode) {
+            thing.textContent = "How much XP would you like to collect?";
+        } else {
+            thing.textContent = "How many lessons would you like to AutoSolve?";
+        }
+    }
+
     function something() {
         let AutoSolverBoxRepeatStartButton = document.querySelector('#DPASBsB1');
         if (autoSolverBoxRepeatAmount > 0 || DuolingoProSettingsNeverEndMode) {
@@ -1294,6 +1345,9 @@ function OMEGA() {
 
         AutoSolverBoxNumberDisplayID.textContent = autoSolverBoxRepeatAmount;
         AutoSolverBoxForeverModeButtonUpdateFunc();
+        AutoSolverBoxXPModeButtonUpdateFunc();
+
+        somethingElse();
         something();
 
         function DPABaBsFunc1() {
@@ -1323,8 +1377,8 @@ function OMEGA() {
                 } catch (error) {}
             }
         }
-        function AutoSolverBoxForeverModeButtonUpdateFunc() {
-            if (false) {
+        function AutoSolverBoxXPModeButtonUpdateFunc() {
+            if (DuolingoProSettingsXPMode) {
                 AutoSolverBoxXPModeButton.classList.add('AutoSolverBoxRepeatAmountButtonActive');
                 try {
                     AutoSolverBoxXPModeButton.classList.remove('AutoSolverBoxRepeatAmountButtonOff');
@@ -1335,7 +1389,12 @@ function OMEGA() {
                     AutoSolverBoxXPModeButton.classList.remove('AutoSolverBoxRepeatAmountButtonActive');
                 } catch (error) {}
             }
+        }
+
+        function AutoSolverBoxForeverModeButtonUpdateFunc() {
             if (DuolingoProSettingsNeverEndMode) {
+                AutoSolverBoxXPModeButton.classList.add('AutoSolverBoxRepeatAmountButtonOffDeactive');
+
                 AutoSolverBoxForeverModeButton.classList.add('AutoSolverBoxRepeatAmountButtonActive');
                 try {
                     AutoSolverBoxForeverModeButton.classList.remove('AutoSolverBoxRepeatAmountButtonOff');
@@ -1350,6 +1409,10 @@ function OMEGA() {
                 AutoSolverBoxNumberDisplayID.textContent = "∞";
                 AutoSolverBoxNumberDisplayID.style.fontSize = '20px';
             } else {
+                try {
+                    AutoSolverBoxXPModeButton.classList.remove('AutoSolverBoxRepeatAmountButtonOffDeactive');
+                } catch (error) {}
+
                 AutoSolverBoxForeverModeButton.classList.add('AutoSolverBoxRepeatAmountButtonOff');
                 try {
                     AutoSolverBoxForeverModeButton.classList.remove('AutoSolverBoxRepeatAmountButtonActive');
@@ -1376,10 +1439,27 @@ function OMEGA() {
             something();
         });
 
+
+        AutoSolverBoxXPModeButton.addEventListener('click', () => {
+            if (!DuolingoProSettingsNeverEndMode) {
+                DuolingoProSettingsXPMode = !DuolingoProSettingsXPMode;
+                somethingElse();
+
+                localStorage.setItem('DuolingoProSettingsXPMode', DuolingoProSettingsXPMode);
+                AutoSolverBoxXPModeButtonUpdateFunc();
+                something();
+            }
+        });
+
         AutoSolverBoxRepeatNumberDownButton.addEventListener('click', () => {
             if (!DuolingoProSettingsNeverEndMode) {
                 if (autoSolverBoxRepeatAmount > 0) {
-                    autoSolverBoxRepeatAmount--;
+                    if(DuolingoProSettingsXPMode) {
+                        autoSolverBoxRepeatAmount -= 10;
+                        autoSolverBoxRepeatAmount = Math.max(autoSolverBoxRepeatAmount, 0);
+                    } else {
+                        autoSolverBoxRepeatAmount--;
+                    }
                 } else if (autoSolverBoxRepeatAmount <= 0) {
                     autoSolverBoxRepeatAmount = 0;
                 }
@@ -1394,7 +1474,12 @@ function OMEGA() {
         AutoSolverBoxRepeatNumberUpButton.addEventListener('click', () => {
             if (!DuolingoProSettingsNeverEndMode) {
                 if (autoSolverBoxRepeatAmount !== 99999) {
-                    autoSolverBoxRepeatAmount++;
+                    if(DuolingoProSettingsXPMode) {
+                        autoSolverBoxRepeatAmount += 10;
+                        autoSolverBoxRepeatAmount = Math.min(autoSolverBoxRepeatAmount, 99999);
+                    } else {
+                        autoSolverBoxRepeatAmount++;
+                    }
                 } else if (autoSolverBoxRepeatAmount >= 99999) {
                     autoSolverBoxRepeatAmount = 99999;
                 }
@@ -1810,10 +1895,10 @@ function OMEGA() {
                 </div>
             </div>
 
-            <p class="selfFill paragraphText noSelect" style="line-height: 32px;">Upload Photo <a class=" paragraphText" style="color: rgb(var(--color-eel), 0.5)">- Optional</a></p>
-            <input type="file" accept="image/png, image/jpeg" class="loldonttouchthisbit" id="SendFeedbackFileUploadButtonIDOne" onchange="showFileName()"/>
+            <p class="selfFill paragraphText noSelect" style="line-height: 32px;">Upload Photo/Video <a class="paragraphText" style="color: rgb(var(--color-eel), 0.5)">- Optional</a></p>
+            <input type="file" accept="image/png, image/jpeg, video/mp4" class="loldonttouchthisbit" id="SendFeedbackFileUploadButtonIDOne" onchange="showFileName()"/>
 
-            <p class="selfFill paragraphText noSelect" style="line-height: 32px;">Email <a class=" paragraphText" style="color: rgb(var(--color-eel), 0.5)">- Optional, can help us reach back</a></p>
+            <p class="selfFill paragraphText noSelect" style="line-height: 32px;">Email <a class="paragraphText" style="color: rgb(var(--color-eel), 0.5)">- Optional, can help us reach back</a></p>
             <input class="DLPFeedbackTextFieldT1" id="DLPFeedbackTextField2" type="email" style="resize: none; height: 54px;" placeholder="Email address">
 
             <div class="SendFeedbackBoxSectionEight">
@@ -2559,7 +2644,7 @@ function OMEGA() {
             <div class="DuolingoProSettingsBoxSectionOne">
                 <p class="paragraphText noSelect textFill" style="font-size: 24px; line-height: 32px;">Settings</p>
                 <div class="DuolingoProSettingsBoxSectionOneBoxOne">
-                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne paragraphText">2.0 BETA 9.6.8</p>
+                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne paragraphText">${duolingoProCurrentVersion}</p>
                 </div>
             </div>
             <div class="DuolingoProSettingsBoxSectionTwo">
@@ -2882,7 +2967,6 @@ function OMEGA() {
                     localStorage.setItem('DuolingoProShadeLessonsMode', DuolingoProShadeLessonsMode);
                     //localStorage.setItem('AutoSolverSettingsLowPerformanceMode', AutoSolverSettingsLowPerformanceMode);
                     //localStorage.setItem('DuolingoProSettingsProBlockMode', DuolingoProSettingsProBlockMode);
-                    //localStorage.setItem('DuolingoProShadeLessonsMode', DuolingoProShadeLessonsMode);
                     localStorage.setItem('DuolingoProAntiStuckProtectionMode', DuolingoProAntiStuckProtectionMode);
                     localStorage.setItem('DLPOMEGA', DLPOMEGA);
 
@@ -3124,6 +3208,8 @@ function OMEGA() {
         setTimeout(function() {
             versionServerStuff('download', duolingoProCurrentVersion);
             checkFlagTwo();
+
+            newWithUpdatePopUpFunction();
         }, 2000);
 
         function checkFlagTwo() {
@@ -3152,6 +3238,8 @@ function OMEGA() {
         setTimeout(function() {
             versionServerStuff('update', duolingoProCurrentVersion, String(localStorage.getItem('duolingoProLastInstalledVersion')));
             checkFlagThree();
+
+            newWithUpdatePopUpFunction();
         }, 2000);
 
         function checkFlagThree() {
@@ -3369,7 +3457,7 @@ function OMEGA() {
     let injectedDuolingoProShadeStyle = null;
 
     function injectDuolingoProShade() {
-        if (window.location.pathname.includes('/lesson') && autoSolverBoxAutomatedSolvingActive && DuolingoProShadeLessonsMode) {
+        if ((window.location.pathname.includes('/lesson') || window.location.pathname.includes('/practice')) && autoSolverBoxAutomatedSolvingActive && DuolingoProShadeLessonsMode) {
             if (!injectedDuolingoProShadeElement) {
                 injectedDuolingoProShadeElement = document.createElement('div');
                 injectedDuolingoProShadeElement.innerHTML = DuolingoProShadeHTML;
@@ -4142,6 +4230,8 @@ function OMEGA() {
                 } else {
                     aQklgZktoyzqdZpz("Lesson", "Lessons");
                 }
+            } else if (DuolingoProSettingsXPMode) {
+                DLPCE728.textContent = String(autoSolverBoxRepeatAmount + ' XP Left');
             } else if (window.location.pathname === '/practice') {
                 aQklgZktoyzqdZpz("Practice", "Practices");
                 if (autoSolverBoxRepeatAmount === 1) {
@@ -4858,7 +4948,194 @@ function OMEGA() {
     }
     setInterval(sTvtBAMVJoWFodPG, 2000);
 
+        let euhqzwyaHTML = `
+<div class="DPLBoxShadowStyleT1" id="DLPNewWithUpdateMainBox1ID1">
+  <div class="DPLBoxStyleT1" style="height: 512px; background-image: url('https://s3-alpha-sig.figma.com/img/df3d/0ba0/2e01beef7194e52fab3de267287d6961?Expires=1717372800&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=hcffoweEnTdE49pyb9cRPvWMTCzqV9HC7Ec~XrH~XfwjDXS~1KVd8S0enpWs1jeXnpRi77vY48uyRdRi~q-fiXgkHdGLBChX0L~EXwJGTSgv3yrDaca6fQpndxXpBz2pLqk7vGRN4p~oNN8VOPh9uTSU0cleRVEdkYnLPQ5Bq-Y12P2NnIECN--QQcupij6bfnP1Ms5ZryCK0FqivmCe1IuWD7Gr4in84irfrTBnu7XhtnZ2QEDJeASwe0Ll~LBtyr6A0oVwqSXUZWoglQj4HrHAgU1rLM4agvEkRB5Tzo2SXTKbV3JyCXBVYJqqfHns7wVfDiDRaLRyqn-U3FUk~g__'); background-size: 100% cover; background-position: center; background-repeat: no-repeat; position: relative;">
+    <div style="display: flex; width: 384px; flex-direction: column; justify-content: center; align-items: center; gap: 8px;">
+      <p class="paragraphText noSelect" style="font-size: 32px; align-self: stretch; text-align: center;">Story Support & XP Mode is Here</p>
+      <p class="paragraphText noSelect" style="align-self: stretch; text-align: center; opacity: 0.8;">Story support & XP Mode are finally here. We plan on adding Legendary support soon. Join our Discord Server to get the new updates before everyone else.</p>
+      <div style="display: flex; justify-content: center; align-items: center; gap: 8px; position: absolute; left: 16px; right: 16px; bottom: 16px;">
+        <div class="BPUDPUB1BN1 paragraphText noSelect" id="NUIHB1ID1">JOIN DISCORD</div>
+			  <div class="BPUDPUB1BN1 paragraphText noSelect" id="NUIHB2ID1">DISMISS</div>
+      </div>
+    </div>
+  <canvas style="position: fixed; pointer-events: none;" id="NUIHMB1"></canvas>
+</div>
+`;
+    let euhqzwyaCSS = `
+    .BPUDPUB1BN1 {
+	display: flex;
+	width: 256px;
+	height: 54px;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
 
+	border-radius: 8px;
+	border: 2px solid rgba(0, 0, 0, 0.20);
+	border-bottom: 4px solid rgba(0, 0, 0, 0.20);
+	background: #FFF;
+
+	color: #000;
+	font-size: 16px;
+	font-weight: 700;
+
+	margin: 0px;
+	cursor: pointer;
+	transition: .1s;
+}
+.BPUDPUB1BN1:hover {
+    filter: brightness(0.95);
+}
+.BPUDPUB1BN1:active {
+    filter: brightness(0.9);
+    height: 52px;
+    margin-top: 2px;
+	border-bottom: 2px solid rgba(0, 0, 0, 0.20);
+}
+`;
+    let euhqzwyaElement = null;
+    let euhqzwyaStyle = null;
+
+    function newWithUpdatePopUpFunction() {
+        try {
+            if (!document.querySelector('#NUIHMB1')) {
+                if (!euhqzwyaStyle) {
+                    euhqzwyaStyle = document.createElement('style');
+                    euhqzwyaStyle.type = 'text/css';
+                    euhqzwyaStyle.innerHTML = euhqzwyaCSS;
+                    document.head.appendChild(euhqzwyaStyle);
+
+                    document.body.insertAdjacentHTML('beforeend', euhqzwyaHTML);
+
+                    let canvas = document.getElementById("NUIHMB1");
+                    let ctx = canvas.getContext("2d");
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                    let cx = ctx.canvas.width / 2;
+                    let cy = ctx.canvas.height / 2;
+
+                    let confetti = [];
+                    const confettiCount = 500;
+                    const gravity = 0.5;
+                    const terminalVelocity = 10;
+                    const drag = 0.01;
+                    const colors = [
+                        { front: "#FF2D55", back: "#FF2D55" },
+                        { front: "#FF9500", back: "#FF9500" },
+                        { front: "#FFCC00", back: "#FFCC00" },
+                        { front: "#34C759", back: "#34C759" },
+                        { front: "#5AC8FA", back: "#5AC8FA" },
+                        { front: "#007AFF", back: "#007AFF" },
+                        { front: "#5856D6", back: "#5856D6" },
+                        { front: "#AF52DE", back: "#AF52DE" },
+                    ];
+
+                    let resizeCanvas = () => {
+                        canvas.width = window.innerWidth;
+                        canvas.height = window.innerHeight;
+                        cx = ctx.canvas.width / 2;
+                        cy = ctx.canvas.height / 2;
+                    };
+
+                    let randomRange = (min, max) => Math.random() * (max - min) + min;
+
+                    let initConfetti = () => {
+                        for (let i = 0; i < confettiCount; i++) {
+                            confetti.push({
+                                color: colors[Math.floor(randomRange(0, colors.length))],
+                                dimensions: {
+                                    x: randomRange(5, 10),
+                                    y: randomRange(5, 10),
+                                },
+
+                                position: {
+                                    x: randomRange(0, canvas.width),
+                                    y: canvas.height - 1,
+                                },
+
+                                rotation: randomRange(0, 2 * Math.PI),
+                                scale: {
+                                    x: 1,
+                                    y: 1,
+                                },
+
+                                velocity: {
+                                    x: randomRange(-25, 25),
+                                    y: randomRange(0, -50),
+                                },
+                            });
+                        }
+                    };
+
+                    let render = () => {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                        confetti.forEach((confetto, index) => {
+                            let width = confetto.dimensions.x * confetto.scale.x;
+                            let height = confetto.dimensions.y * confetto.scale.y;
+                            ctx.translate(confetto.position.x, confetto.position.y);
+                            ctx.rotate(confetto.rotation);
+
+                            confetto.velocity.x -= confetto.velocity.x * drag;
+                            confetto.velocity.y = Math.min(
+                                confetto.velocity.y + gravity,
+                                terminalVelocity,
+                            );
+                            confetto.velocity.x +=
+                                Math.random() > 0.5 ? Math.random() : -Math.random();
+
+                            confetto.position.x += confetto.velocity.x;
+                            confetto.position.y += confetto.velocity.y;
+
+                            if (confetto.position.y >= canvas.height) confetti.splice(index, 1);
+
+                            if (confetto.position.x > canvas.width) confetto.position.x = 0;
+                            if (confetto.position.x < 0) confetto.position.x = canvas.width;
+
+                            ctx.fillStyle = confetto.color.front;
+
+                            ctx.fillRect(-width / 2, -height / 2, width, height);
+
+                            ctx.setTransform(1, 0, 0, 1, 0, 0);
+                        });
+                        window.requestAnimationFrame(render);
+                    };
+
+                    render();
+
+                    window.addEventListener("resize", function () {
+                        resizeCanvas();
+                    });
+
+                    let djhsafjkds = document.querySelector('#DLPNewWithUpdateMainBox1ID1');
+                    djhsafjkds.style.opacity = '1';
+
+                    setTimeout(function() {
+                        setTimeout(function() {
+                            initConfetti();
+                        }, 500);
+                    }, 200);
+
+                    document.getElementById("NUIHB1ID1").addEventListener("click", function() {
+                        window.open("https://discord.gg/r8xQ7K59Mt", "_blank");
+                    });
+
+                    document.getElementById("NUIHB2ID1").addEventListener("click", function() {
+                        djhsafjkds.style.opacity = '0';
+
+                        setTimeout(function() {
+                            djhsafjkds.remove();
+
+                            euhqzwyaElement = null;
+                            euhqzwyaStyle = null;
+                        }, 200);
+                    });
+                }
+            }
+        } catch (error) {
+        }
+    }
 
 
 
@@ -4907,7 +5184,12 @@ function OMEGA() {
         if ((practiceAgain !== null || sessionCompleteSlide !== null) && isAutoMode && autoSolverBoxAutomatedSolvingActive) {
             if (!DuolingoProSettingsNeverEndMode && !hcwNIIOdaQqCZRDL) {
                 hcwNIIOdaQqCZRDL = true;
-                autoSolverBoxRepeatAmount--;
+                if (!DuolingoProSettingsXPMode) {
+                   autoSolverBoxRepeatAmount--;
+                } else {
+                    autoSolverBoxRepeatAmount -= findSubReact(document.getElementsByClassName("_1XNQX")[0]).xpGoalSessionProgress.totalXpThisSession;
+                    autoSolverBoxRepeatAmount = Math.max(autoSolverBoxRepeatAmount, 0);
+                }
                 sessionStorage.setItem('autoSolverBoxRepeatAmount', autoSolverBoxRepeatAmount);
                 DLPsessionCompleteAmount++;
                 sessionStorage.setItem('duopro.autoSolveSessionCompleteAmount', DLPsessionCompleteAmount);
@@ -4936,7 +5218,13 @@ function OMEGA() {
         //    return;
         //}
 
-        let challengeType = determineChallengeType();
+        let challengeType;
+        if (window.sol) {
+            challengeType = determineChallengeType();
+        } else if (!window.sol) {
+            challengeType = 'error';
+            nextClickFunc();
+        }
         if (challengeType === 'error') {
             nextClickFunc();
         } else if (challengeType) {
@@ -4956,13 +5244,20 @@ function OMEGA() {
     function nextClickFunc() {
         setTimeout(function() {
             try {
-                let nextButton = document.querySelector('[data-test="player-next"]');
+                let nextButtonNormal = document.querySelector('[data-test="player-next"]');
+                let nextButtonStories = document.querySelector('[data-test="stories-player-continue"]');
+
+                let nextButtonAriaValueNormal = nextButtonNormal ? nextButtonNormal.getAttribute('aria-disabled') : null;
+                let nextButtonAriaValueStories = nextButtonStories ? nextButtonStories.disabled : null;
+
+                let nextButton = nextButtonNormal || nextButtonStories;
+                let nextButtonAriaValue = nextButtonAriaValueNormal || nextButtonAriaValueStories;
+
                 if (nextButton) {
-                    let nextButtonAriaValue = nextButton.getAttribute('aria-disabled');
-                    if (nextButtonAriaValue === 'true') {
+                    if (nextButtonAriaValue === 'true' || nextButtonAriaValue === true) {
                         if (document.querySelectorAll('._35QY2._3jIlr.f2zGP._18W4a.xtPuL').length > 0) {
                         } else {
-                            if (DuolingoProAntiStuckProtectionMode) {
+                            if (DuolingoProAntiStuckProtectionMode && nextButtonAriaValue === 'true') {
                                 console.log('The next button is disabled.');
                                 zXIArDomWMPkmTVf++;
                                 //for (let i = 0; i < 50; i++) {
@@ -4985,12 +5280,12 @@ function OMEGA() {
                                 //}
                             }
                         }
-                        if (zXIArDomWMPkmTVf >= 3 && !SciiOTPybxFAimRW) {
+                        if (zXIArDomWMPkmTVf >= 3 && !SciiOTPybxFAimRW && nextButtonAriaValue === 'true') {
                             SciiOTPybxFAimRW = true;
                             LhEqEHHc();
                             notificationCall("Can't Recognize Question Type", "Duolingo Pro ran into an error while solving this question, an automatic question error report is being made.");
                         }
-                    } else if (nextButtonAriaValue === 'false') {
+                    } else if (nextButtonAriaValue === 'false' || nextButtonAriaValue === false) {
                         nextButton.click();
                         mainSolveStatistics('question');
                         zXIArDomWMPkmTVf = 0;
@@ -5014,7 +5309,7 @@ function OMEGA() {
                         nextButton.click();
                     }
                 } else {
-                    console.log('Element with data-test="player-next" not found.');
+                    console.log('Element with data-test="player-next" or data-test="stories-player-continue" not found.');
                 }
             } catch (error) {}
         }, 50);
@@ -5049,56 +5344,71 @@ function OMEGA() {
     }
     function determineChallengeType() {
         try {
-            if (document.querySelectorAll('[data-test*="challenge-speak"]').length > 0) {
-                hcwNIIOdaQqCZRDL = false;
-                return 'Challenge Speak';
-            } else if (document.querySelectorAll('[data-test*="challenge-name"]').length > 0 && document.querySelectorAll('[data-test="challenge-choice"]').length > 0) {
-                hcwNIIOdaQqCZRDL = false;
-                return 'Challenge Name';
-            } else if (window.sol.type === 'listenMatch') {
-                hcwNIIOdaQqCZRDL = false;
-                return 'Listen Match';
-            } else if (document.querySelectorAll('[data-test="challenge challenge-listenSpeak"]').length > 0) {
-                hcwNIIOdaQqCZRDL = false;
-                return 'Listen Speak';
-            } else if (document.querySelectorAll('[data-test="challenge-choice"]').length > 0) {
-                hcwNIIOdaQqCZRDL = false;
-                if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0) {
-                    return 'Challenge Choice with Text Input';
-                } else {
-                    return 'Challenge Choice';
+            console.log(window.sol);
+            if (document.getElementsByClassName("FmlUF").length > 0) {
+                // Story
+                if (window.sol.type === "arrange") {
+                    return "Story Arrange"
+                } else if (window.sol.type === "multiple-choice" || window.sol.type === "select-phrases") {
+                    return "Story Multiple Choice"
+                } else if (window.sol.type === "point-to-phrase") {
+                    return "Story Point to Phrase"
+                } else if (window.sol.type === "match") {
+                    return "Story Pairs"
                 }
-            } else if (document.querySelectorAll('[data-test$="challenge-tap-token"]').length > 0) {
-                hcwNIIOdaQqCZRDL = false;
-                if (window.sol.pairs !== undefined) {
-                    return 'Pairs';
-                } else if (window.sol.correctTokens !== undefined) {
-                    return 'Tokens Run';
-                } else if (window.sol.correctIndices !== undefined) {
-                    return 'Indices Run';
-                }
-            } else if (document.querySelectorAll('[data-test="challenge-tap-token-text"]').length > 0) {
-                hcwNIIOdaQqCZRDL = false;
-                return 'Fill in the Gap';
-            } else if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0) {
-                hcwNIIOdaQqCZRDL = false;
-                return 'Challenge Text Input';
-            } else if (document.querySelectorAll('[data-test*="challenge-partialReverseTranslate"]').length > 0) {
-                hcwNIIOdaQqCZRDL = false;
-                return 'Partial Reverse';
-            } else if (document.querySelectorAll('textarea[data-test="challenge-translate-input"]').length > 0) {
-                hcwNIIOdaQqCZRDL = false;
-                return 'Challenge Translate Input';
-            } else if (document.querySelectorAll('[data-test="session-complete-slide"]').length > 0) {
-                return 'Session Complete';
-            } else if (document.querySelectorAll('[data-test="daily-quest-progress-slide"]').length > 0) {
-                return 'Daily Quest Progress';
-            } else if (document.querySelectorAll('[data-test="streak-slide"]').length > 0) {
-                return 'Streak';
-            } else if (document.querySelectorAll('[data-test="leaderboard-slide"]').length > 0) { // needs maintainance
-                return 'Leaderboard';
             } else {
-                return false;
+                // Lesson
+                if (document.querySelectorAll('[data-test*="challenge-speak"]').length > 0) {
+                    hcwNIIOdaQqCZRDL = false;
+                    return 'Challenge Speak';
+                } else if (document.querySelectorAll('[data-test*="challenge-name"]').length > 0 && document.querySelectorAll('[data-test="challenge-choice"]').length > 0) {
+                    hcwNIIOdaQqCZRDL = false;
+                    return 'Challenge Name';
+                } else if (window.sol.type === 'listenMatch') {
+                    hcwNIIOdaQqCZRDL = false;
+                    return 'Listen Match';
+                } else if (document.querySelectorAll('[data-test="challenge challenge-listenSpeak"]').length > 0) {
+                    hcwNIIOdaQqCZRDL = false;
+                    return 'Listen Speak';
+                } else if (document.querySelectorAll('[data-test="challenge-choice"]').length > 0) {
+                    hcwNIIOdaQqCZRDL = false;
+                    if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0) {
+                        return 'Challenge Choice with Text Input';
+                    } else {
+                        return 'Challenge Choice'
+                    }
+                } else if (document.querySelectorAll('[data-test$="challenge-tap-token"]').length > 0) {
+                    hcwNIIOdaQqCZRDL = false;
+                    if (window.sol.pairs !== undefined) {
+                        return 'Pairs';
+                    } else if (window.sol.correctTokens !== undefined) {
+                        return 'Tokens Run';
+                    } else if (window.sol.correctIndices !== undefined) {
+                        return 'Indices Run';
+                    }
+                } else if (document.querySelectorAll('[data-test="challenge-tap-token-text"]').length > 0) {
+                    hcwNIIOdaQqCZRDL = false;
+                    return 'Fill in the Gap';
+                } else if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0) {
+                    hcwNIIOdaQqCZRDL = false;
+                    return 'Challenge Text Input';
+                } else if (document.querySelectorAll('[data-test*="challenge-partialReverseTranslate"]').length > 0) {
+                    hcwNIIOdaQqCZRDL = false;
+                    return 'Partial Reverse';
+                } else if (document.querySelectorAll('textarea[data-test="challenge-translate-input"]').length > 0) {
+                    hcwNIIOdaQqCZRDL = false;
+                    return 'Challenge Translate Input';
+                } else if (document.querySelectorAll('[data-test="session-complete-slide"]').length > 0) {
+                    return 'Session Complete';
+                } else if (document.querySelectorAll('[data-test="daily-quest-progress-slide"]').length > 0) {
+                    return 'Daily Quest Progress';
+                } else if (document.querySelectorAll('[data-test="streak-slide"]').length > 0) {
+                    return 'Streak';
+                } else if (document.querySelectorAll('[data-test="leaderboard-slide"]').length > 0) { // needs maintainance
+                    return 'Leaderboard';
+                } else {
+                    return false;
+                }
             }
         } catch (error) {
             console.log(error);
@@ -5123,6 +5433,8 @@ function OMEGA() {
                 });
 
                 elm.dispatchEvent(inputEvent);
+            } else if (challengeType === 'Challenge Choice') {
+                document.querySelectorAll("[data-test='challenge-choice']")[window.sol.correctIndex].click();
             }
 
         } else if (challengeType === 'Pairs') {
@@ -5157,6 +5469,25 @@ function OMEGA() {
                 })
             }
 
+        } else if (challengeType === 'Story Pairs') {
+            let nl = document.querySelectorAll('[data-test*="challenge-tap-token"]:not(span)');
+            const pairs = [];
+            if (document.querySelectorAll('[data-test="challenge-tap-token-text"]').length === nl.length) {
+                Object.keys(window.sol.dictionary).forEach((key) => {
+                    if (!pairs.includes(key.split(":")[1])) {
+                        pairs.push(key.split(":")[1]);
+                        pairs.push(window.sol.dictionary[key]);
+                    }
+                    for (let p = 0; p < pairs.length; p++) {
+                        for (let i = 0; i < nl.length; i++) {
+                            const nlInnerText = nl[i].querySelector('[data-test="challenge-tap-token-text"]').innerText.toLowerCase().trim();
+                            if (nlInnerText === pairs[p] && !nl[i].disabled) {
+                                nl[i].click();
+                            }
+                        }
+                    }
+                })
+            }
         } else if (challengeType === 'Tokens Run') {
             correctTokensRun();
 
@@ -5219,7 +5550,25 @@ function OMEGA() {
 
             elm.dispatchEvent(inputEvent);
         } else if (challengeType === 'Session Complete') {
-
+        } else if (challengeType === 'Story Arrange') {
+            let choices = document.querySelectorAll('[data-test*="challenge-tap-token"]:not(span)');
+            for (let i = 0; i < window.sol.phraseOrder.length; i++) {
+                choices[window.sol.phraseOrder[i]].click();
+            }
+        } else if (challengeType === 'Story Multiple Choice') {
+            let choices = document.querySelectorAll('[data-test="stories-choice"]');
+            choices[window.sol.correctAnswerIndex].click();
+        } else if (challengeType === 'Story Point to Phrase') {
+            let choices = document.querySelectorAll('[data-test="challenge-tap-token-text"]');
+            var correctIndex = -1;
+            for (let i = 0; i < window.sol.parts.length; i++) {
+                if (window.sol.parts[i].selectable === true) {
+                    correctIndex += 1;
+                    if (window.sol.correctAnswerIndex === i) {
+                        choices[correctIndex].parentElement.click();
+                    }
+                }
+            }
         }
     }
 
@@ -5246,7 +5595,7 @@ function OMEGA() {
     function correctIndicesRun() {
         if (window.sol.correctIndices) {
             window.sol.correctIndices?.forEach(index => {
-                document.querySelectorAll('div[data-test="word-bank"] [data-test="challenge-tap-token-text"]')[index].click();
+                document.querySelectorAll('div[data-test="word-bank"] [data-test*="challenge-tap-token"]:not(span)')[index].click();
             });
         }
     }
@@ -5257,21 +5606,38 @@ function OMEGA() {
     }
 
     function findReact(dom, traverseUp = 0) {
-        let reactProps = Object.keys(dom.parentElement).find((key) => key.startsWith("__reactProps$"));
-        while (traverseUp-- > 0 && dom.parentElement) {
-            dom = dom.parentElement;
-            reactProps = Object.keys(dom.parentElement).find((key) => key.startsWith("__reactProps$"));
+        const key = Object.keys(dom).find(key=>{
+            return key.startsWith("__reactFiber$") // react 17+
+                || key.startsWith("__reactInternalInstance$"); // react <17
+        });
+        const domFiber = dom[key];
+        if (domFiber == null) return null;
+        // react <16
+        if (domFiber._currentElement) {
+            let compFiber = domFiber._currentElement._owner;
+            for (let i = 0; i < traverseUp; i++) {
+                compFiber = compFiber._currentElement._owner;
+            }
+            return compFiber._instance;
         }
-        if(dom?.parentElement?.[reactProps]?.children[0] == null){
-            return dom?.parentElement?.[reactProps]?.children[1]?._owner?.stateNode;
-        } else {
-            return dom?.parentElement?.[reactProps]?.children[0]?._owner?.stateNode;
+        // react 16+
+        const GetCompFiber = fiber=>{
+            //return fiber._debugOwner; // this also works, but is __DEV__ only
+            let parentFiber = fiber.return;
+            while (typeof parentFiber.type == "string") {
+                parentFiber = parentFiber.return;
+            }
+            return parentFiber;
+        };
+        let compFiber = GetCompFiber(domFiber);
+        for (let i = 0; i < traverseUp; i++) {
+            compFiber = GetCompFiber(compFiber);
         }
-        // return dom?.parentElement?.[reactProps]?.children[0]?._owner?.stateNode;
+        return compFiber.stateNode;
     }
 
     window.findReact = findReact;
-
+    window.findSubReact = findSubReact;
     window.ss = solving;
 
 
@@ -5331,13 +5697,8 @@ function OMEGA() {
             sendFeedbackStatus = 'empty';
         }
     }
-
-    async function analyticsLogsSend(text, value) {
-        console.log("analyticsLogsSend called");
-    }
-
     async function versionServerStuff(option, to, from) {
-        let versionStuffTable = 'kqpEfMbg';
+        let versionStuffTable = 'mKqEQyyh';
         if (option === 'update') {
             try {
                 const objectData = {
@@ -5359,7 +5720,7 @@ function OMEGA() {
                     updateStuffVar = 'server network error';
                 }
             } catch (error) {
-                downloadStuffVar = 'error';
+                updateStuffVar = 'error';
             }
         } else if (option === 'download') {
             try {
@@ -5376,9 +5737,9 @@ function OMEGA() {
                     body: JSON.stringify(objectData)
                 });
                 if (response.ok) {
-                    updateStuffVar = 'true';
+                    downloadStuffVar = 'true';
                 } else {
-                    updateStuffVar = 'server network error';
+                    downloadStuffVar = 'server network error';
                 }
             } catch (error) {
                 downloadStuffVar = 'error';
@@ -5392,7 +5753,9 @@ function OMEGAmaintainer() {
     if (JSON.parse(localStorage.getItem('DLPOMEGA')) === true) {
         if (document.readyState === "complete") {
             DLPOMEGA = true;
-            OMEGA();
+            setTimeout(function() {
+                OMEGA();
+            }, 1000);
         } else if (OMEGAmaintainerHelper <= 50) {
             OMEGAmaintainerHelper++;
             setTimeout(function() {
@@ -5402,7 +5765,9 @@ function OMEGAmaintainer() {
             //    OMEGA();
             //});
         } else {
-            OMEGA();
+            setTimeout(function() {
+                OMEGA();
+            }, 1000);
         }
     } else {
         DLPOMEGA = false;
