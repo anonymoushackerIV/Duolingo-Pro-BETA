@@ -10,7 +10,7 @@ Features:
 - See issues & fixes,
 - Send feedback,
 - Settings for: custom automatic question solve delay, question stuck protection, shade (less power, less lag, fullspeed performance), stats,
-- More coming soon (XP Mode, AutoServer, Story Support...)
+- More coming soon (AutoServer, 3.0)
 
 ![Duolingo Pro - In the Learn Tab](https://github.com/anonymoushackerIV/Duolingo-Pro-2-BETA/assets/142535408/445bfa82-6f17-4e5e-9d7e-7005f6f50985)
 ![Duolingo Pro - Send Feedback for Duolingo Pro](https://github.com/anonymoushackerIV/Duolingo-Pro-2-BETA/assets/142535408/43e24b3e-f878-4043-8894-8d8a53094663)
