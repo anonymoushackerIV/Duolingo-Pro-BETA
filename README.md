@@ -12,13 +12,18 @@ Features:
 - Settings for: custom automatic question solve delay, question stuck protection, shade (less power, less lag, full speed performance), stats,
 - More coming soon (AutoServer, Duolingo Pro 3.0, other features)
 
-![Duolingo Pro - In the Learn Tab](https://github.com/anonymoushackerIV/Duolingo-Pro-2-BETA/assets/142535408/445bfa82-6f17-4e5e-9d7e-7005f6f50985)
-![Duolingo Pro - Send Feedback for Duolingo Pro](https://github.com/anonymoushackerIV/Duolingo-Pro-2-BETA/assets/142535408/43e24b3e-f878-4043-8894-8d8a53094663)
-![Duolingo Pro - Solving a question](https://github.com/anonymoushackerIV/Duolingo-Pro-2-BETA/assets/142535408/aa8e311c-10a7-4773-b66c-5ec14d8d71c8)
-![Duolingo Pro - Solving a question](https://github.com/anonymoushackerIV/Duolingo-Pro-2-BETA/assets/142535408/baa46969-b0ce-4b00-abe6-5e771810b9a2)
-![Duolingo Pro - Solving a question](https://github.com/anonymoushackerIV/Duolingo-Pro-2-BETA/assets/142535408/ff17acc4-50a3-4f85-b9fe-7cad9f9cfdbd)
-![Duolingo Pro - Solving a question](https://github.com/anonymoushackerIV/Duolingo-Pro-2-BETA/assets/142535408/5ebb7ca9-6da4-45c5-8ba3-6053a2242bb7)
-![Duolingo Pro - Solving a question](https://github.com/anonymoushackerIV/Duolingo-Pro-2-BETA/assets/142535408/1b144d8d-fee8-4702-8785-03c3dbe030d1)
+![Duolingo Pro - In the Learn Tab](https://github.com/anonymoushackerIV/Duolingo-Pro-2-BETA/assets/readme/example1.jpeg)
+![Duolingo Pro - Settings](https://github.com/anonymoushackerIV/Duolingo-Pro-2-BETA/assets/readme/example10.jpeg)
+![Duolingo Pro - Solving a question](https://github.com/anonymoushackerIV/Duolingo-Pro-2-BETA/assets/readme/example2.jpeg)
+![Duolingo Pro - Solving a question](https://github.com/anonymoushackerIV/Duolingo-Pro-2-BETA/assets/readme/example3.jpeg)
+![Duolingo Pro - Solving a question](https://github.com/anonymoushackerIV/Duolingo-Pro-2-BETA/assets/readme/example4.jpeg)
+![Duolingo Pro - Solving a question](https://github.com/anonymoushackerIV/Duolingo-Pro-2-BETA/assets/readme/example5.jpeg)
+![Duolingo Pro - Solving a question](https://github.com/anonymoushackerIV/Duolingo-Pro-2-BETA/assets/readme/example6.jpeg)
+![Duolingo Pro - Solving a question](https://github.com/anonymoushackerIV/Duolingo-Pro-2-BETA/assets/readme/example7.jpeg)
+![Duolingo Pro - Solving a story](https://github.com/anonymoushackerIV/Duolingo-Pro-2-BETA/assets/readme/example8.jpeg)
+![Duolingo Pro - Solving a story](https://github.com/anonymoushackerIV/Duolingo-Pro-2-BETA/assets/readme/example9.jpeg)
+![Duolingo Pro - Send Feedback](https://github.com/anonymoushackerIV/Duolingo-Pro-2-BETA/assets/readme/example11.jpeg)
 
 Repository Activity (DAWN):
+
 ![Alt](https://repobeats.axiom.co/api/embed/4c2dc0aef3008be1782e983680a0b2234f991e2f.svg "Repobeats analytics image")
