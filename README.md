@@ -12,7 +12,7 @@ Features:
 - Settings for: custom automatic question solve delay, question stuck protection, shade (less power, less lag, full speed performance), stats,
 - More coming soon (AutoServer, Duolingo Pro 3.0, other features)
 
-![Duolingo Pro - In the Learn Tab](https://github.com/anonymoushackerIV/Duolingo-Pro-2-BETA/assets/readme/example1.jpeg)
+![Duolingo Pro - In the Learn Tab](./assets/readme/example1.jpeg)
 ![Duolingo Pro - Settings](https://github.com/anonymoushackerIV/Duolingo-Pro-2-BETA/assets/readme/example10.jpeg)
 ![Duolingo Pro - Solving a question](https://github.com/anonymoushackerIV/Duolingo-Pro-2-BETA/assets/readme/example2.jpeg)
 ![Duolingo Pro - Solving a question](https://github.com/anonymoushackerIV/Duolingo-Pro-2-BETA/assets/readme/example3.jpeg)
