@@ -124,12 +124,9 @@ function OMEGA() {
 
     // Duolingo Pro Settings Variables Start
 
-    //moved here
     let AutoSolverSettingsShowPracticeOnlyModeForAutoSolverBox = true;
     let AutoSolverSettingsShowRepeatLessonModeForAutoSolverBox = true;
     let AutoSolverSettingsShowListeningOnlyModeForAutoSolverBox = true;
-    //moved here
-
 
     let isTabMuted;
     if (JSON.parse(localStorage.getItem('DLPisTabMuted')) === null) isTabMuted = false;
@@ -1745,13 +1742,11 @@ function OMEGA() {
 
 
     function DuolingoRemoveLearnAds() {
-        //    if (window.location.pathname === '/learn' || window.location.pathname === '/shop') {
         try {
             const DuolingoRemoveLearnAdsElementOne = document.querySelector('._3bfsh');
             DuolingoRemoveLearnAdsElementOne.remove();
         } catch(error) {
         }
-        //    }
     }
 
     const RemovedByDuolingoProOneHTML = `
@@ -2444,10 +2439,7 @@ function OMEGA() {
                 });
 
                 const TextAreaOneOne = document.getElementById('SendFeebackBoxSectionTwoID');
-
                 const TextAreaTwoOne = document.getElementById('DLPFeedbackTextField2');
-
-                // Set the value of the textarea to the variable
 
                 const bugRadio = document.getElementById('SendFeebackTypeButtonOne');
                 const suggestionRadio = document.getElementById('SendFeebackTypeButtonTwo');
