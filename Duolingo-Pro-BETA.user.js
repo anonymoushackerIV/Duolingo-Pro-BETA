@@ -8,8 +8,6 @@
 // @grant        none
 // @license      MIT
 // @icon         https://github.com/anonymoushackerIV/Duolingo-Pro-Assets/blob/main/images/Duolingo-Pro-Icon.png?raw=true
-// @downloadURL https://update.greasyfork.org/scripts/473310/Duolingo%20Pro%20BETA.user.js
-// @updateURL https://update.greasyfork.org/scripts/473310/Duolingo%20Pro%20BETA.meta.js
 // ==/UserScript==
 
 // MIT License
