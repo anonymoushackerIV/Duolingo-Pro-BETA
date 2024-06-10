@@ -8,6 +8,8 @@
 // @grant        none
 // @license      MIT
 // @icon         https://github.com/anonymoushackerIV/Duolingo-Pro-Assets/blob/main/images/Duolingo-Pro-Icon.png?raw=true
+// @downloadURL https://update.greasyfork.org/scripts/473310/Duolingo%20Pro%20BETA.user.js
+// @updateURL https://update.greasyfork.org/scripts/473310/Duolingo%20Pro%20BETA.meta.js
 // ==/UserScript==
 
 // MIT License
@@ -48,6 +50,7 @@ function OMEGA() {
         DLPsessionCompleteAmount = 0;
     }
 
+    let isLatestVersion = true;
 
     let duoproForeverTotalQuestions = 0;
     let duoproForeverTotalLessons = 0;
@@ -1236,7 +1239,11 @@ function OMEGA() {
 
         const SendFeedbackButton = document.querySelector('#SendFeedbackButtonOne');
         SendFeedbackButton.addEventListener('click', () => {
-            SendFeedBackBox(true);
+            if (isLatestVersion) {
+                SendFeedBackBox(true);
+            } else {
+                notificationCall("Update Duolingo Pro to Send Feedback", "The problem you're having might have been fixed with a newer version of Duolingo Pro. Try updating first.");
+            }
         });
 
         const SeeCurrentIssuesButton = document.querySelector('#DPSeeAllCurrentIssuesButtonABButtonID');
@@ -3538,12 +3545,16 @@ function OMEGA() {
                     for (const warningKey in versionData) {
                         if (warningKey === 'status') {
                             if (versionData[warningKey] === "latest") {
+                                isLatestVersion = true;
                             } else if (versionData[warningKey] === "outdated") {
                                 UpdateAvailableAutoSolverBoxAlertFunction();
+                                isLatestVersion = false;
                             } else if (versionData[warningKey] === "deprecated") {
                                 UpdateRequiredFunction();
+                                isLatestVersion = false;
                             } else {
                                 UpdateRequiredFunction();
+                                isLatestVersion = false;
                             }
                         }
                     }
@@ -4112,7 +4123,11 @@ function OMEGA() {
                 });
                 fgOFCULKfxUUvNjw3.addEventListener('click', () => {
                     solving("stop");
-                    SendFeedBackBox(true);
+                    if (isLatestVersion) {
+                        SendFeedBackBox(true);
+                    } else {
+                        notificationCall("Update Duolingo Pro to Send Feedback", "The problem you're having might have been fixed with a newer version of Duolingo Pro. Try updating first.");
+                    }
                 });
 
                 if (isTabMuted) muteTab(false);
