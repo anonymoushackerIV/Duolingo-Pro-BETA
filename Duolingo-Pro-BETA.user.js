@@ -16,7 +16,7 @@
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-/* 
+/*
 If you have an error on the script, try to do the following steps:
 1) Update to the latest version
 2) Use TamperMonkey, other user script managers are not supported anymore.
@@ -89,6 +89,13 @@ function OMEGA() {
     } else {
         ProBlockBannerOneVisible = JSON.parse(localStorage.getItem('ProBlockBannerOneVisible'));
     }
+
+    // Control + Shift + Enter = Solve All.
+    document.addEventListener('keydown', function(event) {
+        if (event.ctrlKey && event.shiftKey && event.key === 'Enter') {
+            solveAllButton.click();
+        }
+    });
 
     let autoSolverBoxPracticeOnlyMode = true;
     let autoSolverBoxRepeatLessonMode = false;
