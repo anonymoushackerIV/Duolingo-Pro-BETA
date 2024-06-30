@@ -17,17 +17,13 @@
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /* 
-If you have an error on the script, try to do this following steps:
+If you have an error on the script, try to do the following steps:
 1) Update to the latest version
-2) Use TamperMonkey, other userscript managers are not supported anymore.
-3) Use a supported web browser, such as Edge, or Google Chrome
-4) Verify that you have a stable wi-fi conection.
-5) If you have less than 8GBs of RAM, we recommend you to turn ON the Memory Saver option, in the Settings Button.
-6) If nothing of this helps, use the feedback button.
-7) You can also join our discord server for further support, discord.gg/r8xQ7K59Mt
-
-Also, remember, we recommend you to use this tool up to 500 XP in a day, else, you could get banned of Duolingo.
-Please refer to this article to see what you agreed on with Duolingo's ToS when you first signed up on Duolingo, as the following quote, https://arc.net/l/quote/oyfjovcf
+2) Use TamperMonkey, other user script managers are not supported anymore.
+3) Use a supported web browser, such as Google Chrome.
+4) Verify that you have a stable wi-fi connection.
+5) If you have less than 8GBs of RAM, we recommend you turn ON the Memory Saver option, in the Settings Button.
+6) If nothing else helps, join our Discord Server for further support https://discord.gg/r8xQ7K59Mt.
 */
 
 
