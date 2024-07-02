@@ -1,13 +1,15 @@
 // ==UserScript==
 // @name         Duolingo Pro BETA
 // @namespace    Violentmonkey Scripts
-// @version      2.0-BETA-9.7.3
+// @version      2.0-BETA-9.7.4
 // @description  Duolingo Auto Solver Tool - Working July 2024
 // @author       anonymoushackerIV (https://github.com/anonymoushackerIV)
 // @match        https://*.duolingo.com/*
 // @grant        none
 // @license      MIT
 // @icon         https://github.com/anonymoushackerIV/Duolingo-Pro-Assets/blob/main/images/Duolingo-Pro-Icon.png?raw=true
+// @downloadURL https://update.greasyfork.org/scripts/473310/Duolingo%20Pro%20BETA.user.js
+// @updateURL https://update.greasyfork.org/scripts/473310/Duolingo%20Pro%20BETA.meta.js
 // ==/UserScript==
 
 // MIT License
@@ -18,12 +20,14 @@
 
 /*
 If you run into a major issue, try doing the following:
-1) Make sure you are using Tampermonkey, other userscript managers are not supported. 
+1) Make sure you are using Tampermonkey, other userscript managers are not supported.
 2) Update to the latest version of Duolingo Pro.
 3) Use Chrome or at the very least a Chromium browser.
 4) If you have less than 8GBs of RAM, turn ON the Memory Saver option in the Duolingo Pro Settings.
 5) Join our Discord Server for further support https://discord.gg/r8xQ7K59Mt.
 */
+
+
 
 function OMEGA() {
     let solvingIntervalId;
@@ -35,9 +39,9 @@ function OMEGA() {
     let findReactMainElementClass = '_3js2_';
 
     let ASB969 = true;
-    let duolingoProCurrentVersionShort = "2.0B9.7.3";
-    let duolingoProCurrentVersion = "2.0 BETA 9.7.3";
-    let duolingoProFormalCurrentVersion = "2.0BETA9.7.3";
+    let duolingoProCurrentVersionShort = "2.0B9.7.4";
+    let duolingoProCurrentVersion = "2.0 BETA 9.7.4";
+    let duolingoProFormalCurrentVersion = "2.0BETA9.7.4";
 
     let solveSpeed;
     if (isNaN(parseFloat(localStorage.getItem('duopro.autoSolveDelay')))) {
@@ -88,10 +92,19 @@ function OMEGA() {
         ProBlockBannerOneVisible = JSON.parse(localStorage.getItem('ProBlockBannerOneVisible'));
     }
 
+
+
     // Control + Shift + Enter = Solve All.
     document.addEventListener('keydown', function(event) {
         if (event.ctrlKey && event.shiftKey && event.key === 'Enter') {
             solveAllButton.click();
+        }
+    });
+
+    // Control + Enter = Solve One.
+    document.addEventListener('keydown', function(event) {
+        if (event.ctrlKey && event.key === 'Enter') {
+            solveOneButton.click();
         }
     });
 
@@ -352,7 +365,7 @@ function OMEGA() {
                 'click': solving
             });
 
-            const pauseCopy = createButton('', 'SOLVE', 'auto-solver-btn pause-btn', {
+            const pauseCopy = createButton('solveOneButton', 'SOLVE', 'auto-solver-btn pause-btn', {
                 'click': solve
             });
 
@@ -2790,7 +2803,7 @@ function OMEGA() {
                             <path d="M9 16.6172C4.47656 16.6172 0.75 12.8906 0.75 8.35938C0.75 3.83594 4.46875 0.109375 9 0.109375C13.5234 0.109375 17.25 3.83594 17.25 8.35938C17.25 12.8906 13.5312 16.6172 9 16.6172ZM8.99219 5.86719C9.65625 5.86719 10.2031 5.3125 10.2031 4.64844C10.2031 3.96094 9.65625 3.42188 8.99219 3.42188C8.32031 3.42188 7.76562 3.96094 7.76562 4.64844C7.76562 5.3125 8.32031 5.86719 8.99219 5.86719ZM7.52344 12.8125H10.8438C11.2734 12.8125 11.6094 12.5156 11.6094 12.0703C11.6094 11.6562 11.2734 11.3281 10.8438 11.3281H10.1094V7.95312C10.1094 7.36719 9.82031 6.99219 9.27344 6.99219H7.67969C7.25 6.99219 6.91406 7.32031 6.91406 7.72656C6.91406 8.16406 7.25 8.47656 7.67969 8.47656H8.42969V11.3281H7.52344C7.09375 11.3281 6.75781 11.6562 6.75781 12.0703C6.75781 12.5156 7.09375 12.8125 7.52344 12.8125Z" fill="#007AFF"/>
                         </svg>
                     </div>
-                    <p class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);"><a href="https://github.com/anonymoushackerIV" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink paragraphText">anonymoushackerIV</a>, <a href="https://github.com/ByThon1" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink paragraphText">ByThon1</a>, <a href="https://github.com/JxxIT" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink paragraphText">JxxIT</a>, <a href="https://github.com/tkwon09137" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink paragraphText">Eclipse</a>, <a href="https://github.com/surebrec" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink paragraphText">surebrec</a>, <a href="https://github.com/SicariusBlack" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink paragraphText">SicariusBlack</a>, <a href="https://github.com/fakeduo" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink paragraphText">fakeduo</a></p>
+                    <p class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);"><a href="https://github.com/anonymoushackerIV" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink paragraphText">anonymoushackerIV</a>, <a href="https://github.com/ByThon1" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink paragraphText">ByThon1</a>, <a href="https://github.com/JxxIT" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink paragraphText">JxxIT</a>, <a href="https://github.com/tkwon09137" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink paragraphText">Eclipse</a>, <a href="https://github.com/surebrec" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink paragraphText">surebrec</a>, <a href="https://github.com/SicariusBlack" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink paragraphText">SicariusBlack</a>, <a href="https://github.com/fakeduo" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink paragraphText">fakeduo</a>, <a href="https://github.com/FabriLluvia" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink paragraphText">FabriLluvia</a></p>
                 </div>
 
             </div>
@@ -4183,6 +4196,10 @@ function OMEGA() {
                     DLPCE258t1.textContent = 'Mute';
                 }
             }
+
+
+
+
 
             let DLPCE728 = document.querySelector('#DLPTB1e1t1ID');
             let DLPCE728i = document.querySelector('#DLPTB1e1i1ID');
