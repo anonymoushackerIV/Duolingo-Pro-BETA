@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Duolingo Pro BETA
 // @namespace    Violentmonkey Scripts
-// @version      2.0-BETA-9.7.2
-// @description  Duolingo Auto Solver Tool - Working June 2024
+// @version      2.0-BETA-9.7.3
+// @description  Duolingo Auto Solver Tool - Working July 2024
 // @author       anonymoushackerIV (https://github.com/anonymoushackerIV)
 // @match        https://*.duolingo.com/*
 // @grant        none
@@ -17,15 +17,13 @@
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /*
-If you have an error on the script, try to do the following steps:
-1) Update to the latest version
-2) Use TamperMonkey, other user script managers are not supported anymore.
-3) Use a supported web browser, such as Google Chrome.
-4) Verify that you have a stable wi-fi connection.
-5) If you have less than 8GBs of RAM, we recommend you turn ON the Memory Saver option, in the Settings Button.
-6) If nothing else helps, join our Discord Server for further support https://discord.gg/r8xQ7K59Mt.
+If you run into a major issue, try doing the following:
+1) Make sure you are using Tampermonkey, other userscript managers are not supported. 
+2) Update to the latest version of Duolingo Pro.
+3) Use Chrome or at the very least a Chromium browser.
+4) If you have less than 8GBs of RAM, turn ON the Memory Saver option in the Duolingo Pro Settings.
+5) Join our Discord Server for further support https://discord.gg/r8xQ7K59Mt.
 */
-
 
 function OMEGA() {
     let solvingIntervalId;
@@ -37,9 +35,9 @@ function OMEGA() {
     let findReactMainElementClass = '_3js2_';
 
     let ASB969 = true;
-    let duolingoProCurrentVersionShort = "2.0B9.7.2";
-    let duolingoProCurrentVersion = "2.0 BETA 9.7.2";
-    let duolingoProFormalCurrentVersion = "2.0BETA9.7.2";
+    let duolingoProCurrentVersionShort = "2.0B9.7.3";
+    let duolingoProCurrentVersion = "2.0 BETA 9.7.3";
+    let duolingoProFormalCurrentVersion = "2.0BETA9.7.3";
 
     let solveSpeed;
     if (isNaN(parseFloat(localStorage.getItem('duopro.autoSolveDelay')))) {
@@ -3237,7 +3235,7 @@ function OMEGA() {
         setTimeout(function() {
             versionServerStuff('download', duolingoProCurrentVersion);
             checkFlagTwo();
-
+			localStorage.setItem('duolingoProLastInstalledVersion', duolingoProCurrentVersion);
             newWithUpdatePopUpFunction();
         }, 2000);
 
@@ -3247,12 +3245,12 @@ function OMEGA() {
                     checkFlagTwo();
                 }, 100);
             } else if (downloadStuffVar === 'true') {
-                localStorage.setItem('duolingoProLastInstalledVersion', duolingoProCurrentVersion);
+				//localStorage.setItem('duolingoProLastInstalledVersion', duolingoProCurrentVersion);
             } else if (downloadStuffVar === 'error') {
-                setTimeout(function() {
-                    versionServerStuff('download', duolingoProCurrentVersion);
-                    checkFlagTwo();
-                }, 1000);
+                //setTimeout(function() {
+                //    versionServerStuff('download', duolingoProCurrentVersion);
+                //    checkFlagTwo();
+                //}, 1000);
             } else if (downloadStuffVar === 'empty') {
                 notificationCall("Duolingo Pro Encountered An Error", "Duolingo Pro error #0001");
             }
@@ -3267,7 +3265,7 @@ function OMEGA() {
         setTimeout(function() {
             versionServerStuff('update', duolingoProCurrentVersion, String(localStorage.getItem('duolingoProLastInstalledVersion')));
             checkFlagThree();
-
+			localStorage.setItem('duolingoProLastInstalledVersion', duolingoProCurrentVersion);
             newWithUpdatePopUpFunction();
         }, 2000);
 
@@ -3277,12 +3275,12 @@ function OMEGA() {
                     checkFlagThree();
                 }, 100);
             } else if (updateStuffVar === 'true') {
-                localStorage.setItem('duolingoProLastInstalledVersion', duolingoProCurrentVersion);
+                //localStorage.setItem('duolingoProLastInstalledVersion', duolingoProCurrentVersion);
             } else if (updateStuffVar === 'error') {
-                setTimeout(function() {
-                    versionServerStuff('update', duolingoProCurrentVersion, String(localStorage.getItem('duolingoProLastInstalledVersion')));
-                    checkFlagThree();
-                }, 1000);
+                //setTimeout(function() {
+                //    versionServerStuff('update', duolingoProCurrentVersion, String(localStorage.getItem('duolingoProLastInstalledVersion')));
+                //    checkFlagThree();
+                //}, 1000);
             } else if (updateStuffVar === 'empty') {
                 notificationCall("Duolingo Pro Encountered An Error", "Duolingo Pro error #0002");
             }
