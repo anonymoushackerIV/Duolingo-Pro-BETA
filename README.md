@@ -36,7 +36,7 @@ If you run into a major issue, try doing the following:
 3) Use Chrome or at the very least a Chromium browser.
 4) If you have less than 8GBs of RAM, turn ON the Memory Saver option in the Duolingo Pro Settings.
 5) Join our Discord Server for further support https://discord.gg/r8xQ7K59Mt.
-*/
+
 
 ## Images of Demonstration
 ![Duolingo Pro - In the Learn Tab](./assets/readme/example1.jpeg)
