@@ -22,15 +22,14 @@ Features:
 - Settings for custom automatic question solve delay, the question stuck protection, shade (less power, less lag, full speed performance), stats,
 - More coming soon (AutoServer, Duolingo Pro 3.0, other features)
 
-## If you have an error
-If you have an error on the script, try to do the following steps:
-1) Update to the latest version
-2) Use TamperMonkey, other user script managers are not supported anymore.
-3) Use a supported web browser, such as Google Chrome.
-4) Verify that you have a stable wi-fi connection.
-5) If you have less than 8GBs of RAM, we recommend you turn ON the Memory Saver option, in the Settings Button.
-6) If nothing else helps, join our Discord Server for further support https://discord.gg/r8xQ7K59Mt.
-
+## If you run into a major issue
+If you run into a major issue, try doing the following:
+1) Make sure you are using Tampermonkey, other userscript managers are not supported. 
+2) Update to the latest version of Duolingo Pro.
+3) Use Chrome or at the very least a Chromium browser.
+4) If you have less than 8GBs of RAM, turn ON the Memory Saver option in the Duolingo Pro Settings.
+5) Join our Discord Server for further support https://discord.gg/r8xQ7K59Mt.
+*/
 
 ## Images of Demonstration
 ![Duolingo Pro - In the Learn Tab](./assets/readme/example1.jpeg)
