@@ -1,6 +1,7 @@
 ## Table of Contents
 - [Duolingo Pro BETA](#duolingo-pro-beta)
 - [Features](#features)
+- [Hotkeys](#hotkeys)
 - [If you run into a major issue](#if-you-run-into-a-major-issue)
 - [Images of Demonstration](#images-of-demonstration)
 - [Repository Activity](#repository-activity)
@@ -22,9 +23,15 @@ Features:
 - Settings for custom automatic question solve delay, the question stuck protection, shade (less power, less lag, full speed performance), stats,
 - More coming soon (AutoServer, Duolingo Pro 3.0, other features)
 
+## Hotkeys
+This script has some hotkeys, which are:
+1) Control + Shift + Enter = Solve All / Pause solve
+2) Control + Enter = Solve
+
+
 ## If you run into a major issue
 If you run into a major issue, try doing the following:
-1) Make sure you are using Tampermonkey, other userscript managers are not supported. 
+1) Make sure you are using Tampermonkey, other user script managers are not supported. 
 2) Update to the latest version of Duolingo Pro.
 3) Use Chrome or at the very least a Chromium browser.
 4) If you have less than 8GBs of RAM, turn ON the Memory Saver option in the Duolingo Pro Settings.
