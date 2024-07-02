@@ -1,7 +1,7 @@
 ## Table of Contents
 - [Duolingo Pro BETA](#duolingo-pro-beta)
 - [Features](#features)
-- [If you have an error](#if-you-have-an-error)
+- [If you run into a major issue](#if-you-run-into-a-major-issue)
 - [Images of Demonstration](#images-of-demonstration)
 - [Repository Activity](#repository-activity)
   - [Repository Activity Beta](#repository-activity-beta)
