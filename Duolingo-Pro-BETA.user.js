@@ -1,255 +1,1590 @@
 // ==UserScript==
-// @name         Duolingo Pro BETA
-// @namespace    Violentmonkey Scripts
-// @version      2.0-BETA-9.7.3
-// @description  Duolingo Auto Solver Tool - Working July 2024
-// @author       anonymoushackerIV (https://github.com/anonymoushackerIV)
+// @name         Duolingo PRO
+// @namespace    http://tampermonkey.net/
+// @version      3.0BETA.01
+// @description  The fastest Duolingo XP farmer, working as of July 2024.
+// @author       anonymousHackerIV
 // @match        https://*.duolingo.com/*
-// @grant        none
-// @license      MIT
-// @icon         https://github.com/anonymoushackerIV/Duolingo-Pro-Assets/blob/main/images/Duolingo-Pro-Icon.png?raw=true
+// @icon         https://github.com/anonymoushackerIV/Duolingo-Pro-BETA/blob/main/assets/duolingoPROLogo.png?raw=true
+// @grant        GM_log
 // ==/UserScript==
 
-// MIT License
-// Copyright (c) 2024 anonymoushackerIV (https://github.com/anonymoushackerIV)
-// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-// The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+let storageLocal;
+let storageSession;
+let versionNumber = "01";
+let storageLocalVersion = "01";
+let storageSessionVersion = "01";
+let versionName = "BETA.01";
+let versionFullname = "3.0BETA.01";
+let serverURL = "https://www.duolingopro.net";
+let greasyfork = false;
 
-/*
-If you run into a major issue, try doing the following:
-1) Make sure you are using Tampermonkey, other userscript managers are not supported. 
-2) Update to the latest version of Duolingo Pro.
-3) Use Chrome or at the very least a Chromium browser.
-4) If you have less than 8GBs of RAM, turn ON the Memory Saver option in the Duolingo Pro Settings.
-5) Join our Discord Server for further support https://discord.gg/r8xQ7K59Mt.
-*/
+let proID = Math.floor(Math.random() * 1000000000);
+let hidden = false;
+let lastPage;
+let currentPage = 1;
+let legacyMode = false;
 
-function OMEGA() {
-    let solvingIntervalId;
-    let isAutoMode = false;
-    let isSolving = false;
-    let isTokenRunning = false;
+let solvingIntervalId;
+let isAutoMode;
+let findReactMainElementClass = '_3yE3H';
 
-    const debug = false;
-    let findReactMainElementClass = '_3js2_';
+const debug = false;
 
-    let ASB969 = true;
-    let duolingoProCurrentVersionShort = "2.0B9.7.3";
-    let duolingoProCurrentVersion = "2.0 BETA 9.7.3";
-    let duolingoProFormalCurrentVersion = "2.0BETA9.7.3";
-
-    let solveSpeed;
-    if (isNaN(parseFloat(localStorage.getItem('duopro.autoSolveDelay')))) {
-        solveSpeed = 0.8;
-        localStorage.setItem('duopro.autoSolveDelay', solveSpeed);
-    } else {
-        solveSpeed = parseFloat(localStorage.getItem('duopro.autoSolveDelay'));
-    }
-
-    let autoSolverBoxRepeatAmount = 0;
-    autoSolverBoxRepeatAmount = Number(sessionStorage.getItem('autoSolverBoxRepeatAmount'));
-
-    let DLPsessionCompleteAmount = 0;
-    if (!isNaN(Number(sessionStorage.getItem('duopro.autoSolveSessionCompleteAmount'))) && Number(sessionStorage.getItem('duopro.autoSolveSessionCompleteAmount')) !== null) {
-        DLPsessionCompleteAmount = Number(sessionStorage.getItem('duopro.autoSolveSessionCompleteAmount'));
-    } else {
-        DLPsessionCompleteAmount = 0;
-    }
-
-    let isLatestVersion = true;
-
-    let duoproForeverTotalQuestions = 0;
-    let duoproForeverTotalLessons = 0;
-    let duoproForeverXP = 0;
-    try {
-        let TATJxnLggmiGvbDm = localStorage.getItem("duopro.forever.userStatistics");
-        if (TATJxnLggmiGvbDm) {
-            let BDxfDivqDbLuJooi = JSON.parse(localStorage.getItem("duopro.forever.userStatistics"));
-            if (!isNaN(BDxfDivqDbLuJooi.question)) {
-                duoproForeverTotalQuestions = BDxfDivqDbLuJooi.question;
+if (localStorage.getItem("DLP_Local_Storage") == null || JSON.parse(localStorage.getItem("DLP_Local_Storage")).storageVersion !== storageLocalVersion) {
+    localStorage.setItem("DLP_Local_Storage", JSON.stringify({
+        "version": versionNumber,
+        "terms": "00",
+        "pins": {
+            "home": [1, 2],
+            "legacy": [1, 2]
+        },
+        "legacy": {
+            "solveSpeed": 0.8
+        },
+        "settings": {
+            "autoUpdate": greasyfork,
+            "solveSpeed": 0.8
+        },
+        "notifications": [
+            {
+                "id": "0001"
             }
-            if (!isNaN(BDxfDivqDbLuJooi.lesson)) {
-                duoproForeverTotalLessons = BDxfDivqDbLuJooi.lesson;
+        ],
+        "tips": {
+            "seeMore1": false
+        },
+        "onboarding": false,
+        "storageVersion": storageLocalVersion
+    }));
+    storageLocal = JSON.parse(localStorage.getItem("DLP_Local_Storage"));
+} else {
+    storageLocal = JSON.parse(localStorage.getItem("DLP_Local_Storage"));
+}
+function saveStorageLocal() {
+    localStorage.setItem("DLP_Local_Storage", JSON.stringify(storageLocal));
+}
+
+if (sessionStorage.getItem("DLP_Session_Storage") == null || JSON.parse(sessionStorage.getItem("DLP_Session_Storage")).storageVersion !== storageSessionVersion) {
+    sessionStorage.setItem("DLP_Session_Storage", JSON.stringify({
+        "legacy": {
+            "page": 0,
+            "status": false,
+            "path": {
+                "type": "lesson",
+                "amount": 0
+            },
+            "practice": {
+                "type": "lesson",
+                "amount": 0
+            },
+            "listen": {
+                "type": "lesson",
+                "amount": 0
+            },
+            "lesson": {
+                "unit": 1,
+                "lesson": 1,
+                "type": "lesson",
+                "amount": 0
             }
-            if (!isNaN(BDxfDivqDbLuJooi.xp)) {
-                duoproForeverXP = BDxfDivqDbLuJooi.xp;
+        },
+        "notifications": [
+            {
+                "id": "0001"
             }
+        ],
+        "storageVersion": storageSessionVersion
+    }));
+    storageSession = JSON.parse(sessionStorage.getItem("DLP_Session_Storage"));
+} else {
+    storageSession = JSON.parse(sessionStorage.getItem("DLP_Session_Storage"));
+}
+function saveStorageSession() {
+    sessionStorage.setItem("DLP_Session_Storage", JSON.stringify(storageSession));
+}
+
+
+let CSS1 = `
+@font-face {
+    font-family: 'Duolingo Pro Rounded';
+    src: url(${serverURL}/static/3.0/assets/fonts/Duolingo-Pro-Rounded-Semibold.otf) format('opentype');
+}
+`;
+
+let HTML2 = `
+<canvas style="position: fixed; top: 0; left: 0; bottom: 0; right: 0; width: 100%; height: 100vh; z-index: 8; pointer-events: none;" id="DLP_Confetti_Canvas"></canvas>
+<div class="DLP_Notification_Main"></div>
+<div class="DLP_Main">
+    <div class="DLP_HStack_8" style="align-self: flex-end;">
+        <div class="DLP_Button_Style_1 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Switch_Legacy_Button_1_ID" style="outline: 2px solid rgba(0, 122, 255, 0.20); outline-offset: -2px; background: rgba(0, 122, 255, 0.10); backdrop-filter: blur(16px);">
+            <svg id="DLP_Inset_Icon_1_ID" width="17" height="18" viewBox="0 0 17 18" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8.64844 17.1094C4.09375 17.1094 0.398438 13.4141 0.398438 8.85938C0.398438 4.30469 4.09375 0.609375 8.64844 0.609375C13.2031 0.609375 16.8984 4.30469 16.8984 8.85938C16.8984 13.4141 13.2031 17.1094 8.64844 17.1094ZM12.7656 9.84375C12.7656 7.96875 11.4531 6.71875 9.47656 6.71875H7.14844L6.5 6.76562L7 6.39844L7.78125 5.67969C7.92188 5.55469 7.99219 5.375 7.99219 5.19531C7.99219 4.8125 7.66406 4.48438 7.28906 4.48438C7.10156 4.48438 6.9375 4.55469 6.80469 4.69531L4.64844 6.875C4.50781 7.02344 4.42188 7.21094 4.42188 7.40625C4.42188 7.59375 4.5 7.78125 4.64844 7.9375L6.80469 10.125C6.9375 10.2578 7.11719 10.3281 7.30469 10.3281C7.67969 10.3281 8 10 8 9.60938C8 9.42969 7.92188 9.25781 7.78125 9.125L6.91406 8.375L6.5 8.09375L7.14844 8.14062H9.47656C10.5547 8.14062 11.2656 8.82812 11.2656 9.84375C11.2656 10.9062 10.5547 11.6094 9.48438 11.6094H8.33594C7.85156 11.6094 7.52344 11.8984 7.52344 12.3359C7.52344 12.7812 7.85156 13.0859 8.33594 13.0859H9.48438C11.4531 13.0859 12.7656 11.7969 12.7656 9.84375Z"/>
+            </svg>
+            <svg id="DLP_Inset_Icon_2_ID" width="17" height="18" viewBox="0 0 17 18" fill="#007AFF" xmlns="http://www.w3.org/2000/svg" display="none">
+                <path d="M8.64844 17.1094C4.09375 17.1094 0.398438 13.4141 0.398438 8.85938C0.398438 4.30469 4.09375 0.609375 8.64844 0.609375C13.2031 0.609375 16.8984 4.30469 16.8984 8.85938C16.8984 13.4141 13.2031 17.1094 8.64844 17.1094ZM4.5625 9.84375C4.5625 11.7969 5.875 13.0859 7.84375 13.0859H8.99219C9.47656 13.0859 9.80469 12.7812 9.80469 12.3359C9.80469 11.8984 9.47656 11.6094 8.99219 11.6094H7.84375C6.77344 11.6094 6.0625 10.9062 6.0625 9.84375C6.0625 8.82812 6.77344 8.14062 7.85156 8.14062H10.1797L10.8281 8.09375L10.4141 8.375L9.54688 9.125C9.40625 9.25781 9.32812 9.42969 9.32812 9.60938C9.32812 10 9.64844 10.3281 10.0234 10.3281C10.2109 10.3281 10.3906 10.2578 10.5156 10.125L12.6797 7.9375C12.8281 7.78125 12.9062 7.59375 12.9062 7.40625C12.9062 7.21094 12.8203 7.02344 12.6797 6.875L10.5234 4.69531C10.3906 4.55469 10.2266 4.48438 10.0391 4.48438C9.66406 4.48438 9.33594 4.8125 9.33594 5.19531C9.33594 5.375 9.40625 5.55469 9.54688 5.67969L10.3281 6.39844L10.8281 6.76562L10.1797 6.71875H7.85156C5.875 6.71875 4.5625 7.96875 4.5625 9.84375Z"/>
+            </svg>
+            <p id="DLP_Inset_Text_1_ID" class="DLP_Text_Style_1" style="color: #007AFF; white-space: nowrap;">Switch to Legacy</p>
+        </div>
+        <div class="DLP_Button_Style_1 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Hide_Button_1_ID" style="outline: 2px solid rgba(0, 122, 255, 0.20); outline-offset: -2px; background: rgba(0, 122, 255, 0.10); flex: none; backdrop-filter: blur(16px);">
+            <svg id="DLP_Inset_Icon_1_ID" width="23" height="16" viewBox="0 0 23 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg" display="none">
+                <path d="M17.7266 14.9922L4.1875 1.47656C3.9375 1.22656 3.9375 0.796875 4.1875 0.546875C4.44531 0.289062 4.875 0.289062 5.125 0.546875L18.6562 14.0625C18.9141 14.3203 18.9219 14.7188 18.6562 14.9922C18.3984 15.2578 17.9844 15.25 17.7266 14.9922ZM18.4609 12.4062L15.3281 9.25781C15.5 8.82812 15.5938 8.35938 15.5938 7.875C15.5938 5.57812 13.7266 3.74219 11.4375 3.74219C10.9531 3.74219 10.4922 3.83594 10.0547 3.99219L7.75 1.67969C8.875 1.3125 10.1016 1.09375 11.4297 1.09375C17.8984 1.09375 22.1172 6.28906 22.1172 7.875C22.1172 8.78125 20.7344 10.8438 18.4609 12.4062ZM11.4297 14.6562C5.05469 14.6562 0.75 9.45312 0.75 7.875C0.75 6.96094 2.16406 4.85938 4.54688 3.27344L7.59375 6.32812C7.39062 6.79688 7.27344 7.32812 7.27344 7.875C7.28125 10.1172 9.13281 12.0078 11.4375 12.0078C11.9766 12.0078 12.4922 11.8906 12.9609 11.6875L15.2812 14.0078C14.125 14.4141 12.8281 14.6562 11.4297 14.6562ZM13.9609 7.71094C13.9609 7.77344 13.9609 7.82812 13.9531 7.88281L11.3203 5.25781C11.375 5.25 11.4375 5.25 11.4922 5.25C12.8594 5.25 13.9609 6.35156 13.9609 7.71094ZM8.88281 7.82031C8.88281 7.75781 8.88281 7.6875 8.89062 7.625L11.5391 10.2734C11.4766 10.2812 11.4219 10.2891 11.3594 10.2891C10 10.2891 8.88281 9.17969 8.88281 7.82031Z"/>
+            </svg>
+            <svg id="DLP_Inset_Icon_2_ID" width="22" height="14" viewBox="0 0 22 14" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                <path d="M11.2734 13.6406C4.89844 13.6406 0.59375 8.4375 0.59375 6.85156C0.59375 5.27344 4.90625 0.078125 11.2734 0.078125C17.75 0.078125 21.9688 5.27344 21.9688 6.85156C21.9688 8.4375 17.75 13.6406 11.2734 13.6406ZM11.2812 11.0078C13.5781 11.0078 15.4375 9.14844 15.4375 6.85938C15.4375 4.5625 13.5781 2.70312 11.2812 2.70312C8.98438 2.70312 7.125 4.5625 7.125 6.85938C7.125 9.14844 8.98438 11.0078 11.2812 11.0078ZM11.2812 8.49219C10.375 8.49219 9.64844 7.76562 9.64844 6.85938C9.64844 5.95312 10.375 5.22656 11.2812 5.22656C12.1875 5.22656 12.9141 5.95312 12.9141 6.85938C12.9141 7.76562 12.1875 8.49219 11.2812 8.49219Z"/>
+            </svg>
+            <p id="DLP_Inset_Text_1_ID" class="DLP_Text_Style_1" style="color: #007AFF;">Show</p>
+        </div>
+    </div>
+    <div class="DLP_Main_Box">
+        <div class="DLP_Main_Box_Divider" id="DLP_Main_Box_Divider_1_ID" style="">
+            <div class="DLP_VStack_8">
+                <div class="DLP_VStack_8">
+                    <div class="DLP_HStack_8">
+                        <div id="DLP_Main_1_Server_Connection_Button_1_ID" class="DLP_Button_Style_1 DLP_Magnetic_Hover_1 DLP_NoSelect" style="outline: 2px solid rgb(var(--color-eel), 0.20); outline-offset: -2px; background: rgb(var(--color-eel), 0.10); transition: opacity 0.8s cubic-bezier(0.16, 1, 0.32, 1), background 0.8s cubic-bezier(0.16, 1, 0.32, 1), outline 0.8s cubic-bezier(0.16, 1, 0.32, 1), filter 0.4s cubic-bezier(0.16, 1, 0.32, 1), transform 0.4s cubic-bezier(0.16, 1, 0.32, 1); padding: 10px 0px 10px 10px;">
+                            <svg id="DLP_Inset_Icon_1_ID" width="17" height="18" viewBox="0 0 17 18" fill="rgb(var(--color-eel))" xmlns="http://www.w3.org/2000/svg" style="transition: 0.4s;">
+                                <path d="M8.64844 2.66406C8.03125 2.66406 7.4375 2.75 6.875 2.92188L6.07812 1.02344C6.89062 0.757812 7.75781 0.609375 8.64844 0.609375C9.53906 0.609375 10.3984 0.757812 11.2031 1.02344L10.4219 2.92188C9.85938 2.75781 9.26562 2.66406 8.64844 2.66406ZM14.1016 5.91406C13.5312 4.84375 12.6562 3.96875 11.5859 3.39844L12.375 1.50781C13.9297 2.30469 15.2031 3.57812 16 5.125L14.1016 5.91406ZM5.70312 3.39844C4.63281 3.97656 3.75781 4.85156 3.19531 5.92188L1.29688 5.125C2.09375 3.57812 3.36719 2.30469 4.91406 1.50781L5.70312 3.39844ZM14.8438 8.85938C14.8438 8.24219 14.7578 7.64844 14.5859 7.08594L16.4844 6.29688C16.7578 7.10156 16.8984 7.96875 16.8984 8.85938C16.8984 9.75 16.7578 10.6172 16.4844 11.4219L14.5938 10.6328C14.75 10.0703 14.8438 9.47656 14.8438 8.85938ZM2.46094 8.85938C2.46094 9.47656 2.54688 10.0703 2.71094 10.625L0.8125 11.4219C0.546875 10.6094 0.398438 9.75 0.398438 8.85938C0.398438 7.96875 0.546875 7.10938 0.8125 6.29688L2.71094 7.08594C2.54688 7.64844 2.46094 8.24219 2.46094 8.85938ZM11.5859 14.3125C12.6562 13.7422 13.5391 12.875 14.1094 11.8047L16 12.5938C15.2031 14.1406 13.9297 15.4141 12.375 16.2109L11.5859 14.3125ZM3.19531 11.8047C3.76562 12.8672 4.63281 13.7422 5.70312 14.3125L4.91406 16.2031C3.36719 15.4141 2.09375 14.1406 1.29688 12.5938L3.19531 11.8047ZM8.64844 15.0547C9.26562 15.0547 9.85938 14.9609 10.4141 14.7969L11.2109 16.6953C10.3984 16.9609 9.53906 17.1094 8.64844 17.1094C7.75781 17.1094 6.89062 16.9609 6.08594 16.6953L6.875 14.7969C7.4375 14.9609 8.03125 15.0547 8.64844 15.0547Z"/>
+                            </svg>
+                            <svg id="DLP_Inset_Icon_2_ID" width="17" height="18" viewBox="0 0 17 18" fill="#FFF" xmlns="http://www.w3.org/2000/svg" display="none" style="transition: 0.4s;">
+                                <path d="M8.64844 17.1094C4.09375 17.1094 0.398438 13.4141 0.398438 8.85938C0.398438 4.30469 4.09375 0.609375 8.64844 0.609375C13.2031 0.609375 16.8984 4.30469 16.8984 8.85938C16.8984 13.4141 13.2031 17.1094 8.64844 17.1094ZM3.89062 4.19531C4.25 4.44531 4.71094 4.65625 5.24219 4.82812C5.60938 3.85156 6.09375 3.05469 6.67188 2.49219C5.60156 2.82812 4.65625 3.42188 3.89062 4.19531ZM10.6328 2.49219C11.2031 3.05469 11.6953 3.85938 12.0547 4.82812C12.5859 4.65625 13.0469 4.44531 13.4062 4.19531C12.6484 3.42188 11.6953 2.82812 10.6328 2.49219ZM6.46094 5.11719C6.95312 5.20312 7.48438 5.25781 8.04688 5.28125V2.91406C7.42969 3.24219 6.86719 4.04688 6.46094 5.11719ZM9.25781 2.91406V5.28125C9.8125 5.25781 10.3438 5.20312 10.8359 5.11719C10.4297 4.04688 9.86719 3.24219 9.25781 2.91406ZM2.01562 8.25H4.58594C4.625 7.44531 4.73438 6.67969 4.89844 5.96875C4.19531 5.75 3.59375 5.46094 3.14062 5.11719C2.51562 6.02344 2.11719 7.10156 2.01562 8.25ZM12.7109 8.25H15.2891C15.1797 7.09375 14.7812 6.02344 14.1641 5.11719C13.7109 5.46094 13.1094 5.75 12.3984 5.96875C12.5703 6.67969 12.6719 7.44531 12.7109 8.25ZM5.82031 8.25H8.04688V6.48438C7.36719 6.46094 6.71094 6.38281 6.10938 6.27344C5.96094 6.89062 5.85938 7.5625 5.82031 8.25ZM9.25781 8.25H11.4766C11.4375 7.5625 11.3438 6.89062 11.1953 6.27344C10.5859 6.38281 9.92969 6.46094 9.25781 6.48438V8.25ZM2.01562 9.46094C2.11719 10.6328 2.52344 11.7109 3.15625 12.625C3.60938 12.2891 4.20312 12.0078 4.90625 11.7812C4.73438 11.0703 4.625 10.2891 4.58594 9.46094H2.01562ZM5.82031 9.46094C5.85938 10.1719 5.96094 10.8516 6.10938 11.4844C6.71875 11.3672 7.36719 11.2969 8.04688 11.2656V9.46094H5.82031ZM9.25781 11.2656C9.92969 11.2969 10.5781 11.3672 11.1875 11.4844C11.3438 10.8516 11.4453 10.1719 11.4844 9.46094H9.25781V11.2656ZM12.3984 11.7812C13.0938 12.0078 13.6953 12.2891 14.1484 12.625C14.7734 11.7109 15.1797 10.6328 15.2891 9.46094H12.7109C12.6797 10.2891 12.5703 11.0703 12.3984 11.7812ZM9.25781 12.4766V14.8203C9.85938 14.4922 10.4219 13.6953 10.8281 12.6406C10.3359 12.5547 9.8125 12.5 9.25781 12.4766ZM6.46875 12.6406C6.875 13.6953 7.4375 14.4922 8.04688 14.8203V12.4766C7.49219 12.5 6.96094 12.5547 6.46875 12.6406ZM3.91406 13.5391C4.66406 14.3047 5.60156 14.8828 6.64844 15.2188C6.08594 14.6641 5.60938 13.875 5.25 12.9297C4.72656 13.0938 4.27344 13.2969 3.91406 13.5391ZM12.0469 12.9297C11.6953 13.875 11.2109 14.6641 10.6484 15.2188C11.6953 14.8828 12.6328 14.3047 13.3828 13.5391C13.0312 13.2969 12.5781 13.0938 12.0469 12.9297Z"/>
+                            </svg>
+                            <svg id="DLP_Inset_Icon_3_ID" width="18" height="16" viewBox="0 0 18 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg" display="none" style="transition: 0.4s;">
+                                <path d="M2.96094 15.5469C1.53125 15.5469 0.59375 14.4688 0.59375 13.1797C0.59375 12.7812 0.695312 12.375 0.914062 11.9922L6.92969 1.47656C7.38281 0.695312 8.17188 0.289062 8.97656 0.289062C9.77344 0.289062 10.5547 0.6875 11.0156 1.47656L17.0312 11.9844C17.25 12.3672 17.3516 12.7812 17.3516 13.1797C17.3516 14.4688 16.4141 15.5469 14.9844 15.5469H2.96094ZM8.98438 9.96094C9.52344 9.96094 9.83594 9.65625 9.86719 9.09375L9.99219 5.72656C10.0234 5.14062 9.59375 4.73438 8.97656 4.73438C8.35156 4.73438 7.92969 5.13281 7.96094 5.72656L8.08594 9.10156C8.10938 9.65625 8.42969 9.96094 8.98438 9.96094ZM8.98438 12.7812C9.60156 12.7812 10.0859 12.3906 10.0859 11.7891C10.0859 11.2031 9.60938 10.8047 8.98438 10.8047C8.35938 10.8047 7.875 11.2031 7.875 11.7891C7.875 12.3906 8.35938 12.7812 8.98438 12.7812Z"/>
+                            </svg>
+                            <p id="DLP_Inset_Text_1_ID" class="DLP_Text_Style_1" style="color: rgb(var(--color-eel)); transition: 0.4s;">Connecting</p>
+                        </div>
+                        <div class="DLP_Button_Style_1 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Main_Donate_Button_1_ID" style="outline: 2px solid rgba(0, 0, 0, 0.20); outline-offset: -2px; background: url(${serverURL}/static/3.0/assets/images/flow_1_light.png) lightgray 50% / cover no-repeat; padding: 10px 0px 10px 10px;">
+                            <svg width="17" height="19" viewBox="0 0 17 19" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M16.5 5.90755C16.4968 3.60922 14.6997 1.72555 12.5913 1.04588C9.97298 0.201877 6.51973 0.324211 4.01956 1.49921C0.989301 2.92355 0.0373889 6.04355 0.00191597 9.15522C-0.0271986 11.7136 0.229143 18.4517 4.04482 18.4997C6.87998 18.5356 7.30214 14.8967 8.61397 13.1442C9.5473 11.8974 10.749 11.5452 12.2284 11.1806C14.7709 10.5537 16.5037 8.55506 16.5 5.90755Z"/>
+                            </svg>
+                            <p class="DLP_Text_Style_1" style="color: #FFF;">Donate</p>
+                        </div>
+                    </div>
+                    <div class="DLP_HStack_8">
+                        <div class="DLP_Button_Style_1 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Main_Feedback_1_Button_1_ID" style="outline: 2px solid rgba(0, 122, 255, 0.20); outline-offset: -2px; background: rgba(0, 122, 255, 0.10);">
+                            <svg width="18" height="18" viewBox="0 0 18 18" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M5.22656 17.8125C4.70312 17.8125 4.39062 17.4531 4.39062 16.8906V14.6641H3.6875C1.52344 14.6641 -0.0078125 13.2109 -0.0078125 10.8438V4.64844C-0.0078125 2.27344 1.42969 0.820312 3.82031 0.820312H14.1641C16.5547 0.820312 17.9922 2.27344 17.9922 4.64844V10.8438C17.9922 13.2109 16.5547 14.6641 14.1641 14.6641H9.22656L6.29688 17.2734C5.86719 17.6562 5.57812 17.8125 5.22656 17.8125Z"/>
+                            </svg>
+                            <p class="DLP_Text_Style_1" style="color: #007AFF;">Feedback</p>
+                        </div>
+                        <div class="DLP_Button_Style_1 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Main_Settings_1_Button_1_ID" style="outline: 2px solid rgba(0, 122, 255, 0.20); outline-offset: -2px; background: rgba(0, 122, 255, 0.10);">
+                            <svg width="19" height="19" viewBox="0 0 19 19" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9.46094 17.6875C9.28906 17.6875 9.13281 17.6797 8.96875 17.6719L8.55469 18.4453C8.42969 18.6875 8.17188 18.8281 7.89062 18.7891C7.60156 18.7344 7.40625 18.5156 7.36719 18.2344L7.24219 17.3672C6.92188 17.2812 6.61719 17.1641 6.32031 17.0469L5.67969 17.6172C5.47656 17.8047 5.17969 17.8516 4.92188 17.7109C4.67188 17.5547 4.57031 17.2891 4.625 17.0156L4.80469 16.1562C4.54688 15.9688 4.28906 15.7578 4.05469 15.5312L3.25781 15.8672C2.98438 15.9844 2.71094 15.9062 2.50781 15.6797C2.34375 15.4688 2.3125 15.1719 2.46094 14.9375L2.92188 14.1875C2.75 13.9219 2.59375 13.6406 2.4375 13.3438L1.57031 13.3828C1.28906 13.3984 1.03125 13.2344 0.945312 12.9531C0.851562 12.6953 0.9375 12.4062 1.15625 12.2344L1.84375 11.6953C1.76562 11.3828 1.70312 11.0625 1.67188 10.7344L0.84375 10.4609C0.5625 10.375 0.398438 10.1484 0.398438 9.85938C0.398438 9.57031 0.5625 9.34375 0.84375 9.25L1.67188 8.98438C1.70312 8.65625 1.76562 8.34375 1.84375 8.02344L1.15625 7.47656C0.9375 7.3125 0.851562 7.03125 0.945312 6.77344C1.03125 6.49219 1.28906 6.33594 1.57031 6.34375L2.4375 6.375C2.59375 6.07812 2.75 5.80469 2.92188 5.52344L2.46094 4.78125C2.3125 4.55469 2.34375 4.25781 2.50781 4.04688C2.71094 3.82031 2.98438 3.74219 3.25 3.85938L4.05469 4.17969C4.28906 3.96875 4.54688 3.75781 4.80469 3.5625L4.625 2.71875C4.5625 2.42188 4.67969 2.15625 4.91406 2.01562C5.1875 1.875 5.47656 1.91406 5.6875 2.10938L6.32031 2.67969C6.61719 2.55469 6.92969 2.44531 7.24219 2.35156L7.36719 1.49219C7.40625 1.21094 7.60156 0.992188 7.88281 0.945312C8.17188 0.898438 8.42969 1.03125 8.55469 1.26562L8.96875 2.04688C9.13281 2.03906 9.28906 2.03125 9.46094 2.03125C9.61719 2.03125 9.78125 2.03906 9.94531 2.04688L10.3594 1.26562C10.4766 1.03906 10.7344 0.898438 11.0234 0.9375C11.3047 0.992188 11.5078 1.21094 11.5469 1.49219L11.6719 2.35156C11.9844 2.44531 12.2891 2.55469 12.5859 2.67969L13.2266 2.10938C13.4375 1.91406 13.7266 1.875 13.9922 2.01562C14.2344 2.15625 14.3516 2.42188 14.2891 2.71094L14.1094 3.5625C14.3594 3.75781 14.6172 3.96875 14.8516 4.17969L15.6562 3.85938C15.9297 3.74219 16.2031 3.82031 16.4062 4.04688C16.5703 4.25781 16.5938 4.55469 16.4453 4.78125L15.9844 5.52344C16.1641 5.80469 16.3203 6.07812 16.4688 6.375L17.3438 6.34375C17.6172 6.33594 17.8828 6.49219 17.9688 6.77344C18.0625 7.03125 17.9609 7.30469 17.75 7.47656L17.0703 8.01562C17.1484 8.34375 17.2109 8.65625 17.2422 8.98438L18.0625 9.25C18.3438 9.35156 18.5234 9.57031 18.5234 9.85938C18.5234 10.1406 18.3438 10.3672 18.0625 10.4609L17.2422 10.7344C17.2109 11.0625 17.1484 11.3828 17.0703 11.6953L17.7578 12.2344C17.9688 12.4062 18.0625 12.6953 17.9688 12.9531C17.8828 13.2344 17.6172 13.3984 17.3438 13.3828L16.4688 13.3438C16.3203 13.6406 16.1641 13.9219 15.9844 14.1875L16.4453 14.9297C16.6016 15.1797 16.5703 15.4688 16.4062 15.6797C16.2031 15.9062 15.9219 15.9844 15.6562 15.8672L14.8594 15.5312C14.6172 15.7578 14.3594 15.9688 14.1094 16.1562L14.2891 17.0078C14.3516 17.2891 14.2344 17.5547 14 17.7031C13.7266 17.8516 13.4375 17.7969 13.2266 17.6172L12.5859 17.0469C12.2891 17.1641 11.9844 17.2812 11.6719 17.3672L11.5469 18.2344C11.5078 18.5156 11.3047 18.7344 11.0312 18.7812C10.7344 18.8281 10.4688 18.6953 10.3516 18.4453L9.94531 17.6719C9.78125 17.6797 9.61719 17.6875 9.46094 17.6875ZM9.44531 7.45312C10.4844 7.45312 11.375 8.10938 11.7109 9.03125H15.3281C14.9375 6.11719 12.4922 3.89062 9.46094 3.89062C8.64062 3.89062 7.86719 4.05469 7.16406 4.34375L8.99219 7.5C9.14062 7.46875 9.28906 7.45312 9.44531 7.45312ZM3.53906 9.85938C3.53906 11.7422 4.38281 13.4141 5.71875 14.5078L7.60156 11.4141C7.25 10.9922 7.03906 10.4531 7.03906 9.86719C7.03906 9.27344 7.25781 8.72656 7.60938 8.30469L5.78125 5.16406C4.40625 6.25 3.53906 7.94531 3.53906 9.85938ZM9.44531 10.7656C9.96094 10.7656 10.3516 10.375 10.3516 9.86719C10.3516 9.35938 9.96094 8.96094 9.44531 8.96094C8.94531 8.96094 8.54688 9.35938 8.54688 9.86719C8.54688 10.375 8.94531 10.7656 9.44531 10.7656ZM9.46094 15.8281C12.5078 15.8281 14.9609 13.5859 15.3359 10.6562H11.7266C11.4062 11.6016 10.5078 12.2734 9.44531 12.2734C9.28906 12.2734 9.125 12.2578 8.97656 12.2266L7.08594 15.3359C7.8125 15.6484 8.60938 15.8281 9.46094 15.8281Z"/>
+                            </svg>
+                            <p class="DLP_Text_Style_1" style="color: #007AFF;">Settings</p>
+                        </div>
+                    </div>
+                    <div class="DLP_HStack_8">
+                        <div class="DLP_Button_Style_1 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Main_Release_Notes_1_Button_1_ID" style="outline: 2px solid rgba(0, 122, 255, 0.20); outline-offset: -2px; background: rgba(0, 122, 255, 0.10);">
+                            <svg width="17" height="16" viewBox="0 0 17 16" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M2.75 15.3359C0.96875 15.3359 -0.0078125 14.3672 -0.0078125 12.5938V3.14062C-0.0078125 1.36719 0.96875 0.398438 2.75 0.398438H13.6328C15.4219 0.398438 16.3906 1.36719 16.3906 3.14062V12.5938C16.3906 14.3672 15.4219 15.3359 13.6328 15.3359H2.75ZM2.89844 13.3203H13.4844C14.0625 13.3203 14.375 13.0391 14.375 12.4219V5.47656C14.375 4.85938 14.0625 4.57812 13.4844 4.57812H2.89844C2.3125 4.57812 2.00781 4.85938 2.00781 5.47656V12.4219C2.00781 13.0391 2.3125 13.3203 2.89844 13.3203ZM4.22656 7.23438C3.91406 7.23438 3.69531 7 3.69531 6.71094C3.69531 6.42188 3.91406 6.19531 4.22656 6.19531H12.1797C12.4766 6.19531 12.7031 6.42188 12.7031 6.71094C12.7031 7 12.4766 7.23438 12.1797 7.23438H4.22656ZM4.22656 9.46875C3.91406 9.46875 3.69531 9.25 3.69531 8.96094C3.69531 8.66406 3.91406 8.42969 4.22656 8.42969H12.1797C12.4766 8.42969 12.7031 8.66406 12.7031 8.96094C12.7031 9.25 12.4766 9.46875 12.1797 9.46875H4.22656ZM4.22656 11.7031C3.91406 11.7031 3.69531 11.4766 3.69531 11.1953C3.69531 10.8984 3.91406 10.6641 4.22656 10.6641H9.1875C9.48438 10.6641 9.71094 10.8984 9.71094 11.1953C9.71094 11.4766 9.48438 11.7031 9.1875 11.7031H4.22656Z"/>
+                            </svg>
+                            <p class="DLP_Text_Style_1" style="color: #007AFF;">Release Notes</p>
+                        </div>
+                        <div class="DLP_Button_Style_1 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Main_Discord_Button_1_ID" style="justify-content: center; flex: none; width: 48px; padding: 10px; outline: 2px solid rgba(0, 0, 0, 0.20); outline-offset: -2px; background: #5865F2;">
+                            <svg width="22" height="16" viewBox="0 0 22 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M18.289 1.34C16.9296 0.714 15.4761 0.259052 13.9565 0C13.7699 0.332095 13.5519 0.77877 13.4016 1.1341C11.7862 0.894993 10.1857 0.894993 8.60001 1.1341C8.44972 0.77877 8.22674 0.332095 8.03844 0C6.51721 0.259052 5.06204 0.715671 3.70267 1.34331C0.960812 5.42136 0.21754 9.39811 0.589177 13.3184C2.40772 14.655 4.17011 15.467 5.90275 15.9984C6.33055 15.4189 6.71209 14.8028 7.04078 14.1536C6.41478 13.9195 5.81521 13.6306 5.24869 13.2952C5.39898 13.1856 5.546 13.071 5.68803 12.9531C9.14342 14.5438 12.8978 14.5438 16.3119 12.9531C16.4556 13.071 16.6026 13.1856 16.7512 13.2952C16.183 13.6322 15.5818 13.9211 14.9558 14.1553C15.2845 14.8028 15.6644 15.4205 16.0939 16C17.8282 15.4687 19.5922 14.6567 21.4107 13.3184C21.8468 8.77378 20.6658 4.83355 18.289 1.34ZM7.51153 10.9075C6.47426 10.9075 5.62361 9.95435 5.62361 8.7937C5.62361 7.63305 6.45609 6.67831 7.51153 6.67831C8.56699 6.67831 9.41761 7.63138 9.39945 8.7937C9.40109 9.95435 8.56699 10.9075 7.51153 10.9075ZM14.4884 10.9075C13.4511 10.9075 12.6005 9.95435 12.6005 8.7937C12.6005 7.63305 13.4329 6.67831 14.4884 6.67831C15.5438 6.67831 16.3945 7.63138 16.3763 8.7937C16.3763 9.95435 15.5438 10.9075 14.4884 10.9075Z"/>
+                            </svg>
+                        </div>
+                        <div class="DLP_Button_Style_1 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Main_GitHub_Button_1_ID" style="justify-content: center; flex: none; width: 48px; padding: 10px; outline: 2px solid rgba(255, 255, 255, 0.20); outline-offset: -2px; background: #333333;">
+                            <svg width="22" height="22" viewBox="0 0 22 22" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" clip-rule="evenodd" d="M11.0087 0.5C5.19766 0.5 0.5 5.3125 0.5 11.2662C0.5 16.0253 3.50995 20.0538 7.68555 21.4797C8.2076 21.5868 8.39883 21.248 8.39883 20.963C8.39883 20.7134 8.38162 19.8578 8.38162 18.9664C5.45836 19.6082 4.84962 17.683 4.84962 17.683C4.37983 16.4353 3.68375 16.1146 3.68375 16.1146C2.72697 15.4551 3.75345 15.4551 3.75345 15.4551C4.81477 15.5264 5.37167 16.5602 5.37167 16.5602C6.31103 18.1999 7.82472 17.7366 8.43368 17.4514C8.52058 16.7562 8.79914 16.2749 9.09491 16.0076C6.7634 15.758 4.31035 14.8312 4.31035 10.6957C4.31035 9.51928 4.72765 8.55678 5.38888 7.80822C5.28456 7.54091 4.9191 6.43556 5.49342 4.95616C5.49342 4.95616 6.38073 4.67091 8.38141 6.06128C9.23797 5.82561 10.1213 5.70573 11.0087 5.70472C11.896 5.70472 12.8005 5.82963 13.6358 6.06128C15.6367 4.67091 16.524 4.95616 16.524 4.95616C17.0983 6.43556 16.7326 7.54091 16.6283 7.80822C17.3069 8.55678 17.707 9.51928 17.707 10.6957C17.707 14.8312 15.254 15.7401 12.905 16.0076C13.2879 16.3463 13.6183 16.9878 13.6183 18.0039C13.6183 19.4477 13.6011 20.6064 13.6011 20.9627C13.6011 21.248 13.7926 21.5868 14.3144 21.4799C18.49 20.0536 21.5 16.0253 21.5 11.2662C21.5172 5.3125 16.8023 0.5 11.0087 0.5Z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="DLP_HStack_Auto DLP_NoSelect">
+                    <div class="DLP_HStack_4" style="align-items: flex-start;">
+                        <p class="DLP_Text_Style_2">Duolingo</p>
+                        <p class="DLP_Text_Style_2" style="background: url(${serverURL}/static/3.0/assets/images/flow_1_light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PRO 3.0</p>
+                    </div>
+                    <p class="DLP_Text_Style_1" style="font-size: 14px; background: url(${serverURL}/static/3.0/assets/images/flow_2_light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${versionName}</p>
+                </div>
+                <p id="DLP_Main_Warning_1_ID" class="DLP_Text_Style_1" style="transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); text-align: center; opacity: 0.5; display: none;"></p>
+                <div class="DLP_VStack_8" id="DLP_Main_Inputs_1_Divider_1_ID" style="opacity: 0.5; pointer-events: none; transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);">
+                    <div class="DLP_VStack_8" id="DLP_Get_XP_1_ID">
+                        <p class="DLP_Text_Style_1 DLP_NoSelect" style="align-self: stretch; opacity: 0.5;">How much XP would you like to get?</p>
+                        <div class="DLP_HStack_8">
+                            <div class="DLP_Input_Style_1_Active">
+                                <p class="DLP_Text_Style_1 DLP_NoSelect" style="color: #007AFF; opacity: 0.5; display: none;">XP</p>
+                                <svg width="15" height="16" viewBox="0 0 15 16" fill="#007AFF" opacity="0.5" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.39844 11.3594C0.78125 11.3594 0.398438 11 0.398438 10.4297C0.398438 9.72656 0.867188 9.25 1.625 9.25H3.46875L4.07812 6.17969H2.40625C1.78906 6.17969 1.39844 5.80469 1.39844 5.24219C1.39844 4.53125 1.875 4.05469 2.63281 4.05469H4.5L5.07812 1.17188C5.21094 0.507812 5.58594 0.15625 6.26562 0.15625C6.88281 0.15625 7.26562 0.507812 7.26562 1.07031C7.26562 1.19531 7.24219 1.35938 7.22656 1.45312L6.70312 4.05469H9.61719L10.1953 1.17188C10.3281 0.507812 10.6953 0.15625 11.375 0.15625C11.9844 0.15625 12.3672 0.507812 12.3672 1.07031C12.3672 1.19531 12.3516 1.35938 12.3359 1.45312L11.8125 4.05469H13.5938C14.2109 4.05469 14.5938 4.4375 14.5938 4.99219C14.5938 5.70312 14.125 6.17969 13.3672 6.17969H11.3906L10.7812 9.25H12.5859C13.2031 9.25 13.5859 9.64062 13.5859 10.1953C13.5859 10.8984 13.1172 11.3594 12.3516 11.3594H10.3594L9.72656 14.5469C9.59375 15.2266 9.17969 15.5547 8.52344 15.5547C7.91406 15.5547 7.53906 15.2109 7.53906 14.6406C7.53906 14.5391 7.55469 14.375 7.57812 14.2656L8.15625 11.3594H5.25L4.61719 14.5469C4.48438 15.2266 4.0625 15.5547 3.42188 15.5547C2.8125 15.5547 2.42969 15.2109 2.42969 14.6406C2.42969 14.5391 2.44531 14.375 2.46875 14.2656L3.04688 11.3594H1.39844ZM5.67188 9.25H8.57812L9.19531 6.17969H6.28125L5.67188 9.25Z"/>
+                                </svg>
+                                <input type="text" placeholder="0" id="DLP_Inset_Input_1_ID" class="DLP_Input_Input_Style_1">
+                            </div>
+                            <div class="DLP_Input_Button_Style_1_Active DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Inset_Button_1_ID">
+                                <p id="DLP_Inset_Text_1_ID" class="DLP_Text_Style_1" style="color: #FFF;">GET</p>
+                                <svg id="DLP_Inset_Icon_1_ID" display="" width="16" height="16" viewBox="0 0 16 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.25 15.0156C0.554688 15.0156 -0.0078125 14.4609 -0.0078125 13.7734C-0.0078125 13.4297 0.140625 13.1094 0.390625 12.8516L5.54688 7.85156L0.390625 2.85938C0.132812 2.60156 -0.0078125 2.28125 -0.0078125 1.94531C-0.0078125 1.25781 0.554688 0.703125 1.25 0.703125C1.59375 0.703125 1.875 0.820312 2.10938 1.05469L8.02344 6.83594C8.33594 7.14062 8.48438 7.46875 8.48438 7.85938C8.48438 8.24219 8.34375 8.5625 8.02344 8.88281L2.10938 14.6641C1.86719 14.8984 1.58594 15.0156 1.25 15.0156ZM8.22656 15.0156C7.53125 15.0156 6.96875 14.4609 6.96875 13.7734C6.96875 13.4297 7.11719 13.1094 7.375 12.8516L12.5234 7.85156L7.375 2.85938C7.10938 2.60156 6.96875 2.28125 6.96875 1.94531C6.96875 1.25781 7.53125 0.703125 8.22656 0.703125C8.57031 0.703125 8.85156 0.820312 9.09375 1.05469L15 6.83594C15.3203 7.14062 15.4609 7.46875 15.4688 7.85938C15.4688 8.24219 15.3203 8.5625 15.0078 8.88281L9.09375 14.6641C8.85156 14.8984 8.57031 15.0156 8.22656 15.0156Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_2_ID" display="none" width="17" height="18" viewBox="0 0 17 18" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8.64844 2.66406C8.03125 2.66406 7.4375 2.75 6.875 2.92188L6.07812 1.02344C6.89062 0.757812 7.75781 0.609375 8.64844 0.609375C9.53906 0.609375 10.3984 0.757812 11.2031 1.02344L10.4219 2.92188C9.85938 2.75781 9.26562 2.66406 8.64844 2.66406ZM14.1016 5.91406C13.5312 4.84375 12.6562 3.96875 11.5859 3.39844L12.375 1.50781C13.9297 2.30469 15.2031 3.57812 16 5.125L14.1016 5.91406ZM5.70312 3.39844C4.63281 3.97656 3.75781 4.85156 3.19531 5.92188L1.29688 5.125C2.09375 3.57812 3.36719 2.30469 4.91406 1.50781L5.70312 3.39844ZM14.8438 8.85938C14.8438 8.24219 14.7578 7.64844 14.5859 7.08594L16.4844 6.29688C16.7578 7.10156 16.8984 7.96875 16.8984 8.85938C16.8984 9.75 16.7578 10.6172 16.4844 11.4219L14.5938 10.6328C14.75 10.0703 14.8438 9.47656 14.8438 8.85938ZM2.46094 8.85938C2.46094 9.47656 2.54688 10.0703 2.71094 10.625L0.8125 11.4219C0.546875 10.6094 0.398438 9.75 0.398438 8.85938C0.398438 7.96875 0.546875 7.10938 0.8125 6.29688L2.71094 7.08594C2.54688 7.64844 2.46094 8.24219 2.46094 8.85938ZM11.5859 14.3125C12.6562 13.7422 13.5391 12.875 14.1094 11.8047L16 12.5938C15.2031 14.1406 13.9297 15.4141 12.375 16.2109L11.5859 14.3125ZM3.19531 11.8047C3.76562 12.8672 4.63281 13.7422 5.70312 14.3125L4.91406 16.2031C3.36719 15.4141 2.09375 14.1406 1.29688 12.5938L3.19531 11.8047ZM8.64844 15.0547C9.26562 15.0547 9.85938 14.9609 10.4141 14.7969L11.2109 16.6953C10.3984 16.9609 9.53906 17.1094 8.64844 17.1094C7.75781 17.1094 6.89062 16.9609 6.08594 16.6953L6.875 14.7969C7.4375 14.9609 8.03125 15.0547 8.64844 15.0547Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_3_ID" display="none" width="17" height="18" viewBox="0 0 17 18" fill="#34C759" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8.64844 17.1094C4.09375 17.1094 0.398438 13.4141 0.398438 8.85938C0.398438 4.30469 4.09375 0.609375 8.64844 0.609375C13.2031 0.609375 16.8984 4.30469 16.8984 8.85938C16.8984 13.4141 13.2031 17.1094 8.64844 17.1094ZM7.78906 12.7812C8.125 12.7812 8.42969 12.6094 8.63281 12.3125L12.2578 6.76562C12.3984 6.5625 12.4766 6.35156 12.4766 6.15625C12.4766 5.67188 12.0469 5.32812 11.5781 5.32812C11.2734 5.32812 11.0156 5.49219 10.8125 5.82031L7.76562 10.6641L6.40625 8.98438C6.19531 8.73438 5.97656 8.625 5.69531 8.625C5.21875 8.625 4.82812 9.00781 4.82812 9.49219C4.82812 9.71875 4.89844 9.91406 5.07812 10.1328L6.91406 12.3203C7.16406 12.625 7.4375 12.7812 7.78906 12.7812Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_4_ID" display="none" width="18" height="16" viewBox="0 0 18 16" fill="#FF2D55" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2.96094 15.5469C1.53125 15.5469 0.59375 14.4688 0.59375 13.1797C0.59375 12.7812 0.695312 12.375 0.914062 11.9922L6.92969 1.47656C7.38281 0.695312 8.17188 0.289062 8.97656 0.289062C9.77344 0.289062 10.5547 0.6875 11.0156 1.47656L17.0312 11.9844C17.25 12.3672 17.3516 12.7812 17.3516 13.1797C17.3516 14.4688 16.4141 15.5469 14.9844 15.5469H2.96094ZM8.98438 9.96094C9.52344 9.96094 9.83594 9.65625 9.86719 9.09375L9.99219 5.72656C10.0234 5.14062 9.59375 4.73438 8.97656 4.73438C8.35156 4.73438 7.92969 5.13281 7.96094 5.72656L8.08594 9.10156C8.10938 9.65625 8.42969 9.96094 8.98438 9.96094ZM8.98438 12.7812C9.60156 12.7812 10.0859 12.3906 10.0859 11.7891C10.0859 11.2031 9.60938 10.8047 8.98438 10.8047C8.35938 10.8047 7.875 11.2031 7.875 11.7891C7.875 12.3906 8.35938 12.7812 8.98438 12.7812Z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="GEMS_UNAVAILABLE">
+                    <div class="DLP_VStack_8" id="DLP_Get_GEMS_1_ID" style="pointer-events: none; opacity: 0.5;">
+                        <p class="DLP_Text_Style_1 DLP_NoSelect" style="align-self: stretch; opacity: 0.5;">How many Gems would you like to get?</p>
+                        <div class="DLP_HStack_8">
+                            <div class="DLP_Input_Style_1_Active">
+                                <p class="DLP_Text_Style_1 DLP_NoSelect" style="color: #007AFF; opacity: 0.5; display: none;">GEMS</p>
+                                <svg width="15" height="16" viewBox="0 0 15 16" fill="#007AFF" opacity="0.5" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.39844 11.3594C0.78125 11.3594 0.398438 11 0.398438 10.4297C0.398438 9.72656 0.867188 9.25 1.625 9.25H3.46875L4.07812 6.17969H2.40625C1.78906 6.17969 1.39844 5.80469 1.39844 5.24219C1.39844 4.53125 1.875 4.05469 2.63281 4.05469H4.5L5.07812 1.17188C5.21094 0.507812 5.58594 0.15625 6.26562 0.15625C6.88281 0.15625 7.26562 0.507812 7.26562 1.07031C7.26562 1.19531 7.24219 1.35938 7.22656 1.45312L6.70312 4.05469H9.61719L10.1953 1.17188C10.3281 0.507812 10.6953 0.15625 11.375 0.15625C11.9844 0.15625 12.3672 0.507812 12.3672 1.07031C12.3672 1.19531 12.3516 1.35938 12.3359 1.45312L11.8125 4.05469H13.5938C14.2109 4.05469 14.5938 4.4375 14.5938 4.99219C14.5938 5.70312 14.125 6.17969 13.3672 6.17969H11.3906L10.7812 9.25H12.5859C13.2031 9.25 13.5859 9.64062 13.5859 10.1953C13.5859 10.8984 13.1172 11.3594 12.3516 11.3594H10.3594L9.72656 14.5469C9.59375 15.2266 9.17969 15.5547 8.52344 15.5547C7.91406 15.5547 7.53906 15.2109 7.53906 14.6406C7.53906 14.5391 7.55469 14.375 7.57812 14.2656L8.15625 11.3594H5.25L4.61719 14.5469C4.48438 15.2266 4.0625 15.5547 3.42188 15.5547C2.8125 15.5547 2.42969 15.2109 2.42969 14.6406C2.42969 14.5391 2.44531 14.375 2.46875 14.2656L3.04688 11.3594H1.39844ZM5.67188 9.25H8.57812L9.19531 6.17969H6.28125L5.67188 9.25Z"/>
+                                </svg>
+                                <input type="text" placeholder="0" id="DLP_Inset_Input_1_ID" class="DLP_Input_Input_Style_1">
+                            </div>
+                            <div class="DLP_Input_Button_Style_1_Active DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Inset_Button_1_ID">
+                                <p id="DLP_Inset_Text_1_ID" class="DLP_Text_Style_1" style="color: #FFF;">GET</p>
+                                <svg id="DLP_Inset_Icon_1_ID" display="" width="16" height="16" viewBox="0 0 16 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.25 15.0156C0.554688 15.0156 -0.0078125 14.4609 -0.0078125 13.7734C-0.0078125 13.4297 0.140625 13.1094 0.390625 12.8516L5.54688 7.85156L0.390625 2.85938C0.132812 2.60156 -0.0078125 2.28125 -0.0078125 1.94531C-0.0078125 1.25781 0.554688 0.703125 1.25 0.703125C1.59375 0.703125 1.875 0.820312 2.10938 1.05469L8.02344 6.83594C8.33594 7.14062 8.48438 7.46875 8.48438 7.85938C8.48438 8.24219 8.34375 8.5625 8.02344 8.88281L2.10938 14.6641C1.86719 14.8984 1.58594 15.0156 1.25 15.0156ZM8.22656 15.0156C7.53125 15.0156 6.96875 14.4609 6.96875 13.7734C6.96875 13.4297 7.11719 13.1094 7.375 12.8516L12.5234 7.85156L7.375 2.85938C7.10938 2.60156 6.96875 2.28125 6.96875 1.94531C6.96875 1.25781 7.53125 0.703125 8.22656 0.703125C8.57031 0.703125 8.85156 0.820312 9.09375 1.05469L15 6.83594C15.3203 7.14062 15.4609 7.46875 15.4688 7.85938C15.4688 8.24219 15.3203 8.5625 15.0078 8.88281L9.09375 14.6641C8.85156 14.8984 8.57031 15.0156 8.22656 15.0156Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_2_ID" display="none" width="17" height="18" viewBox="0 0 17 18" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8.64844 2.66406C8.03125 2.66406 7.4375 2.75 6.875 2.92188L6.07812 1.02344C6.89062 0.757812 7.75781 0.609375 8.64844 0.609375C9.53906 0.609375 10.3984 0.757812 11.2031 1.02344L10.4219 2.92188C9.85938 2.75781 9.26562 2.66406 8.64844 2.66406ZM14.1016 5.91406C13.5312 4.84375 12.6562 3.96875 11.5859 3.39844L12.375 1.50781C13.9297 2.30469 15.2031 3.57812 16 5.125L14.1016 5.91406ZM5.70312 3.39844C4.63281 3.97656 3.75781 4.85156 3.19531 5.92188L1.29688 5.125C2.09375 3.57812 3.36719 2.30469 4.91406 1.50781L5.70312 3.39844ZM14.8438 8.85938C14.8438 8.24219 14.7578 7.64844 14.5859 7.08594L16.4844 6.29688C16.7578 7.10156 16.8984 7.96875 16.8984 8.85938C16.8984 9.75 16.7578 10.6172 16.4844 11.4219L14.5938 10.6328C14.75 10.0703 14.8438 9.47656 14.8438 8.85938ZM2.46094 8.85938C2.46094 9.47656 2.54688 10.0703 2.71094 10.625L0.8125 11.4219C0.546875 10.6094 0.398438 9.75 0.398438 8.85938C0.398438 7.96875 0.546875 7.10938 0.8125 6.29688L2.71094 7.08594C2.54688 7.64844 2.46094 8.24219 2.46094 8.85938ZM11.5859 14.3125C12.6562 13.7422 13.5391 12.875 14.1094 11.8047L16 12.5938C15.2031 14.1406 13.9297 15.4141 12.375 16.2109L11.5859 14.3125ZM3.19531 11.8047C3.76562 12.8672 4.63281 13.7422 5.70312 14.3125L4.91406 16.2031C3.36719 15.4141 2.09375 14.1406 1.29688 12.5938L3.19531 11.8047ZM8.64844 15.0547C9.26562 15.0547 9.85938 14.9609 10.4141 14.7969L11.2109 16.6953C10.3984 16.9609 9.53906 17.1094 8.64844 17.1094C7.75781 17.1094 6.89062 16.9609 6.08594 16.6953L6.875 14.7969C7.4375 14.9609 8.03125 15.0547 8.64844 15.0547Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_3_ID" display="none" width="17" height="18" viewBox="0 0 17 18" fill="#34C759" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8.64844 17.1094C4.09375 17.1094 0.398438 13.4141 0.398438 8.85938C0.398438 4.30469 4.09375 0.609375 8.64844 0.609375C13.2031 0.609375 16.8984 4.30469 16.8984 8.85938C16.8984 13.4141 13.2031 17.1094 8.64844 17.1094ZM7.78906 12.7812C8.125 12.7812 8.42969 12.6094 8.63281 12.3125L12.2578 6.76562C12.3984 6.5625 12.4766 6.35156 12.4766 6.15625C12.4766 5.67188 12.0469 5.32812 11.5781 5.32812C11.2734 5.32812 11.0156 5.49219 10.8125 5.82031L7.76562 10.6641L6.40625 8.98438C6.19531 8.73438 5.97656 8.625 5.69531 8.625C5.21875 8.625 4.82812 9.00781 4.82812 9.49219C4.82812 9.71875 4.89844 9.91406 5.07812 10.1328L6.91406 12.3203C7.16406 12.625 7.4375 12.7812 7.78906 12.7812Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_4_ID" display="none" width="18" height="16" viewBox="0 0 18 16" fill="#FF2D55" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2.96094 15.5469C1.53125 15.5469 0.59375 14.4688 0.59375 13.1797C0.59375 12.7812 0.695312 12.375 0.914062 11.9922L6.92969 1.47656C7.38281 0.695312 8.17188 0.289062 8.97656 0.289062C9.77344 0.289062 10.5547 0.6875 11.0156 1.47656L17.0312 11.9844C17.25 12.3672 17.3516 12.7812 17.3516 13.1797C17.3516 14.4688 16.4141 15.5469 14.9844 15.5469H2.96094ZM8.98438 9.96094C9.52344 9.96094 9.83594 9.65625 9.86719 9.09375L9.99219 5.72656C10.0234 5.14062 9.59375 4.73438 8.97656 4.73438C8.35156 4.73438 7.92969 5.13281 7.96094 5.72656L8.08594 9.10156C8.10938 9.65625 8.42969 9.96094 8.98438 9.96094ZM8.98438 12.7812C9.60156 12.7812 10.0859 12.3906 10.0859 11.7891C10.0859 11.2031 9.60938 10.8047 8.98438 10.8047C8.35938 10.8047 7.875 11.2031 7.875 11.7891C7.875 12.3906 8.35938 12.7812 8.98438 12.7812Z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                    <div class="DLP_VStack_8" id="DLP_Get_SUPER_1_ID" style="display: none;">
+                        <p class="DLP_Text_Style_1 DLP_NoSelect" style="align-self: stretch; opacity: 0.5;">Would you like to redeem 3 days of Super Duolingo?</p>
+                        <div class="DLP_HStack_8">
+                            <div class="DLP_Input_Button_Style_1_Active DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Inset_Button_1_ID" style="flex: 1 0 0;">
+                                <p id="DLP_Inset_Text_1_ID" class="DLP_Text_Style_1" style="color: #FFF;">REDEEM</p>
+                                <svg id="DLP_Inset_Icon_1_ID" display="" width="16" height="16" viewBox="0 0 16 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.25 15.0156C0.554688 15.0156 -0.0078125 14.4609 -0.0078125 13.7734C-0.0078125 13.4297 0.140625 13.1094 0.390625 12.8516L5.54688 7.85156L0.390625 2.85938C0.132812 2.60156 -0.0078125 2.28125 -0.0078125 1.94531C-0.0078125 1.25781 0.554688 0.703125 1.25 0.703125C1.59375 0.703125 1.875 0.820312 2.10938 1.05469L8.02344 6.83594C8.33594 7.14062 8.48438 7.46875 8.48438 7.85938C8.48438 8.24219 8.34375 8.5625 8.02344 8.88281L2.10938 14.6641C1.86719 14.8984 1.58594 15.0156 1.25 15.0156ZM8.22656 15.0156C7.53125 15.0156 6.96875 14.4609 6.96875 13.7734C6.96875 13.4297 7.11719 13.1094 7.375 12.8516L12.5234 7.85156L7.375 2.85938C7.10938 2.60156 6.96875 2.28125 6.96875 1.94531C6.96875 1.25781 7.53125 0.703125 8.22656 0.703125C8.57031 0.703125 8.85156 0.820312 9.09375 1.05469L15 6.83594C15.3203 7.14062 15.4609 7.46875 15.4688 7.85938C15.4688 8.24219 15.3203 8.5625 15.0078 8.88281L9.09375 14.6641C8.85156 14.8984 8.57031 15.0156 8.22656 15.0156Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_2_ID" display="none" width="17" height="18" viewBox="0 0 17 18" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8.64844 2.66406C8.03125 2.66406 7.4375 2.75 6.875 2.92188L6.07812 1.02344C6.89062 0.757812 7.75781 0.609375 8.64844 0.609375C9.53906 0.609375 10.3984 0.757812 11.2031 1.02344L10.4219 2.92188C9.85938 2.75781 9.26562 2.66406 8.64844 2.66406ZM14.1016 5.91406C13.5312 4.84375 12.6562 3.96875 11.5859 3.39844L12.375 1.50781C13.9297 2.30469 15.2031 3.57812 16 5.125L14.1016 5.91406ZM5.70312 3.39844C4.63281 3.97656 3.75781 4.85156 3.19531 5.92188L1.29688 5.125C2.09375 3.57812 3.36719 2.30469 4.91406 1.50781L5.70312 3.39844ZM14.8438 8.85938C14.8438 8.24219 14.7578 7.64844 14.5859 7.08594L16.4844 6.29688C16.7578 7.10156 16.8984 7.96875 16.8984 8.85938C16.8984 9.75 16.7578 10.6172 16.4844 11.4219L14.5938 10.6328C14.75 10.0703 14.8438 9.47656 14.8438 8.85938ZM2.46094 8.85938C2.46094 9.47656 2.54688 10.0703 2.71094 10.625L0.8125 11.4219C0.546875 10.6094 0.398438 9.75 0.398438 8.85938C0.398438 7.96875 0.546875 7.10938 0.8125 6.29688L2.71094 7.08594C2.54688 7.64844 2.46094 8.24219 2.46094 8.85938ZM11.5859 14.3125C12.6562 13.7422 13.5391 12.875 14.1094 11.8047L16 12.5938C15.2031 14.1406 13.9297 15.4141 12.375 16.2109L11.5859 14.3125ZM3.19531 11.8047C3.76562 12.8672 4.63281 13.7422 5.70312 14.3125L4.91406 16.2031C3.36719 15.4141 2.09375 14.1406 1.29688 12.5938L3.19531 11.8047ZM8.64844 15.0547C9.26562 15.0547 9.85938 14.9609 10.4141 14.7969L11.2109 16.6953C10.3984 16.9609 9.53906 17.1094 8.64844 17.1094C7.75781 17.1094 6.89062 16.9609 6.08594 16.6953L6.875 14.7969C7.4375 14.9609 8.03125 15.0547 8.64844 15.0547Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_3_ID" display="none" width="17" height="18" viewBox="0 0 17 18" fill="#34C759" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8.64844 17.1094C4.09375 17.1094 0.398438 13.4141 0.398438 8.85938C0.398438 4.30469 4.09375 0.609375 8.64844 0.609375C13.2031 0.609375 16.8984 4.30469 16.8984 8.85938C16.8984 13.4141 13.2031 17.1094 8.64844 17.1094ZM7.78906 12.7812C8.125 12.7812 8.42969 12.6094 8.63281 12.3125L12.2578 6.76562C12.3984 6.5625 12.4766 6.35156 12.4766 6.15625C12.4766 5.67188 12.0469 5.32812 11.5781 5.32812C11.2734 5.32812 11.0156 5.49219 10.8125 5.82031L7.76562 10.6641L6.40625 8.98438C6.19531 8.73438 5.97656 8.625 5.69531 8.625C5.21875 8.625 4.82812 9.00781 4.82812 9.49219C4.82812 9.71875 4.89844 9.91406 5.07812 10.1328L6.91406 12.3203C7.16406 12.625 7.4375 12.7812 7.78906 12.7812Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_4_ID" display="none" width="18" height="16" viewBox="0 0 18 16" fill="#FF2D55" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2.96094 15.5469C1.53125 15.5469 0.59375 14.4688 0.59375 13.1797C0.59375 12.7812 0.695312 12.375 0.914062 11.9922L6.92969 1.47656C7.38281 0.695312 8.17188 0.289062 8.97656 0.289062C9.77344 0.289062 10.5547 0.6875 11.0156 1.47656L17.0312 11.9844C17.25 12.3672 17.3516 12.7812 17.3516 13.1797C17.3516 14.4688 16.4141 15.5469 14.9844 15.5469H2.96094ZM8.98438 9.96094C9.52344 9.96094 9.83594 9.65625 9.86719 9.09375L9.99219 5.72656C10.0234 5.14062 9.59375 4.73438 8.97656 4.73438C8.35156 4.73438 7.92969 5.13281 7.96094 5.72656L8.08594 9.10156C8.10938 9.65625 8.42969 9.96094 8.98438 9.96094ZM8.98438 12.7812C9.60156 12.7812 10.0859 12.3906 10.0859 11.7891C10.0859 11.2031 9.60938 10.8047 8.98438 10.8047C8.35938 10.8047 7.875 11.2031 7.875 11.7891C7.875 12.3906 8.35938 12.7812 8.98438 12.7812Z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="DLP_HStack_Auto" style="padding-top: 4px;">
+                        <div class="DLP_HStack_4 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Main_Terms_1_Button_1_ID" style="align-items: center;">
+                            <p class="DLP_Text_Style_1" style="color: #007AFF; opacity: 0.5;">Terms & Conditions</p>
+                        </div>
+                        <div class="DLP_HStack_4 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Main_See_More_1_Button_1_ID" style="align-items: center;">
+                            <p class="DLP_Text_Style_1" style="color: #007AFF;">See more</p>
+                            <svg width="9" height="15" viewBox="0 0 9 15" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M8.57031 7.35938C8.57031 7.74219 8.4375 8.0625 8.10938 8.375L2.20312 14.1641C1.96875 14.3984 1.67969 14.5156 1.33594 14.5156C0.648438 14.5156 0.0859375 13.9609 0.0859375 13.2734C0.0859375 12.9219 0.226562 12.6094 0.484375 12.3516L5.63281 7.35156L0.484375 2.35938C0.226562 2.10938 0.0859375 1.78906 0.0859375 1.44531C0.0859375 0.765625 0.648438 0.203125 1.33594 0.203125C1.67969 0.203125 1.96875 0.320312 2.20312 0.554688L8.10938 6.34375C8.42969 6.64844 8.57031 6.96875 8.57031 7.35938Z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="DLP_Main_Box_Divider" id="DLP_Main_Box_Divider_2_ID" style="display: none;">
+            <div class="DLP_VStack_8">
+                <div class="DLP_HStack_Auto DLP_NoSelect">
+                    <div class="DLP_HStack_4" style="align-items: flex-start;">
+                        <p class="DLP_Text_Style_2">Duolingo</p>
+                        <p class="DLP_Text_Style_2" style="background: url(${serverURL}/static/3.0/assets/images/flow_1_light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PRO 3.0</p>
+                    </div>
+                    <p class="DLP_Text_Style_1" style="font-size: 14px; background: url(${serverURL}/static/3.0/assets/images/flow_2_light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${versionName}</p>
+                </div>
+                <div class="DLP_VStack_8" id="DLP_Main_Inputs_1_Divider_1_ID">
+                    <div class="DLP_VStack_8" id="DLP_Get_XP_2_ID">
+                        <div class="DLP_HStack_8" style="align-items: center;">
+                            <svg class="DLP_Magnetic_Hover_1 DLP_NoSelect" width="13" height="20" viewBox="0 0 13 20" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M0.140625 12.25C0.140625 10.5156 1.50781 8.80469 3.73438 7.96875L3.98438 4.25781C2.77344 3.57812 1.875 2.85156 1.47656 2.35156C1.24219 2.05469 1.13281 1.74219 1.13281 1.46094C1.13281 0.875 1.57812 0.453125 2.22656 0.453125H10.7578C11.4062 0.453125 11.8516 0.875 11.8516 1.46094C11.8516 1.74219 11.7422 2.05469 11.5078 2.35156C11.1094 2.85156 10.2109 3.57031 9 4.25781L9.25781 7.96875C11.4766 8.80469 12.8438 10.5156 12.8438 12.25C12.8438 13.0312 12.3047 13.5547 11.5 13.5547H7.40625V17.3203C7.40625 18.2578 6.74219 19.5703 6.49219 19.5703C6.24219 19.5703 5.57812 18.2578 5.57812 17.3203V13.5547H1.48438C0.679688 13.5547 0.140625 13.0312 0.140625 12.25Z"/>
+                            </svg>
+                            <svg class="DLP_Magnetic_Hover_1 DLP_NoSelect" width="13" height="20" viewBox="0 0 13 20" fill="rgb(var(--color-eel))" xmlns="http://www.w3.org/2000/svg" display="none">
+                                <path opacity="0.5" d="M1.48438 13.5547C0.679688 13.5547 0.140625 13.0312 0.140625 12.25C0.140625 10.5156 1.50781 8.85156 3.55469 8.01562L3.80469 4.25781C2.77344 3.57031 1.86719 2.85156 1.47656 2.34375C1.24219 2.05469 1.13281 1.74219 1.13281 1.46094C1.13281 0.875 1.57812 0.453125 2.22656 0.453125H10.7578C11.4062 0.453125 11.8516 0.875 11.8516 1.46094C11.8516 1.74219 11.7422 2.05469 11.5078 2.34375C11.1172 2.85156 10.2188 3.57031 9.17969 4.25781L9.42969 8.01562C11.4766 8.85156 12.8438 10.5156 12.8438 12.25C12.8438 13.0312 12.3047 13.5547 11.5 13.5547H7.40625V17.3203C7.40625 18.2578 6.74219 19.5703 6.49219 19.5703C6.24219 19.5703 5.57812 18.2578 5.57812 17.3203V13.5547H1.48438ZM6.49219 7.44531C6.92969 7.44531 7.35156 7.47656 7.75781 7.54688L7.53125 3.55469C7.52344 3.38281 7.5625 3.29688 7.69531 3.21875C8.5625 2.76562 9.23438 2.28125 9.46094 2.07812C9.53125 2.00781 9.49219 1.92969 9.41406 1.92969H3.57812C3.5 1.92969 3.45312 2.00781 3.52344 2.07812C3.75 2.28125 4.42188 2.76562 5.28906 3.21875C5.42188 3.29688 5.46094 3.38281 5.45312 3.55469L5.22656 7.54688C5.63281 7.47656 6.05469 7.44531 6.49219 7.44531ZM1.92188 11.9844H11.0625C11.1797 11.9844 11.2344 11.9141 11.2109 11.7734C10.9922 10.3906 9.08594 8.96875 6.49219 8.96875C3.89844 8.96875 1.99219 10.3906 1.77344 11.7734C1.75 11.9141 1.80469 11.9844 1.92188 11.9844Z"/>
+                            </svg>
+                            <p class="DLP_Text_Style_1 DLP_NoSelect" style="align-self: stretch; opacity: 0.5;">How much XP would you like to get?</p>
+                        </div>
+                        <div class="DLP_HStack_8">
+                            <div class="DLP_Input_Style_1_Active">
+                                <p class="DLP_Text_Style_1 DLP_NoSelect" style="color: #007AFF; opacity: 0.5; display: none;">XP</p>
+                                <svg width="15" height="16" viewBox="0 0 15 16" fill="#007AFF" opacity="0.5" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.39844 11.3594C0.78125 11.3594 0.398438 11 0.398438 10.4297C0.398438 9.72656 0.867188 9.25 1.625 9.25H3.46875L4.07812 6.17969H2.40625C1.78906 6.17969 1.39844 5.80469 1.39844 5.24219C1.39844 4.53125 1.875 4.05469 2.63281 4.05469H4.5L5.07812 1.17188C5.21094 0.507812 5.58594 0.15625 6.26562 0.15625C6.88281 0.15625 7.26562 0.507812 7.26562 1.07031C7.26562 1.19531 7.24219 1.35938 7.22656 1.45312L6.70312 4.05469H9.61719L10.1953 1.17188C10.3281 0.507812 10.6953 0.15625 11.375 0.15625C11.9844 0.15625 12.3672 0.507812 12.3672 1.07031C12.3672 1.19531 12.3516 1.35938 12.3359 1.45312L11.8125 4.05469H13.5938C14.2109 4.05469 14.5938 4.4375 14.5938 4.99219C14.5938 5.70312 14.125 6.17969 13.3672 6.17969H11.3906L10.7812 9.25H12.5859C13.2031 9.25 13.5859 9.64062 13.5859 10.1953C13.5859 10.8984 13.1172 11.3594 12.3516 11.3594H10.3594L9.72656 14.5469C9.59375 15.2266 9.17969 15.5547 8.52344 15.5547C7.91406 15.5547 7.53906 15.2109 7.53906 14.6406C7.53906 14.5391 7.55469 14.375 7.57812 14.2656L8.15625 11.3594H5.25L4.61719 14.5469C4.48438 15.2266 4.0625 15.5547 3.42188 15.5547C2.8125 15.5547 2.42969 15.2109 2.42969 14.6406C2.42969 14.5391 2.44531 14.375 2.46875 14.2656L3.04688 11.3594H1.39844ZM5.67188 9.25H8.57812L9.19531 6.17969H6.28125L5.67188 9.25Z"/>
+                                </svg>
+                                <input type="text" placeholder="0" id="DLP_Inset_Input_1_ID" class="DLP_Input_Input_Style_1">
+                            </div>
+                            <div class="DLP_Input_Button_Style_1_Active DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Inset_Button_1_ID">
+                                <p id="DLP_Inset_Text_1_ID" class="DLP_Text_Style_1" style="color: #FFF;">GET</p>
+                                <svg id="DLP_Inset_Icon_1_ID" display="" width="16" height="16" viewBox="0 0 16 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.25 15.0156C0.554688 15.0156 -0.0078125 14.4609 -0.0078125 13.7734C-0.0078125 13.4297 0.140625 13.1094 0.390625 12.8516L5.54688 7.85156L0.390625 2.85938C0.132812 2.60156 -0.0078125 2.28125 -0.0078125 1.94531C-0.0078125 1.25781 0.554688 0.703125 1.25 0.703125C1.59375 0.703125 1.875 0.820312 2.10938 1.05469L8.02344 6.83594C8.33594 7.14062 8.48438 7.46875 8.48438 7.85938C8.48438 8.24219 8.34375 8.5625 8.02344 8.88281L2.10938 14.6641C1.86719 14.8984 1.58594 15.0156 1.25 15.0156ZM8.22656 15.0156C7.53125 15.0156 6.96875 14.4609 6.96875 13.7734C6.96875 13.4297 7.11719 13.1094 7.375 12.8516L12.5234 7.85156L7.375 2.85938C7.10938 2.60156 6.96875 2.28125 6.96875 1.94531C6.96875 1.25781 7.53125 0.703125 8.22656 0.703125C8.57031 0.703125 8.85156 0.820312 9.09375 1.05469L15 6.83594C15.3203 7.14062 15.4609 7.46875 15.4688 7.85938C15.4688 8.24219 15.3203 8.5625 15.0078 8.88281L9.09375 14.6641C8.85156 14.8984 8.57031 15.0156 8.22656 15.0156Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_2_ID" display="none" width="17" height="18" viewBox="0 0 17 18" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8.64844 2.66406C8.03125 2.66406 7.4375 2.75 6.875 2.92188L6.07812 1.02344C6.89062 0.757812 7.75781 0.609375 8.64844 0.609375C9.53906 0.609375 10.3984 0.757812 11.2031 1.02344L10.4219 2.92188C9.85938 2.75781 9.26562 2.66406 8.64844 2.66406ZM14.1016 5.91406C13.5312 4.84375 12.6562 3.96875 11.5859 3.39844L12.375 1.50781C13.9297 2.30469 15.2031 3.57812 16 5.125L14.1016 5.91406ZM5.70312 3.39844C4.63281 3.97656 3.75781 4.85156 3.19531 5.92188L1.29688 5.125C2.09375 3.57812 3.36719 2.30469 4.91406 1.50781L5.70312 3.39844ZM14.8438 8.85938C14.8438 8.24219 14.7578 7.64844 14.5859 7.08594L16.4844 6.29688C16.7578 7.10156 16.8984 7.96875 16.8984 8.85938C16.8984 9.75 16.7578 10.6172 16.4844 11.4219L14.5938 10.6328C14.75 10.0703 14.8438 9.47656 14.8438 8.85938ZM2.46094 8.85938C2.46094 9.47656 2.54688 10.0703 2.71094 10.625L0.8125 11.4219C0.546875 10.6094 0.398438 9.75 0.398438 8.85938C0.398438 7.96875 0.546875 7.10938 0.8125 6.29688L2.71094 7.08594C2.54688 7.64844 2.46094 8.24219 2.46094 8.85938ZM11.5859 14.3125C12.6562 13.7422 13.5391 12.875 14.1094 11.8047L16 12.5938C15.2031 14.1406 13.9297 15.4141 12.375 16.2109L11.5859 14.3125ZM3.19531 11.8047C3.76562 12.8672 4.63281 13.7422 5.70312 14.3125L4.91406 16.2031C3.36719 15.4141 2.09375 14.1406 1.29688 12.5938L3.19531 11.8047ZM8.64844 15.0547C9.26562 15.0547 9.85938 14.9609 10.4141 14.7969L11.2109 16.6953C10.3984 16.9609 9.53906 17.1094 8.64844 17.1094C7.75781 17.1094 6.89062 16.9609 6.08594 16.6953L6.875 14.7969C7.4375 14.9609 8.03125 15.0547 8.64844 15.0547Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_3_ID" display="none" width="17" height="18" viewBox="0 0 17 18" fill="#34C759" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8.64844 17.1094C4.09375 17.1094 0.398438 13.4141 0.398438 8.85938C0.398438 4.30469 4.09375 0.609375 8.64844 0.609375C13.2031 0.609375 16.8984 4.30469 16.8984 8.85938C16.8984 13.4141 13.2031 17.1094 8.64844 17.1094ZM7.78906 12.7812C8.125 12.7812 8.42969 12.6094 8.63281 12.3125L12.2578 6.76562C12.3984 6.5625 12.4766 6.35156 12.4766 6.15625C12.4766 5.67188 12.0469 5.32812 11.5781 5.32812C11.2734 5.32812 11.0156 5.49219 10.8125 5.82031L7.76562 10.6641L6.40625 8.98438C6.19531 8.73438 5.97656 8.625 5.69531 8.625C5.21875 8.625 4.82812 9.00781 4.82812 9.49219C4.82812 9.71875 4.89844 9.91406 5.07812 10.1328L6.91406 12.3203C7.16406 12.625 7.4375 12.7812 7.78906 12.7812Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_4_ID" display="none" width="18" height="16" viewBox="0 0 18 16" fill="#FF2D55" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2.96094 15.5469C1.53125 15.5469 0.59375 14.4688 0.59375 13.1797C0.59375 12.7812 0.695312 12.375 0.914062 11.9922L6.92969 1.47656C7.38281 0.695312 8.17188 0.289062 8.97656 0.289062C9.77344 0.289062 10.5547 0.6875 11.0156 1.47656L17.0312 11.9844C17.25 12.3672 17.3516 12.7812 17.3516 13.1797C17.3516 14.4688 16.4141 15.5469 14.9844 15.5469H2.96094ZM8.98438 9.96094C9.52344 9.96094 9.83594 9.65625 9.86719 9.09375L9.99219 5.72656C10.0234 5.14062 9.59375 4.73438 8.97656 4.73438C8.35156 4.73438 7.92969 5.13281 7.96094 5.72656L8.08594 9.10156C8.10938 9.65625 8.42969 9.96094 8.98438 9.96094ZM8.98438 12.7812C9.60156 12.7812 10.0859 12.3906 10.0859 11.7891C10.0859 11.2031 9.60938 10.8047 8.98438 10.8047C8.35938 10.8047 7.875 11.2031 7.875 11.7891C7.875 12.3906 8.35938 12.7812 8.98438 12.7812Z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="GEMS_UNAVAILABLE">
+                    <div class="DLP_VStack_8" id="DLP_Get_GEMS_2_ID" style="pointer-events: none; opacity: 0.5;">
+                        <div class="DLP_HStack_8" style="align-items: center;">
+                            <svg class="DLP_Magnetic_Hover_1 DLP_NoSelect" width="13" height="20" viewBox="0 0 13 20" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M0.140625 12.25C0.140625 10.5156 1.50781 8.80469 3.73438 7.96875L3.98438 4.25781C2.77344 3.57812 1.875 2.85156 1.47656 2.35156C1.24219 2.05469 1.13281 1.74219 1.13281 1.46094C1.13281 0.875 1.57812 0.453125 2.22656 0.453125H10.7578C11.4062 0.453125 11.8516 0.875 11.8516 1.46094C11.8516 1.74219 11.7422 2.05469 11.5078 2.35156C11.1094 2.85156 10.2109 3.57031 9 4.25781L9.25781 7.96875C11.4766 8.80469 12.8438 10.5156 12.8438 12.25C12.8438 13.0312 12.3047 13.5547 11.5 13.5547H7.40625V17.3203C7.40625 18.2578 6.74219 19.5703 6.49219 19.5703C6.24219 19.5703 5.57812 18.2578 5.57812 17.3203V13.5547H1.48438C0.679688 13.5547 0.140625 13.0312 0.140625 12.25Z"/>
+                            </svg>
+                            <svg class="DLP_Magnetic_Hover_1 DLP_NoSelect" width="13" height="20" viewBox="0 0 13 20" fill="rgb(var(--color-eel))" xmlns="http://www.w3.org/2000/svg" display="none">
+                                <path opacity="0.5" d="M1.48438 13.5547C0.679688 13.5547 0.140625 13.0312 0.140625 12.25C0.140625 10.5156 1.50781 8.85156 3.55469 8.01562L3.80469 4.25781C2.77344 3.57031 1.86719 2.85156 1.47656 2.34375C1.24219 2.05469 1.13281 1.74219 1.13281 1.46094C1.13281 0.875 1.57812 0.453125 2.22656 0.453125H10.7578C11.4062 0.453125 11.8516 0.875 11.8516 1.46094C11.8516 1.74219 11.7422 2.05469 11.5078 2.34375C11.1172 2.85156 10.2188 3.57031 9.17969 4.25781L9.42969 8.01562C11.4766 8.85156 12.8438 10.5156 12.8438 12.25C12.8438 13.0312 12.3047 13.5547 11.5 13.5547H7.40625V17.3203C7.40625 18.2578 6.74219 19.5703 6.49219 19.5703C6.24219 19.5703 5.57812 18.2578 5.57812 17.3203V13.5547H1.48438ZM6.49219 7.44531C6.92969 7.44531 7.35156 7.47656 7.75781 7.54688L7.53125 3.55469C7.52344 3.38281 7.5625 3.29688 7.69531 3.21875C8.5625 2.76562 9.23438 2.28125 9.46094 2.07812C9.53125 2.00781 9.49219 1.92969 9.41406 1.92969H3.57812C3.5 1.92969 3.45312 2.00781 3.52344 2.07812C3.75 2.28125 4.42188 2.76562 5.28906 3.21875C5.42188 3.29688 5.46094 3.38281 5.45312 3.55469L5.22656 7.54688C5.63281 7.47656 6.05469 7.44531 6.49219 7.44531ZM1.92188 11.9844H11.0625C11.1797 11.9844 11.2344 11.9141 11.2109 11.7734C10.9922 10.3906 9.08594 8.96875 6.49219 8.96875C3.89844 8.96875 1.99219 10.3906 1.77344 11.7734C1.75 11.9141 1.80469 11.9844 1.92188 11.9844Z"/>
+                            </svg>
+                            <p class="DLP_Text_Style_1 DLP_NoSelect" style="align-self: stretch; opacity: 0.5;">How many Gems would you like to get?</p>
+                        </div>
+                        <div class="DLP_HStack_8">
+                            <div class="DLP_Input_Style_1_Active">
+                                <p class="DLP_Text_Style_1 DLP_NoSelect" style="color: #007AFF; opacity: 0.5; display: none;">GEMS</p>
+                                <svg width="15" height="16" viewBox="0 0 15 16" fill="#007AFF" opacity="0.5" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.39844 11.3594C0.78125 11.3594 0.398438 11 0.398438 10.4297C0.398438 9.72656 0.867188 9.25 1.625 9.25H3.46875L4.07812 6.17969H2.40625C1.78906 6.17969 1.39844 5.80469 1.39844 5.24219C1.39844 4.53125 1.875 4.05469 2.63281 4.05469H4.5L5.07812 1.17188C5.21094 0.507812 5.58594 0.15625 6.26562 0.15625C6.88281 0.15625 7.26562 0.507812 7.26562 1.07031C7.26562 1.19531 7.24219 1.35938 7.22656 1.45312L6.70312 4.05469H9.61719L10.1953 1.17188C10.3281 0.507812 10.6953 0.15625 11.375 0.15625C11.9844 0.15625 12.3672 0.507812 12.3672 1.07031C12.3672 1.19531 12.3516 1.35938 12.3359 1.45312L11.8125 4.05469H13.5938C14.2109 4.05469 14.5938 4.4375 14.5938 4.99219C14.5938 5.70312 14.125 6.17969 13.3672 6.17969H11.3906L10.7812 9.25H12.5859C13.2031 9.25 13.5859 9.64062 13.5859 10.1953C13.5859 10.8984 13.1172 11.3594 12.3516 11.3594H10.3594L9.72656 14.5469C9.59375 15.2266 9.17969 15.5547 8.52344 15.5547C7.91406 15.5547 7.53906 15.2109 7.53906 14.6406C7.53906 14.5391 7.55469 14.375 7.57812 14.2656L8.15625 11.3594H5.25L4.61719 14.5469C4.48438 15.2266 4.0625 15.5547 3.42188 15.5547C2.8125 15.5547 2.42969 15.2109 2.42969 14.6406C2.42969 14.5391 2.44531 14.375 2.46875 14.2656L3.04688 11.3594H1.39844ZM5.67188 9.25H8.57812L9.19531 6.17969H6.28125L5.67188 9.25Z"/>
+                                </svg>
+                                <input type="text" placeholder="0" id="DLP_Inset_Input_1_ID" class="DLP_Input_Input_Style_1">
+                            </div>
+                            <div class="DLP_Input_Button_Style_1_Active DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Inset_Button_1_ID">
+                                <p id="DLP_Inset_Text_1_ID" class="DLP_Text_Style_1" style="color: #FFF;">GET</p>
+                                <svg id="DLP_Inset_Icon_1_ID" display="" width="16" height="16" viewBox="0 0 16 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.25 15.0156C0.554688 15.0156 -0.0078125 14.4609 -0.0078125 13.7734C-0.0078125 13.4297 0.140625 13.1094 0.390625 12.8516L5.54688 7.85156L0.390625 2.85938C0.132812 2.60156 -0.0078125 2.28125 -0.0078125 1.94531C-0.0078125 1.25781 0.554688 0.703125 1.25 0.703125C1.59375 0.703125 1.875 0.820312 2.10938 1.05469L8.02344 6.83594C8.33594 7.14062 8.48438 7.46875 8.48438 7.85938C8.48438 8.24219 8.34375 8.5625 8.02344 8.88281L2.10938 14.6641C1.86719 14.8984 1.58594 15.0156 1.25 15.0156ZM8.22656 15.0156C7.53125 15.0156 6.96875 14.4609 6.96875 13.7734C6.96875 13.4297 7.11719 13.1094 7.375 12.8516L12.5234 7.85156L7.375 2.85938C7.10938 2.60156 6.96875 2.28125 6.96875 1.94531C6.96875 1.25781 7.53125 0.703125 8.22656 0.703125C8.57031 0.703125 8.85156 0.820312 9.09375 1.05469L15 6.83594C15.3203 7.14062 15.4609 7.46875 15.4688 7.85938C15.4688 8.24219 15.3203 8.5625 15.0078 8.88281L9.09375 14.6641C8.85156 14.8984 8.57031 15.0156 8.22656 15.0156Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_2_ID" display="none" width="17" height="18" viewBox="0 0 17 18" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8.64844 2.66406C8.03125 2.66406 7.4375 2.75 6.875 2.92188L6.07812 1.02344C6.89062 0.757812 7.75781 0.609375 8.64844 0.609375C9.53906 0.609375 10.3984 0.757812 11.2031 1.02344L10.4219 2.92188C9.85938 2.75781 9.26562 2.66406 8.64844 2.66406ZM14.1016 5.91406C13.5312 4.84375 12.6562 3.96875 11.5859 3.39844L12.375 1.50781C13.9297 2.30469 15.2031 3.57812 16 5.125L14.1016 5.91406ZM5.70312 3.39844C4.63281 3.97656 3.75781 4.85156 3.19531 5.92188L1.29688 5.125C2.09375 3.57812 3.36719 2.30469 4.91406 1.50781L5.70312 3.39844ZM14.8438 8.85938C14.8438 8.24219 14.7578 7.64844 14.5859 7.08594L16.4844 6.29688C16.7578 7.10156 16.8984 7.96875 16.8984 8.85938C16.8984 9.75 16.7578 10.6172 16.4844 11.4219L14.5938 10.6328C14.75 10.0703 14.8438 9.47656 14.8438 8.85938ZM2.46094 8.85938C2.46094 9.47656 2.54688 10.0703 2.71094 10.625L0.8125 11.4219C0.546875 10.6094 0.398438 9.75 0.398438 8.85938C0.398438 7.96875 0.546875 7.10938 0.8125 6.29688L2.71094 7.08594C2.54688 7.64844 2.46094 8.24219 2.46094 8.85938ZM11.5859 14.3125C12.6562 13.7422 13.5391 12.875 14.1094 11.8047L16 12.5938C15.2031 14.1406 13.9297 15.4141 12.375 16.2109L11.5859 14.3125ZM3.19531 11.8047C3.76562 12.8672 4.63281 13.7422 5.70312 14.3125L4.91406 16.2031C3.36719 15.4141 2.09375 14.1406 1.29688 12.5938L3.19531 11.8047ZM8.64844 15.0547C9.26562 15.0547 9.85938 14.9609 10.4141 14.7969L11.2109 16.6953C10.3984 16.9609 9.53906 17.1094 8.64844 17.1094C7.75781 17.1094 6.89062 16.9609 6.08594 16.6953L6.875 14.7969C7.4375 14.9609 8.03125 15.0547 8.64844 15.0547Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_3_ID" display="none" width="17" height="18" viewBox="0 0 17 18" fill="#34C759" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8.64844 17.1094C4.09375 17.1094 0.398438 13.4141 0.398438 8.85938C0.398438 4.30469 4.09375 0.609375 8.64844 0.609375C13.2031 0.609375 16.8984 4.30469 16.8984 8.85938C16.8984 13.4141 13.2031 17.1094 8.64844 17.1094ZM7.78906 12.7812C8.125 12.7812 8.42969 12.6094 8.63281 12.3125L12.2578 6.76562C12.3984 6.5625 12.4766 6.35156 12.4766 6.15625C12.4766 5.67188 12.0469 5.32812 11.5781 5.32812C11.2734 5.32812 11.0156 5.49219 10.8125 5.82031L7.76562 10.6641L6.40625 8.98438C6.19531 8.73438 5.97656 8.625 5.69531 8.625C5.21875 8.625 4.82812 9.00781 4.82812 9.49219C4.82812 9.71875 4.89844 9.91406 5.07812 10.1328L6.91406 12.3203C7.16406 12.625 7.4375 12.7812 7.78906 12.7812Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_4_ID" display="none" width="18" height="16" viewBox="0 0 18 16" fill="#FF2D55" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2.96094 15.5469C1.53125 15.5469 0.59375 14.4688 0.59375 13.1797C0.59375 12.7812 0.695312 12.375 0.914062 11.9922L6.92969 1.47656C7.38281 0.695312 8.17188 0.289062 8.97656 0.289062C9.77344 0.289062 10.5547 0.6875 11.0156 1.47656L17.0312 11.9844C17.25 12.3672 17.3516 12.7812 17.3516 13.1797C17.3516 14.4688 16.4141 15.5469 14.9844 15.5469H2.96094ZM8.98438 9.96094C9.52344 9.96094 9.83594 9.65625 9.86719 9.09375L9.99219 5.72656C10.0234 5.14062 9.59375 4.73438 8.97656 4.73438C8.35156 4.73438 7.92969 5.13281 7.96094 5.72656L8.08594 9.10156C8.10938 9.65625 8.42969 9.96094 8.98438 9.96094ZM8.98438 12.7812C9.60156 12.7812 10.0859 12.3906 10.0859 11.7891C10.0859 11.2031 9.60938 10.8047 8.98438 10.8047C8.35938 10.8047 7.875 11.2031 7.875 11.7891C7.875 12.3906 8.35938 12.7812 8.98438 12.7812Z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                    <div class="DLP_VStack_8" id="DLP_Get_SUPER_2_ID">
+                        <div class="DLP_HStack_8" style="align-items: center;">
+                            <svg class="DLP_Magnetic_Hover_1 DLP_NoSelect" width="13" height="20" viewBox="0 0 13 20" fill="#007AFF" xmlns="http://www.w3.org/2000/svg" display="none">
+                                <path d="M0.140625 12.25C0.140625 10.5156 1.50781 8.80469 3.73438 7.96875L3.98438 4.25781C2.77344 3.57812 1.875 2.85156 1.47656 2.35156C1.24219 2.05469 1.13281 1.74219 1.13281 1.46094C1.13281 0.875 1.57812 0.453125 2.22656 0.453125H10.7578C11.4062 0.453125 11.8516 0.875 11.8516 1.46094C11.8516 1.74219 11.7422 2.05469 11.5078 2.35156C11.1094 2.85156 10.2109 3.57031 9 4.25781L9.25781 7.96875C11.4766 8.80469 12.8438 10.5156 12.8438 12.25C12.8438 13.0312 12.3047 13.5547 11.5 13.5547H7.40625V17.3203C7.40625 18.2578 6.74219 19.5703 6.49219 19.5703C6.24219 19.5703 5.57812 18.2578 5.57812 17.3203V13.5547H1.48438C0.679688 13.5547 0.140625 13.0312 0.140625 12.25Z"/>
+                            </svg>
+                            <svg class="DLP_Magnetic_Hover_1 DLP_NoSelect" width="13" height="20" viewBox="0 0 13 20" fill="rgb(var(--color-eel))" xmlns="http://www.w3.org/2000/svg">
+                                <path opacity="0.5" d="M1.48438 13.5547C0.679688 13.5547 0.140625 13.0312 0.140625 12.25C0.140625 10.5156 1.50781 8.85156 3.55469 8.01562L3.80469 4.25781C2.77344 3.57031 1.86719 2.85156 1.47656 2.34375C1.24219 2.05469 1.13281 1.74219 1.13281 1.46094C1.13281 0.875 1.57812 0.453125 2.22656 0.453125H10.7578C11.4062 0.453125 11.8516 0.875 11.8516 1.46094C11.8516 1.74219 11.7422 2.05469 11.5078 2.34375C11.1172 2.85156 10.2188 3.57031 9.17969 4.25781L9.42969 8.01562C11.4766 8.85156 12.8438 10.5156 12.8438 12.25C12.8438 13.0312 12.3047 13.5547 11.5 13.5547H7.40625V17.3203C7.40625 18.2578 6.74219 19.5703 6.49219 19.5703C6.24219 19.5703 5.57812 18.2578 5.57812 17.3203V13.5547H1.48438ZM6.49219 7.44531C6.92969 7.44531 7.35156 7.47656 7.75781 7.54688L7.53125 3.55469C7.52344 3.38281 7.5625 3.29688 7.69531 3.21875C8.5625 2.76562 9.23438 2.28125 9.46094 2.07812C9.53125 2.00781 9.49219 1.92969 9.41406 1.92969H3.57812C3.5 1.92969 3.45312 2.00781 3.52344 2.07812C3.75 2.28125 4.42188 2.76562 5.28906 3.21875C5.42188 3.29688 5.46094 3.38281 5.45312 3.55469L5.22656 7.54688C5.63281 7.47656 6.05469 7.44531 6.49219 7.44531ZM1.92188 11.9844H11.0625C11.1797 11.9844 11.2344 11.9141 11.2109 11.7734C10.9922 10.3906 9.08594 8.96875 6.49219 8.96875C3.89844 8.96875 1.99219 10.3906 1.77344 11.7734C1.75 11.9141 1.80469 11.9844 1.92188 11.9844Z"/>
+                            </svg>
+                            <p class="DLP_Text_Style_1 DLP_NoSelect" style="align-self: stretch; opacity: 0.5;">Would you like to redeem 3 days of Super Duolingo?</p>
+                        </div>
+                        <div class="DLP_HStack_8">
+                            <div class="DLP_Input_Button_Style_1_Active DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Inset_Button_1_ID" style="flex: 1 0 0;">
+                                <p id="DLP_Inset_Text_1_ID" class="DLP_Text_Style_1" style="color: #FFF;">REDEEM</p>
+                                <svg id="DLP_Inset_Icon_1_ID" display="" width="16" height="16" viewBox="0 0 16 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.25 15.0156C0.554688 15.0156 -0.0078125 14.4609 -0.0078125 13.7734C-0.0078125 13.4297 0.140625 13.1094 0.390625 12.8516L5.54688 7.85156L0.390625 2.85938C0.132812 2.60156 -0.0078125 2.28125 -0.0078125 1.94531C-0.0078125 1.25781 0.554688 0.703125 1.25 0.703125C1.59375 0.703125 1.875 0.820312 2.10938 1.05469L8.02344 6.83594C8.33594 7.14062 8.48438 7.46875 8.48438 7.85938C8.48438 8.24219 8.34375 8.5625 8.02344 8.88281L2.10938 14.6641C1.86719 14.8984 1.58594 15.0156 1.25 15.0156ZM8.22656 15.0156C7.53125 15.0156 6.96875 14.4609 6.96875 13.7734C6.96875 13.4297 7.11719 13.1094 7.375 12.8516L12.5234 7.85156L7.375 2.85938C7.10938 2.60156 6.96875 2.28125 6.96875 1.94531C6.96875 1.25781 7.53125 0.703125 8.22656 0.703125C8.57031 0.703125 8.85156 0.820312 9.09375 1.05469L15 6.83594C15.3203 7.14062 15.4609 7.46875 15.4688 7.85938C15.4688 8.24219 15.3203 8.5625 15.0078 8.88281L9.09375 14.6641C8.85156 14.8984 8.57031 15.0156 8.22656 15.0156Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_2_ID" display="none" width="17" height="18" viewBox="0 0 17 18" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8.64844 2.66406C8.03125 2.66406 7.4375 2.75 6.875 2.92188L6.07812 1.02344C6.89062 0.757812 7.75781 0.609375 8.64844 0.609375C9.53906 0.609375 10.3984 0.757812 11.2031 1.02344L10.4219 2.92188C9.85938 2.75781 9.26562 2.66406 8.64844 2.66406ZM14.1016 5.91406C13.5312 4.84375 12.6562 3.96875 11.5859 3.39844L12.375 1.50781C13.9297 2.30469 15.2031 3.57812 16 5.125L14.1016 5.91406ZM5.70312 3.39844C4.63281 3.97656 3.75781 4.85156 3.19531 5.92188L1.29688 5.125C2.09375 3.57812 3.36719 2.30469 4.91406 1.50781L5.70312 3.39844ZM14.8438 8.85938C14.8438 8.24219 14.7578 7.64844 14.5859 7.08594L16.4844 6.29688C16.7578 7.10156 16.8984 7.96875 16.8984 8.85938C16.8984 9.75 16.7578 10.6172 16.4844 11.4219L14.5938 10.6328C14.75 10.0703 14.8438 9.47656 14.8438 8.85938ZM2.46094 8.85938C2.46094 9.47656 2.54688 10.0703 2.71094 10.625L0.8125 11.4219C0.546875 10.6094 0.398438 9.75 0.398438 8.85938C0.398438 7.96875 0.546875 7.10938 0.8125 6.29688L2.71094 7.08594C2.54688 7.64844 2.46094 8.24219 2.46094 8.85938ZM11.5859 14.3125C12.6562 13.7422 13.5391 12.875 14.1094 11.8047L16 12.5938C15.2031 14.1406 13.9297 15.4141 12.375 16.2109L11.5859 14.3125ZM3.19531 11.8047C3.76562 12.8672 4.63281 13.7422 5.70312 14.3125L4.91406 16.2031C3.36719 15.4141 2.09375 14.1406 1.29688 12.5938L3.19531 11.8047ZM8.64844 15.0547C9.26562 15.0547 9.85938 14.9609 10.4141 14.7969L11.2109 16.6953C10.3984 16.9609 9.53906 17.1094 8.64844 17.1094C7.75781 17.1094 6.89062 16.9609 6.08594 16.6953L6.875 14.7969C7.4375 14.9609 8.03125 15.0547 8.64844 15.0547Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_3_ID" display="none" width="17" height="18" viewBox="0 0 17 18" fill="#34C759" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8.64844 17.1094C4.09375 17.1094 0.398438 13.4141 0.398438 8.85938C0.398438 4.30469 4.09375 0.609375 8.64844 0.609375C13.2031 0.609375 16.8984 4.30469 16.8984 8.85938C16.8984 13.4141 13.2031 17.1094 8.64844 17.1094ZM7.78906 12.7812C8.125 12.7812 8.42969 12.6094 8.63281 12.3125L12.2578 6.76562C12.3984 6.5625 12.4766 6.35156 12.4766 6.15625C12.4766 5.67188 12.0469 5.32812 11.5781 5.32812C11.2734 5.32812 11.0156 5.49219 10.8125 5.82031L7.76562 10.6641L6.40625 8.98438C6.19531 8.73438 5.97656 8.625 5.69531 8.625C5.21875 8.625 4.82812 9.00781 4.82812 9.49219C4.82812 9.71875 4.89844 9.91406 5.07812 10.1328L6.91406 12.3203C7.16406 12.625 7.4375 12.7812 7.78906 12.7812Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_4_ID" display="none" width="18" height="16" viewBox="0 0 18 16" fill="#FF2D55" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2.96094 15.5469C1.53125 15.5469 0.59375 14.4688 0.59375 13.1797C0.59375 12.7812 0.695312 12.375 0.914062 11.9922L6.92969 1.47656C7.38281 0.695312 8.17188 0.289062 8.97656 0.289062C9.77344 0.289062 10.5547 0.6875 11.0156 1.47656L17.0312 11.9844C17.25 12.3672 17.3516 12.7812 17.3516 13.1797C17.3516 14.4688 16.4141 15.5469 14.9844 15.5469H2.96094ZM8.98438 9.96094C9.52344 9.96094 9.83594 9.65625 9.86719 9.09375L9.99219 5.72656C10.0234 5.14062 9.59375 4.73438 8.97656 4.73438C8.35156 4.73438 7.92969 5.13281 7.96094 5.72656L8.08594 9.10156C8.10938 9.65625 8.42969 9.96094 8.98438 9.96094ZM8.98438 12.7812C9.60156 12.7812 10.0859 12.3906 10.0859 11.7891C10.0859 11.2031 9.60938 10.8047 8.98438 10.8047C8.35938 10.8047 7.875 11.2031 7.875 11.7891C7.875 12.3906 8.35938 12.7812 8.98438 12.7812Z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="DLP_HStack_Auto" style="padding-top: 4px;">
+                        <div class="DLP_HStack_4 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Main_2_Back_1_Button_1_ID" style="align-items: center;">
+                            <svg width="10" height="15" viewBox="0 0 10 15" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M0.90625 7.35938C0.914062 6.96875 1.04688 6.64844 1.36719 6.34375L7.27344 0.554688C7.51562 0.320312 7.79688 0.203125 8.14062 0.203125C8.82812 0.203125 9.39844 0.765625 9.39844 1.44531C9.39844 1.78906 9.25 2.10938 8.99219 2.35938L3.84375 7.35156L8.99219 12.3516C9.25 12.6094 9.39844 12.9219 9.39844 13.2734C9.39844 13.9609 8.82812 14.5156 8.14062 14.5156C7.79688 14.5156 7.51562 14.3984 7.27344 14.1641L1.36719 8.375C1.04688 8.0625 0.90625 7.74219 0.90625 7.35938Z"/>
+                            </svg>
+                            <p class="DLP_Text_Style_1" style="color: #007AFF;">Back</p>
+                        </div>
+                        <div class="DLP_HStack_4 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Main_2_Terms_1_Button_1_ID" style="align-items: center;"">
+                            <p class="DLP_Text_Style_1" style="color: #007AFF; opacity: 0.5;">Terms & Conditions</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="DLP_Main_Box_Divider" id="DLP_Main_Box_Divider_3_ID" style="display: none;">
+            <div class="DLP_VStack_8">
+                <div class="DLP_VStack_8">
+                    <div class="DLP_HStack_8">
+                        <div id="DLP_Secondary_1_Server_Connection_Button_1_ID" class="DLP_Button_Style_1 DLP_Magnetic_Hover_1 DLP_NoSelect" style="outline: 2px solid rgb(var(--color-eel), 0.20); outline-offset: -2px; background: rgb(var(--color-eel), 0.10); transition: opacity 0.8s cubic-bezier(0.16, 1, 0.32, 1), background 0.8s cubic-bezier(0.16, 1, 0.32, 1), outline 0.8s cubic-bezier(0.16, 1, 0.32, 1), filter 0.4s cubic-bezier(0.16, 1, 0.32, 1), transform 0.4s cubic-bezier(0.16, 1, 0.32, 1); padding: 10px 0px 10px 10px; opacity: 0.5;">
+                            <svg id="DLP_Inset_Icon_1_ID" width="17" height="18" viewBox="0 0 17 18" fill="(var(--color-eel))" xmlns="http://www.w3.org/2000/svg" style="transition: 0.4s;">
+                                <path d="M8.64844 2.66406C8.03125 2.66406 7.4375 2.75 6.875 2.92188L6.07812 1.02344C6.89062 0.757812 7.75781 0.609375 8.64844 0.609375C9.53906 0.609375 10.3984 0.757812 11.2031 1.02344L10.4219 2.92188C9.85938 2.75781 9.26562 2.66406 8.64844 2.66406ZM14.1016 5.91406C13.5312 4.84375 12.6562 3.96875 11.5859 3.39844L12.375 1.50781C13.9297 2.30469 15.2031 3.57812 16 5.125L14.1016 5.91406ZM5.70312 3.39844C4.63281 3.97656 3.75781 4.85156 3.19531 5.92188L1.29688 5.125C2.09375 3.57812 3.36719 2.30469 4.91406 1.50781L5.70312 3.39844ZM14.8438 8.85938C14.8438 8.24219 14.7578 7.64844 14.5859 7.08594L16.4844 6.29688C16.7578 7.10156 16.8984 7.96875 16.8984 8.85938C16.8984 9.75 16.7578 10.6172 16.4844 11.4219L14.5938 10.6328C14.75 10.0703 14.8438 9.47656 14.8438 8.85938ZM2.46094 8.85938C2.46094 9.47656 2.54688 10.0703 2.71094 10.625L0.8125 11.4219C0.546875 10.6094 0.398438 9.75 0.398438 8.85938C0.398438 7.96875 0.546875 7.10938 0.8125 6.29688L2.71094 7.08594C2.54688 7.64844 2.46094 8.24219 2.46094 8.85938ZM11.5859 14.3125C12.6562 13.7422 13.5391 12.875 14.1094 11.8047L16 12.5938C15.2031 14.1406 13.9297 15.4141 12.375 16.2109L11.5859 14.3125ZM3.19531 11.8047C3.76562 12.8672 4.63281 13.7422 5.70312 14.3125L4.91406 16.2031C3.36719 15.4141 2.09375 14.1406 1.29688 12.5938L3.19531 11.8047ZM8.64844 15.0547C9.26562 15.0547 9.85938 14.9609 10.4141 14.7969L11.2109 16.6953C10.3984 16.9609 9.53906 17.1094 8.64844 17.1094C7.75781 17.1094 6.89062 16.9609 6.08594 16.6953L6.875 14.7969C7.4375 14.9609 8.03125 15.0547 8.64844 15.0547Z"/>
+                            </svg>
+                            <svg id="DLP_Inset_Icon_2_ID" width="17" height="18" viewBox="0 0 17 18" fill="#FFF" xmlns="http://www.w3.org/2000/svg" display="none" style="transition: 0.4s;">
+                                <path d="M8.64844 17.1094C4.09375 17.1094 0.398438 13.4141 0.398438 8.85938C0.398438 4.30469 4.09375 0.609375 8.64844 0.609375C13.2031 0.609375 16.8984 4.30469 16.8984 8.85938C16.8984 13.4141 13.2031 17.1094 8.64844 17.1094ZM3.89062 4.19531C4.25 4.44531 4.71094 4.65625 5.24219 4.82812C5.60938 3.85156 6.09375 3.05469 6.67188 2.49219C5.60156 2.82812 4.65625 3.42188 3.89062 4.19531ZM10.6328 2.49219C11.2031 3.05469 11.6953 3.85938 12.0547 4.82812C12.5859 4.65625 13.0469 4.44531 13.4062 4.19531C12.6484 3.42188 11.6953 2.82812 10.6328 2.49219ZM6.46094 5.11719C6.95312 5.20312 7.48438 5.25781 8.04688 5.28125V2.91406C7.42969 3.24219 6.86719 4.04688 6.46094 5.11719ZM9.25781 2.91406V5.28125C9.8125 5.25781 10.3438 5.20312 10.8359 5.11719C10.4297 4.04688 9.86719 3.24219 9.25781 2.91406ZM2.01562 8.25H4.58594C4.625 7.44531 4.73438 6.67969 4.89844 5.96875C4.19531 5.75 3.59375 5.46094 3.14062 5.11719C2.51562 6.02344 2.11719 7.10156 2.01562 8.25ZM12.7109 8.25H15.2891C15.1797 7.09375 14.7812 6.02344 14.1641 5.11719C13.7109 5.46094 13.1094 5.75 12.3984 5.96875C12.5703 6.67969 12.6719 7.44531 12.7109 8.25ZM5.82031 8.25H8.04688V6.48438C7.36719 6.46094 6.71094 6.38281 6.10938 6.27344C5.96094 6.89062 5.85938 7.5625 5.82031 8.25ZM9.25781 8.25H11.4766C11.4375 7.5625 11.3438 6.89062 11.1953 6.27344C10.5859 6.38281 9.92969 6.46094 9.25781 6.48438V8.25ZM2.01562 9.46094C2.11719 10.6328 2.52344 11.7109 3.15625 12.625C3.60938 12.2891 4.20312 12.0078 4.90625 11.7812C4.73438 11.0703 4.625 10.2891 4.58594 9.46094H2.01562ZM5.82031 9.46094C5.85938 10.1719 5.96094 10.8516 6.10938 11.4844C6.71875 11.3672 7.36719 11.2969 8.04688 11.2656V9.46094H5.82031ZM9.25781 11.2656C9.92969 11.2969 10.5781 11.3672 11.1875 11.4844C11.3438 10.8516 11.4453 10.1719 11.4844 9.46094H9.25781V11.2656ZM12.3984 11.7812C13.0938 12.0078 13.6953 12.2891 14.1484 12.625C14.7734 11.7109 15.1797 10.6328 15.2891 9.46094H12.7109C12.6797 10.2891 12.5703 11.0703 12.3984 11.7812ZM9.25781 12.4766V14.8203C9.85938 14.4922 10.4219 13.6953 10.8281 12.6406C10.3359 12.5547 9.8125 12.5 9.25781 12.4766ZM6.46875 12.6406C6.875 13.6953 7.4375 14.4922 8.04688 14.8203V12.4766C7.49219 12.5 6.96094 12.5547 6.46875 12.6406ZM3.91406 13.5391C4.66406 14.3047 5.60156 14.8828 6.64844 15.2188C6.08594 14.6641 5.60938 13.875 5.25 12.9297C4.72656 13.0938 4.27344 13.2969 3.91406 13.5391ZM12.0469 12.9297C11.6953 13.875 11.2109 14.6641 10.6484 15.2188C11.6953 14.8828 12.6328 14.3047 13.3828 13.5391C13.0312 13.2969 12.5781 13.0938 12.0469 12.9297Z"/>
+                            </svg>
+                            <svg id="DLP_Inset_Icon_3_ID" width="18" height="16" viewBox="0 0 18 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg" display="none" style="transition: 0.4s;">
+                                <path d="M2.96094 15.5469C1.53125 15.5469 0.59375 14.4688 0.59375 13.1797C0.59375 12.7812 0.695312 12.375 0.914062 11.9922L6.92969 1.47656C7.38281 0.695312 8.17188 0.289062 8.97656 0.289062C9.77344 0.289062 10.5547 0.6875 11.0156 1.47656L17.0312 11.9844C17.25 12.3672 17.3516 12.7812 17.3516 13.1797C17.3516 14.4688 16.4141 15.5469 14.9844 15.5469H2.96094ZM8.98438 9.96094C9.52344 9.96094 9.83594 9.65625 9.86719 9.09375L9.99219 5.72656C10.0234 5.14062 9.59375 4.73438 8.97656 4.73438C8.35156 4.73438 7.92969 5.13281 7.96094 5.72656L8.08594 9.10156C8.10938 9.65625 8.42969 9.96094 8.98438 9.96094ZM8.98438 12.7812C9.60156 12.7812 10.0859 12.3906 10.0859 11.7891C10.0859 11.2031 9.60938 10.8047 8.98438 10.8047C8.35938 10.8047 7.875 11.2031 7.875 11.7891C7.875 12.3906 8.35938 12.7812 8.98438 12.7812Z"/>
+                            </svg>
+                            <p id="DLP_Inset_Text_1_ID" class="DLP_Text_Style_1" style="color: #000; transition: 0.4s;">Connecting</p>
+                        </div>
+                        <div class="DLP_Button_Style_1 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Secondary_Donate_Button_1_ID" style="outline: 2px solid rgba(0, 0, 0, 0.20); outline-offset: -2px; background: url(${serverURL}/static/3.0/assets/images/flow_1_light.png) lightgray 50% / cover no-repeat; padding: 10px 0px 10px 10px;">
+                            <svg width="17" height="19" viewBox="0 0 17 19" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M16.5 5.90755C16.4968 3.60922 14.6997 1.72555 12.5913 1.04588C9.97298 0.201877 6.51973 0.324211 4.01956 1.49921C0.989301 2.92355 0.0373889 6.04355 0.00191597 9.15522C-0.0271986 11.7136 0.229143 18.4517 4.04482 18.4997C6.87998 18.5356 7.30214 14.8967 8.61397 13.1442C9.5473 11.8974 10.749 11.5452 12.2284 11.1806C14.7709 10.5537 16.5037 8.55506 16.5 5.90755Z"/>
+                            </svg>
+                            <p class="DLP_Text_Style_1" style="color: #FFF;">Donate</p>
+                        </div>
+                    </div>
+                    <div class="DLP_HStack_8">
+                        <div class="DLP_Button_Style_1 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Secondary_Feedback_1_Button_1_ID" style="outline: 2px solid rgba(0, 122, 255, 0.20); outline-offset: -2px; background: rgba(0, 122, 255, 0.10);">
+                            <svg width="18" height="18" viewBox="0 0 18 18" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M5.22656 17.8125C4.70312 17.8125 4.39062 17.4531 4.39062 16.8906V14.6641H3.6875C1.52344 14.6641 -0.0078125 13.2109 -0.0078125 10.8438V4.64844C-0.0078125 2.27344 1.42969 0.820312 3.82031 0.820312H14.1641C16.5547 0.820312 17.9922 2.27344 17.9922 4.64844V10.8438C17.9922 13.2109 16.5547 14.6641 14.1641 14.6641H9.22656L6.29688 17.2734C5.86719 17.6562 5.57812 17.8125 5.22656 17.8125Z"/>
+                            </svg>
+                            <p class="DLP_Text_Style_1" style="color: #007AFF;">Feedback</p>
+                        </div>
+                        <div class="DLP_Button_Style_1 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Secondary_Settings_1_Button_1_ID" style="outline: 2px solid rgba(0, 122, 255, 0.20); outline-offset: -2px; background: rgba(0, 122, 255, 0.10);">
+                            <svg width="19" height="19" viewBox="0 0 19 19" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9.46094 17.6875C9.28906 17.6875 9.13281 17.6797 8.96875 17.6719L8.55469 18.4453C8.42969 18.6875 8.17188 18.8281 7.89062 18.7891C7.60156 18.7344 7.40625 18.5156 7.36719 18.2344L7.24219 17.3672C6.92188 17.2812 6.61719 17.1641 6.32031 17.0469L5.67969 17.6172C5.47656 17.8047 5.17969 17.8516 4.92188 17.7109C4.67188 17.5547 4.57031 17.2891 4.625 17.0156L4.80469 16.1562C4.54688 15.9688 4.28906 15.7578 4.05469 15.5312L3.25781 15.8672C2.98438 15.9844 2.71094 15.9062 2.50781 15.6797C2.34375 15.4688 2.3125 15.1719 2.46094 14.9375L2.92188 14.1875C2.75 13.9219 2.59375 13.6406 2.4375 13.3438L1.57031 13.3828C1.28906 13.3984 1.03125 13.2344 0.945312 12.9531C0.851562 12.6953 0.9375 12.4062 1.15625 12.2344L1.84375 11.6953C1.76562 11.3828 1.70312 11.0625 1.67188 10.7344L0.84375 10.4609C0.5625 10.375 0.398438 10.1484 0.398438 9.85938C0.398438 9.57031 0.5625 9.34375 0.84375 9.25L1.67188 8.98438C1.70312 8.65625 1.76562 8.34375 1.84375 8.02344L1.15625 7.47656C0.9375 7.3125 0.851562 7.03125 0.945312 6.77344C1.03125 6.49219 1.28906 6.33594 1.57031 6.34375L2.4375 6.375C2.59375 6.07812 2.75 5.80469 2.92188 5.52344L2.46094 4.78125C2.3125 4.55469 2.34375 4.25781 2.50781 4.04688C2.71094 3.82031 2.98438 3.74219 3.25 3.85938L4.05469 4.17969C4.28906 3.96875 4.54688 3.75781 4.80469 3.5625L4.625 2.71875C4.5625 2.42188 4.67969 2.15625 4.91406 2.01562C5.1875 1.875 5.47656 1.91406 5.6875 2.10938L6.32031 2.67969C6.61719 2.55469 6.92969 2.44531 7.24219 2.35156L7.36719 1.49219C7.40625 1.21094 7.60156 0.992188 7.88281 0.945312C8.17188 0.898438 8.42969 1.03125 8.55469 1.26562L8.96875 2.04688C9.13281 2.03906 9.28906 2.03125 9.46094 2.03125C9.61719 2.03125 9.78125 2.03906 9.94531 2.04688L10.3594 1.26562C10.4766 1.03906 10.7344 0.898438 11.0234 0.9375C11.3047 0.992188 11.5078 1.21094 11.5469 1.49219L11.6719 2.35156C11.9844 2.44531 12.2891 2.55469 12.5859 2.67969L13.2266 2.10938C13.4375 1.91406 13.7266 1.875 13.9922 2.01562C14.2344 2.15625 14.3516 2.42188 14.2891 2.71094L14.1094 3.5625C14.3594 3.75781 14.6172 3.96875 14.8516 4.17969L15.6562 3.85938C15.9297 3.74219 16.2031 3.82031 16.4062 4.04688C16.5703 4.25781 16.5938 4.55469 16.4453 4.78125L15.9844 5.52344C16.1641 5.80469 16.3203 6.07812 16.4688 6.375L17.3438 6.34375C17.6172 6.33594 17.8828 6.49219 17.9688 6.77344C18.0625 7.03125 17.9609 7.30469 17.75 7.47656L17.0703 8.01562C17.1484 8.34375 17.2109 8.65625 17.2422 8.98438L18.0625 9.25C18.3438 9.35156 18.5234 9.57031 18.5234 9.85938C18.5234 10.1406 18.3438 10.3672 18.0625 10.4609L17.2422 10.7344C17.2109 11.0625 17.1484 11.3828 17.0703 11.6953L17.7578 12.2344C17.9688 12.4062 18.0625 12.6953 17.9688 12.9531C17.8828 13.2344 17.6172 13.3984 17.3438 13.3828L16.4688 13.3438C16.3203 13.6406 16.1641 13.9219 15.9844 14.1875L16.4453 14.9297C16.6016 15.1797 16.5703 15.4688 16.4062 15.6797C16.2031 15.9062 15.9219 15.9844 15.6562 15.8672L14.8594 15.5312C14.6172 15.7578 14.3594 15.9688 14.1094 16.1562L14.2891 17.0078C14.3516 17.2891 14.2344 17.5547 14 17.7031C13.7266 17.8516 13.4375 17.7969 13.2266 17.6172L12.5859 17.0469C12.2891 17.1641 11.9844 17.2812 11.6719 17.3672L11.5469 18.2344C11.5078 18.5156 11.3047 18.7344 11.0312 18.7812C10.7344 18.8281 10.4688 18.6953 10.3516 18.4453L9.94531 17.6719C9.78125 17.6797 9.61719 17.6875 9.46094 17.6875ZM9.44531 7.45312C10.4844 7.45312 11.375 8.10938 11.7109 9.03125H15.3281C14.9375 6.11719 12.4922 3.89062 9.46094 3.89062C8.64062 3.89062 7.86719 4.05469 7.16406 4.34375L8.99219 7.5C9.14062 7.46875 9.28906 7.45312 9.44531 7.45312ZM3.53906 9.85938C3.53906 11.7422 4.38281 13.4141 5.71875 14.5078L7.60156 11.4141C7.25 10.9922 7.03906 10.4531 7.03906 9.86719C7.03906 9.27344 7.25781 8.72656 7.60938 8.30469L5.78125 5.16406C4.40625 6.25 3.53906 7.94531 3.53906 9.85938ZM9.44531 10.7656C9.96094 10.7656 10.3516 10.375 10.3516 9.86719C10.3516 9.35938 9.96094 8.96094 9.44531 8.96094C8.94531 8.96094 8.54688 9.35938 8.54688 9.86719C8.54688 10.375 8.94531 10.7656 9.44531 10.7656ZM9.46094 15.8281C12.5078 15.8281 14.9609 13.5859 15.3359 10.6562H11.7266C11.4062 11.6016 10.5078 12.2734 9.44531 12.2734C9.28906 12.2734 9.125 12.2578 8.97656 12.2266L7.08594 15.3359C7.8125 15.6484 8.60938 15.8281 9.46094 15.8281Z"/>
+                            </svg>
+                            <p class="DLP_Text_Style_1" style="color: #007AFF;">Settings</p>
+                        </div>
+                    </div>
+                    <div class="DLP_HStack_8">
+                        <div class="DLP_Button_Style_1 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Secondary_Release_Notes_1_Button_1_ID" style="outline: 2px solid rgba(0, 122, 255, 0.20); outline-offset: -2px; background: rgba(0, 122, 255, 0.10);">
+                            <svg width="17" height="16" viewBox="0 0 17 16" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M2.75 15.3359C0.96875 15.3359 -0.0078125 14.3672 -0.0078125 12.5938V3.14062C-0.0078125 1.36719 0.96875 0.398438 2.75 0.398438H13.6328C15.4219 0.398438 16.3906 1.36719 16.3906 3.14062V12.5938C16.3906 14.3672 15.4219 15.3359 13.6328 15.3359H2.75ZM2.89844 13.3203H13.4844C14.0625 13.3203 14.375 13.0391 14.375 12.4219V5.47656C14.375 4.85938 14.0625 4.57812 13.4844 4.57812H2.89844C2.3125 4.57812 2.00781 4.85938 2.00781 5.47656V12.4219C2.00781 13.0391 2.3125 13.3203 2.89844 13.3203ZM4.22656 7.23438C3.91406 7.23438 3.69531 7 3.69531 6.71094C3.69531 6.42188 3.91406 6.19531 4.22656 6.19531H12.1797C12.4766 6.19531 12.7031 6.42188 12.7031 6.71094C12.7031 7 12.4766 7.23438 12.1797 7.23438H4.22656ZM4.22656 9.46875C3.91406 9.46875 3.69531 9.25 3.69531 8.96094C3.69531 8.66406 3.91406 8.42969 4.22656 8.42969H12.1797C12.4766 8.42969 12.7031 8.66406 12.7031 8.96094C12.7031 9.25 12.4766 9.46875 12.1797 9.46875H4.22656ZM4.22656 11.7031C3.91406 11.7031 3.69531 11.4766 3.69531 11.1953C3.69531 10.8984 3.91406 10.6641 4.22656 10.6641H9.1875C9.48438 10.6641 9.71094 10.8984 9.71094 11.1953C9.71094 11.4766 9.48438 11.7031 9.1875 11.7031H4.22656Z"/>
+                            </svg>
+                            <p class="DLP_Text_Style_1" style="color: #007AFF;">Release Notes</p>
+                        </div>
+                        <div class="DLP_Button_Style_1 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Secondary_Discord_Button_1_ID"style="justify-content: center; flex: none; width: 48px; padding: 10px; outline: 2px solid rgba(0, 0, 0, 0.20); outline-offset: -2px; background: #5865F2;">
+                            <svg width="22" height="16" viewBox="0 0 22 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M18.289 1.34C16.9296 0.714 15.4761 0.259052 13.9565 0C13.7699 0.332095 13.5519 0.77877 13.4016 1.1341C11.7862 0.894993 10.1857 0.894993 8.60001 1.1341C8.44972 0.77877 8.22674 0.332095 8.03844 0C6.51721 0.259052 5.06204 0.715671 3.70267 1.34331C0.960812 5.42136 0.21754 9.39811 0.589177 13.3184C2.40772 14.655 4.17011 15.467 5.90275 15.9984C6.33055 15.4189 6.71209 14.8028 7.04078 14.1536C6.41478 13.9195 5.81521 13.6306 5.24869 13.2952C5.39898 13.1856 5.546 13.071 5.68803 12.9531C9.14342 14.5438 12.8978 14.5438 16.3119 12.9531C16.4556 13.071 16.6026 13.1856 16.7512 13.2952C16.183 13.6322 15.5818 13.9211 14.9558 14.1553C15.2845 14.8028 15.6644 15.4205 16.0939 16C17.8282 15.4687 19.5922 14.6567 21.4107 13.3184C21.8468 8.77378 20.6658 4.83355 18.289 1.34ZM7.51153 10.9075C6.47426 10.9075 5.62361 9.95435 5.62361 8.7937C5.62361 7.63305 6.45609 6.67831 7.51153 6.67831C8.56699 6.67831 9.41761 7.63138 9.39945 8.7937C9.40109 9.95435 8.56699 10.9075 7.51153 10.9075ZM14.4884 10.9075C13.4511 10.9075 12.6005 9.95435 12.6005 8.7937C12.6005 7.63305 13.4329 6.67831 14.4884 6.67831C15.5438 6.67831 16.3945 7.63138 16.3763 8.7937C16.3763 9.95435 15.5438 10.9075 14.4884 10.9075Z"/>
+                            </svg>
+                        </div>
+                        <div class="DLP_Button_Style_1 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Secondary_GitHub_Button_1_ID" style="justify-content: center; flex: none; width: 48px; padding: 10px; outline: 2px solid rgba(255, 255, 255, 0.20); outline-offset: -2px; background: #333333;">
+                            <svg width="22" height="22" viewBox="0 0 22 22" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" clip-rule="evenodd" d="M11.0087 0.5C5.19766 0.5 0.5 5.3125 0.5 11.2662C0.5 16.0253 3.50995 20.0538 7.68555 21.4797C8.2076 21.5868 8.39883 21.248 8.39883 20.963C8.39883 20.7134 8.38162 19.8578 8.38162 18.9664C5.45836 19.6082 4.84962 17.683 4.84962 17.683C4.37983 16.4353 3.68375 16.1146 3.68375 16.1146C2.72697 15.4551 3.75345 15.4551 3.75345 15.4551C4.81477 15.5264 5.37167 16.5602 5.37167 16.5602C6.31103 18.1999 7.82472 17.7366 8.43368 17.4514C8.52058 16.7562 8.79914 16.2749 9.09491 16.0076C6.7634 15.758 4.31035 14.8312 4.31035 10.6957C4.31035 9.51928 4.72765 8.55678 5.38888 7.80822C5.28456 7.54091 4.9191 6.43556 5.49342 4.95616C5.49342 4.95616 6.38073 4.67091 8.38141 6.06128C9.23797 5.82561 10.1213 5.70573 11.0087 5.70472C11.896 5.70472 12.8005 5.82963 13.6358 6.06128C15.6367 4.67091 16.524 4.95616 16.524 4.95616C17.0983 6.43556 16.7326 7.54091 16.6283 7.80822C17.3069 8.55678 17.707 9.51928 17.707 10.6957C17.707 14.8312 15.254 15.7401 12.905 16.0076C13.2879 16.3463 13.6183 16.9878 13.6183 18.0039C13.6183 19.4477 13.6011 20.6064 13.6011 20.9627C13.6011 21.248 13.7926 21.5868 14.3144 21.4799C18.49 20.0536 21.5 16.0253 21.5 11.2662C21.5172 5.3125 16.8023 0.5 11.0087 0.5Z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="DLP_HStack_Auto DLP_NoSelect">
+                    <div class="DLP_HStack_4" style="align-items: flex-start;">
+                        <p class="DLP_Text_Style_2">Duolingo</p>
+                        <p class="DLP_Text_Style_2" style="background: url(${serverURL}/static/3.0/assets/images/flow_1_light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PRO LE</p>
+                    </div>
+                    <p class="DLP_Text_Style_1" style="font-size: 14px; background: url(${serverURL}/static/3.0/assets/images/flow_2_light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${versionName}</p>
+                </div>
+                <p class="DLP_Text_Style_1" style="display: none; transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); opacity: 0; filter: blur(4px);">You are using an outdated version of Duolingo PRO. <br><br>Please update Duolingo PRO or turn on automatic updates. </p>
+                <p class="DLP_Text_Style_1" style="display: none; transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); opacity: 0; filter: blur(4px);">Duolingo PRO failed to connect. This might be happening because of an issue on our system or your device. <br><br>Try updating Duolingo PRO. If the issue persists afterwards, join our Discord Server to get support. </p>
+                <p class="DLP_Text_Style_1" style="display: none; transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); opacity: 0; filter: blur(4px);">We are currently unable to receive new requests due to high demand. Join our Discord Server to learn more. <br><br>You can help us handle more demand by donating on Patreon while getting exclusive features and higher limits. </p>
+                <div class="DLP_VStack_8" id="DLP_Main_Inputs_2_Divider_1_ID">
+                    <div class="DLP_VStack_8" id="DLP_Get_PATH_1_ID">
+                        <p class="DLP_Text_Style_1 DLP_NoSelect" style="align-self: stretch; opacity: 0.5;">How many lessons would you like to solve on the path?</p>
+                        <div class="DLP_HStack_8">
+                            <div class="DLP_Input_Button_Style_1_Active DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Inset_Button_2_ID" style="width: 48px; padding: 0;">
+                                <svg id="DLP_Inset_Icon_1_ID" width="15" height="16" viewBox="0 0 15 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.49219 11.3594C0.875 11.3594 0.492188 11 0.492188 10.4297C0.492188 9.72656 0.960938 9.25 1.71875 9.25H3.5625L4.17188 6.17969H2.5C1.88281 6.17969 1.49219 5.80469 1.49219 5.24219C1.49219 4.53125 1.96875 4.05469 2.72656 4.05469H4.59375L5.17188 1.17188C5.30469 0.507812 5.67969 0.15625 6.35938 0.15625C6.97656 0.15625 7.35938 0.507812 7.35938 1.07031C7.35938 1.19531 7.33594 1.35938 7.32031 1.45312L6.79688 4.05469H9.71094L10.2891 1.17188C10.4219 0.507812 10.7891 0.15625 11.4688 0.15625C12.0781 0.15625 12.4609 0.507812 12.4609 1.07031C12.4609 1.19531 12.4453 1.35938 12.4297 1.45312L11.9062 4.05469H13.6875C14.3047 4.05469 14.6875 4.4375 14.6875 4.99219C14.6875 5.70312 14.2188 6.17969 13.4609 6.17969H11.4844L10.875 9.25H12.6797C13.2969 9.25 13.6797 9.64062 13.6797 10.1953C13.6797 10.8984 13.2109 11.3594 12.4453 11.3594H10.4531L9.82031 14.5469C9.6875 15.2266 9.27344 15.5547 8.61719 15.5547C8.00781 15.5547 7.63281 15.2109 7.63281 14.6406C7.63281 14.5391 7.64844 14.375 7.67188 14.2656L8.25 11.3594H5.34375L4.71094 14.5469C4.57812 15.2266 4.15625 15.5547 3.51562 15.5547C2.90625 15.5547 2.52344 15.2109 2.52344 14.6406C2.52344 14.5391 2.53906 14.375 2.5625 14.2656L3.14062 11.3594H1.49219ZM5.76562 9.25H8.67188L9.28906 6.17969H6.375L5.76562 9.25Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_2_ID" display="none" width="20" height="12" viewBox="0 0 20 12" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.30859 11.789C0.683594 11.789 0.191406 11.3359 0.191406 10.7656C0.191406 10.4765 0.285156 10.2265 0.511719 9.91407L3.32422 5.99219V5.92969L0.605469 2.22656C0.347656 1.88281 0.261719 1.62501 0.261719 1.32032C0.261719 0.679687 0.769532 0.210938 1.45703 0.210938C1.90234 0.210938 2.21484 0.40625 2.51953 0.867187L4.93359 4.42969H4.99609L7.48828 0.789063C7.76172 0.382813 7.99609 0.210938 8.44922 0.210938C9.0664 0.210938 9.59765 0.65625 9.59765 1.21874C9.59765 1.52343 9.51172 1.77343 9.28515 2.06251L6.35546 5.97656V6.03125L9.19922 9.86718C9.41796 10.1484 9.51172 10.414 9.51172 10.7265C9.51172 11.3437 9.03515 11.789 8.3789 11.789C7.94922 11.789 7.66015 11.6172 7.35546 11.2031L4.83984 7.69531H4.77734L2.30078 11.2109C2.0039 11.6406 1.7539 11.789 1.30859 11.789ZM12.496 11.789C11.7539 11.789 11.3164 11.3359 11.3164 10.5625V1.59374C11.3164 0.820313 11.7539 0.367187 12.496 0.367187H15.9023C18.2148 0.367187 19.8086 1.90624 19.8086 4.22656C19.8086 6.53906 18.1601 8.08594 15.7851 8.08594H13.6757V10.5625C13.6757 11.3359 13.2382 11.789 12.496 11.789ZM13.6757 6.24219H15.2695C16.621 6.24219 17.4101 5.52344 17.4101 4.23438C17.4101 2.95312 16.6289 2.23438 15.2773 2.23438H13.6757V6.24219Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_3_ID" display="none" width="24" height="12" viewBox="0 0 24 12" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M0.898438 5.85938C0.898438 2.69531 2.94531 0.609375 5.97656 0.609375C7.53125 0.609375 8.875 1.26562 10.2578 2.60938L11.9688 4.25781L13.6719 2.60938C15.0547 1.26562 16.3984 0.609375 17.9531 0.609375C20.9844 0.609375 23.0312 2.69531 23.0312 5.85938C23.0312 9.01562 20.9844 11.1016 17.9531 11.1016C16.3984 11.1016 15.0547 10.4531 13.6719 9.10938L11.9688 7.45312L10.2578 9.10938C8.875 10.4531 7.53125 11.1016 5.97656 11.1016C2.94531 11.1016 0.898438 9.01562 0.898438 5.85938ZM3.21875 5.85938C3.21875 7.63281 4.32031 8.78125 5.97656 8.78125C6.875 8.78125 7.70312 8.34375 8.63281 7.46094L10.3281 5.85938L8.63281 4.25781C7.70312 3.375 6.875 2.92969 5.97656 2.92969C4.32031 2.92969 3.21875 4.07812 3.21875 5.85938ZM13.6016 5.85938L15.2969 7.46094C16.2344 8.34375 17.0547 8.78125 17.9531 8.78125C19.6094 8.78125 20.7109 7.63281 20.7109 5.85938C20.7109 4.07812 19.6094 2.92969 17.9531 2.92969C17.0547 2.92969 16.2266 3.375 15.2969 4.25781L13.6016 5.85938Z"/>
+                                </svg>
+                            </div>
+                            <div class="DLP_Input_Style_1_Active">
+                                <p class="DLP_Text_Style_1 DLP_NoSelect" style="color: #007AFF; opacity: 0.5; display: none;">PATH</p>
+                                <svg width="15" height="16" viewBox="0 0 15 16" fill="#007AFF" opacity="0.5" xmlns="http://www.w3.org/2000/svg" display="none">
+                                    <path d="M1.39844 11.3594C0.78125 11.3594 0.398438 11 0.398438 10.4297C0.398438 9.72656 0.867188 9.25 1.625 9.25H3.46875L4.07812 6.17969H2.40625C1.78906 6.17969 1.39844 5.80469 1.39844 5.24219C1.39844 4.53125 1.875 4.05469 2.63281 4.05469H4.5L5.07812 1.17188C5.21094 0.507812 5.58594 0.15625 6.26562 0.15625C6.88281 0.15625 7.26562 0.507812 7.26562 1.07031C7.26562 1.19531 7.24219 1.35938 7.22656 1.45312L6.70312 4.05469H9.61719L10.1953 1.17188C10.3281 0.507812 10.6953 0.15625 11.375 0.15625C11.9844 0.15625 12.3672 0.507812 12.3672 1.07031C12.3672 1.19531 12.3516 1.35938 12.3359 1.45312L11.8125 4.05469H13.5938C14.2109 4.05469 14.5938 4.4375 14.5938 4.99219C14.5938 5.70312 14.125 6.17969 13.3672 6.17969H11.3906L10.7812 9.25H12.5859C13.2031 9.25 13.5859 9.64062 13.5859 10.1953C13.5859 10.8984 13.1172 11.3594 12.3516 11.3594H10.3594L9.72656 14.5469C9.59375 15.2266 9.17969 15.5547 8.52344 15.5547C7.91406 15.5547 7.53906 15.2109 7.53906 14.6406C7.53906 14.5391 7.55469 14.375 7.57812 14.2656L8.15625 11.3594H5.25L4.61719 14.5469C4.48438 15.2266 4.0625 15.5547 3.42188 15.5547C2.8125 15.5547 2.42969 15.2109 2.42969 14.6406C2.42969 14.5391 2.44531 14.375 2.46875 14.2656L3.04688 11.3594H1.39844ZM5.67188 9.25H8.57812L9.19531 6.17969H6.28125L5.67188 9.25Z"/>
+                                </svg>
+                                <input type="text" placeholder="0" id="DLP_Inset_Input_1_ID" class="DLP_Input_Input_Style_1">
+                            </div>
+                            <div class="DLP_Input_Button_Style_1_Active DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Inset_Button_1_ID">
+                                <p id="DLP_Inset_Text_1_ID" class="DLP_Text_Style_1" style="color: #FFF;">START</p>
+                                <svg id="DLP_Inset_Icon_1_ID" width="13" height="16" viewBox="0 0 13 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M-0.0078125 13.5391V2.17188C-0.0078125 1.17969 0.609375 0.671875 1.34375 0.671875C1.64844 0.671875 1.97656 0.757812 2.29688 0.945312L11.75 6.45312C12.4688 6.86719 12.8203 7.25781 12.8203 7.85938C12.8203 8.46094 12.4688 8.84375 11.75 9.26562L2.29688 14.7734C1.97656 14.9531 1.64844 15.0469 1.34375 15.0469C0.609375 15.0469 -0.0078125 14.5391 -0.0078125 13.5391Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_2_ID" display="none" width="11" height="15" viewBox="0 0 11 15" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.24219 14.8984C0.398438 14.8984 -0.0078125 14.4766 -0.0078125 13.6484V2.07031C-0.0078125 1.24219 0.414062 0.820312 1.24219 0.820312H3.17188C4 0.820312 4.42188 1.24219 4.42188 2.07031V13.6484C4.42188 14.4766 4 14.8984 3.17188 14.8984H1.24219ZM7.57031 14.8984C6.72656 14.8984 6.32031 14.4766 6.32031 13.6484V2.07031C6.32031 1.24219 6.74219 0.820312 7.57031 0.820312H9.5C10.3281 0.820312 10.75 1.24219 10.75 2.07031V13.6484C10.75 14.4766 10.3281 14.8984 9.5 14.8984H7.57031Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_3_ID" display="none" width="17" height="18" viewBox="0 0 17 18" fill="#34C759" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8.64844 17.1094C4.09375 17.1094 0.398438 13.4141 0.398438 8.85938C0.398438 4.30469 4.09375 0.609375 8.64844 0.609375C13.2031 0.609375 16.8984 4.30469 16.8984 8.85938C16.8984 13.4141 13.2031 17.1094 8.64844 17.1094ZM7.78906 12.7812C8.125 12.7812 8.42969 12.6094 8.63281 12.3125L12.2578 6.76562C12.3984 6.5625 12.4766 6.35156 12.4766 6.15625C12.4766 5.67188 12.0469 5.32812 11.5781 5.32812C11.2734 5.32812 11.0156 5.49219 10.8125 5.82031L7.76562 10.6641L6.40625 8.98438C6.19531 8.73438 5.97656 8.625 5.69531 8.625C5.21875 8.625 4.82812 9.00781 4.82812 9.49219C4.82812 9.71875 4.89844 9.91406 5.07812 10.1328L6.91406 12.3203C7.16406 12.625 7.4375 12.7812 7.78906 12.7812Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_4_ID" display="none" width="18" height="16" viewBox="0 0 18 16" fill="#FF2D55" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2.96094 15.5469C1.53125 15.5469 0.59375 14.4688 0.59375 13.1797C0.59375 12.7812 0.695312 12.375 0.914062 11.9922L6.92969 1.47656C7.38281 0.695312 8.17188 0.289062 8.97656 0.289062C9.77344 0.289062 10.5547 0.6875 11.0156 1.47656L17.0312 11.9844C17.25 12.3672 17.3516 12.7812 17.3516 13.1797C17.3516 14.4688 16.4141 15.5469 14.9844 15.5469H2.96094ZM8.98438 9.96094C9.52344 9.96094 9.83594 9.65625 9.86719 9.09375L9.99219 5.72656C10.0234 5.14062 9.59375 4.73438 8.97656 4.73438C8.35156 4.73438 7.92969 5.13281 7.96094 5.72656L8.08594 9.10156C8.10938 9.65625 8.42969 9.96094 8.98438 9.96094ZM8.98438 12.7812C9.60156 12.7812 10.0859 12.3906 10.0859 11.7891C10.0859 11.2031 9.60938 10.8047 8.98438 10.8047C8.35938 10.8047 7.875 11.2031 7.875 11.7891C7.875 12.3906 8.35938 12.7812 8.98438 12.7812Z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="DLP_VStack_8" id="DLP_Get_PRACTICE_1_ID">
+                        <p class="DLP_Text_Style_1 DLP_NoSelect" style="align-self: stretch; opacity: 0.5;">How many practices would you like to solve?</p>
+                        <div class="DLP_HStack_8">
+                            <div class="DLP_Input_Button_Style_1_Active DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Inset_Button_2_ID" style="width: 48px; padding: 0;">
+                                <svg id="DLP_Inset_Icon_1_ID" width="15" height="16" viewBox="0 0 15 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.49219 11.3594C0.875 11.3594 0.492188 11 0.492188 10.4297C0.492188 9.72656 0.960938 9.25 1.71875 9.25H3.5625L4.17188 6.17969H2.5C1.88281 6.17969 1.49219 5.80469 1.49219 5.24219C1.49219 4.53125 1.96875 4.05469 2.72656 4.05469H4.59375L5.17188 1.17188C5.30469 0.507812 5.67969 0.15625 6.35938 0.15625C6.97656 0.15625 7.35938 0.507812 7.35938 1.07031C7.35938 1.19531 7.33594 1.35938 7.32031 1.45312L6.79688 4.05469H9.71094L10.2891 1.17188C10.4219 0.507812 10.7891 0.15625 11.4688 0.15625C12.0781 0.15625 12.4609 0.507812 12.4609 1.07031C12.4609 1.19531 12.4453 1.35938 12.4297 1.45312L11.9062 4.05469H13.6875C14.3047 4.05469 14.6875 4.4375 14.6875 4.99219C14.6875 5.70312 14.2188 6.17969 13.4609 6.17969H11.4844L10.875 9.25H12.6797C13.2969 9.25 13.6797 9.64062 13.6797 10.1953C13.6797 10.8984 13.2109 11.3594 12.4453 11.3594H10.4531L9.82031 14.5469C9.6875 15.2266 9.27344 15.5547 8.61719 15.5547C8.00781 15.5547 7.63281 15.2109 7.63281 14.6406C7.63281 14.5391 7.64844 14.375 7.67188 14.2656L8.25 11.3594H5.34375L4.71094 14.5469C4.57812 15.2266 4.15625 15.5547 3.51562 15.5547C2.90625 15.5547 2.52344 15.2109 2.52344 14.6406C2.52344 14.5391 2.53906 14.375 2.5625 14.2656L3.14062 11.3594H1.49219ZM5.76562 9.25H8.67188L9.28906 6.17969H6.375L5.76562 9.25Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_2_ID" display="none" width="20" height="12" viewBox="0 0 20 12" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.30859 11.789C0.683594 11.789 0.191406 11.3359 0.191406 10.7656C0.191406 10.4765 0.285156 10.2265 0.511719 9.91407L3.32422 5.99219V5.92969L0.605469 2.22656C0.347656 1.88281 0.261719 1.62501 0.261719 1.32032C0.261719 0.679687 0.769532 0.210938 1.45703 0.210938C1.90234 0.210938 2.21484 0.40625 2.51953 0.867187L4.93359 4.42969H4.99609L7.48828 0.789063C7.76172 0.382813 7.99609 0.210938 8.44922 0.210938C9.0664 0.210938 9.59765 0.65625 9.59765 1.21874C9.59765 1.52343 9.51172 1.77343 9.28515 2.06251L6.35546 5.97656V6.03125L9.19922 9.86718C9.41796 10.1484 9.51172 10.414 9.51172 10.7265C9.51172 11.3437 9.03515 11.789 8.3789 11.789C7.94922 11.789 7.66015 11.6172 7.35546 11.2031L4.83984 7.69531H4.77734L2.30078 11.2109C2.0039 11.6406 1.7539 11.789 1.30859 11.789ZM12.496 11.789C11.7539 11.789 11.3164 11.3359 11.3164 10.5625V1.59374C11.3164 0.820313 11.7539 0.367187 12.496 0.367187H15.9023C18.2148 0.367187 19.8086 1.90624 19.8086 4.22656C19.8086 6.53906 18.1601 8.08594 15.7851 8.08594H13.6757V10.5625C13.6757 11.3359 13.2382 11.789 12.496 11.789ZM13.6757 6.24219H15.2695C16.621 6.24219 17.4101 5.52344 17.4101 4.23438C17.4101 2.95312 16.6289 2.23438 15.2773 2.23438H13.6757V6.24219Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_3_ID" display="none" width="24" height="12" viewBox="0 0 24 12" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M0.898438 5.85938C0.898438 2.69531 2.94531 0.609375 5.97656 0.609375C7.53125 0.609375 8.875 1.26562 10.2578 2.60938L11.9688 4.25781L13.6719 2.60938C15.0547 1.26562 16.3984 0.609375 17.9531 0.609375C20.9844 0.609375 23.0312 2.69531 23.0312 5.85938C23.0312 9.01562 20.9844 11.1016 17.9531 11.1016C16.3984 11.1016 15.0547 10.4531 13.6719 9.10938L11.9688 7.45312L10.2578 9.10938C8.875 10.4531 7.53125 11.1016 5.97656 11.1016C2.94531 11.1016 0.898438 9.01562 0.898438 5.85938ZM3.21875 5.85938C3.21875 7.63281 4.32031 8.78125 5.97656 8.78125C6.875 8.78125 7.70312 8.34375 8.63281 7.46094L10.3281 5.85938L8.63281 4.25781C7.70312 3.375 6.875 2.92969 5.97656 2.92969C4.32031 2.92969 3.21875 4.07812 3.21875 5.85938ZM13.6016 5.85938L15.2969 7.46094C16.2344 8.34375 17.0547 8.78125 17.9531 8.78125C19.6094 8.78125 20.7109 7.63281 20.7109 5.85938C20.7109 4.07812 19.6094 2.92969 17.9531 2.92969C17.0547 2.92969 16.2266 3.375 15.2969 4.25781L13.6016 5.85938Z"/>
+                                </svg>
+                            </div>
+                            <div class="DLP_Input_Style_1_Active">
+                                <p class="DLP_Text_Style_1 DLP_NoSelect" style="color: #007AFF; opacity: 0.5; display: none;">PRACTICE</p>
+                                <svg width="15" height="16" viewBox="0 0 15 16" fill="#007AFF" opacity="0.5" xmlns="http://www.w3.org/2000/svg" display="none">
+                                    <path d="M1.39844 11.3594C0.78125 11.3594 0.398438 11 0.398438 10.4297C0.398438 9.72656 0.867188 9.25 1.625 9.25H3.46875L4.07812 6.17969H2.40625C1.78906 6.17969 1.39844 5.80469 1.39844 5.24219C1.39844 4.53125 1.875 4.05469 2.63281 4.05469H4.5L5.07812 1.17188C5.21094 0.507812 5.58594 0.15625 6.26562 0.15625C6.88281 0.15625 7.26562 0.507812 7.26562 1.07031C7.26562 1.19531 7.24219 1.35938 7.22656 1.45312L6.70312 4.05469H9.61719L10.1953 1.17188C10.3281 0.507812 10.6953 0.15625 11.375 0.15625C11.9844 0.15625 12.3672 0.507812 12.3672 1.07031C12.3672 1.19531 12.3516 1.35938 12.3359 1.45312L11.8125 4.05469H13.5938C14.2109 4.05469 14.5938 4.4375 14.5938 4.99219C14.5938 5.70312 14.125 6.17969 13.3672 6.17969H11.3906L10.7812 9.25H12.5859C13.2031 9.25 13.5859 9.64062 13.5859 10.1953C13.5859 10.8984 13.1172 11.3594 12.3516 11.3594H10.3594L9.72656 14.5469C9.59375 15.2266 9.17969 15.5547 8.52344 15.5547C7.91406 15.5547 7.53906 15.2109 7.53906 14.6406C7.53906 14.5391 7.55469 14.375 7.57812 14.2656L8.15625 11.3594H5.25L4.61719 14.5469C4.48438 15.2266 4.0625 15.5547 3.42188 15.5547C2.8125 15.5547 2.42969 15.2109 2.42969 14.6406C2.42969 14.5391 2.44531 14.375 2.46875 14.2656L3.04688 11.3594H1.39844ZM5.67188 9.25H8.57812L9.19531 6.17969H6.28125L5.67188 9.25Z"/>
+                                </svg>
+                                <input type="text" placeholder="0" id="DLP_Inset_Input_1_ID" class="DLP_Input_Input_Style_1">
+                            </div>
+                            <div class="DLP_Input_Button_Style_1_Active DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Inset_Button_1_ID">
+                                <p id="DLP_Inset_Text_1_ID" class="DLP_Text_Style_1" style="color: #FFF;">START</p>
+                                <svg id="DLP_Inset_Icon_1_ID" width="13" height="16" viewBox="0 0 13 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M-0.0078125 13.5391V2.17188C-0.0078125 1.17969 0.609375 0.671875 1.34375 0.671875C1.64844 0.671875 1.97656 0.757812 2.29688 0.945312L11.75 6.45312C12.4688 6.86719 12.8203 7.25781 12.8203 7.85938C12.8203 8.46094 12.4688 8.84375 11.75 9.26562L2.29688 14.7734C1.97656 14.9531 1.64844 15.0469 1.34375 15.0469C0.609375 15.0469 -0.0078125 14.5391 -0.0078125 13.5391Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_2_ID" display="none" width="11" height="15" viewBox="0 0 11 15" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.24219 14.8984C0.398438 14.8984 -0.0078125 14.4766 -0.0078125 13.6484V2.07031C-0.0078125 1.24219 0.414062 0.820312 1.24219 0.820312H3.17188C4 0.820312 4.42188 1.24219 4.42188 2.07031V13.6484C4.42188 14.4766 4 14.8984 3.17188 14.8984H1.24219ZM7.57031 14.8984C6.72656 14.8984 6.32031 14.4766 6.32031 13.6484V2.07031C6.32031 1.24219 6.74219 0.820312 7.57031 0.820312H9.5C10.3281 0.820312 10.75 1.24219 10.75 2.07031V13.6484C10.75 14.4766 10.3281 14.8984 9.5 14.8984H7.57031Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_3_ID" display="none" width="17" height="18" viewBox="0 0 17 18" fill="#34C759" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8.64844 17.1094C4.09375 17.1094 0.398438 13.4141 0.398438 8.85938C0.398438 4.30469 4.09375 0.609375 8.64844 0.609375C13.2031 0.609375 16.8984 4.30469 16.8984 8.85938C16.8984 13.4141 13.2031 17.1094 8.64844 17.1094ZM7.78906 12.7812C8.125 12.7812 8.42969 12.6094 8.63281 12.3125L12.2578 6.76562C12.3984 6.5625 12.4766 6.35156 12.4766 6.15625C12.4766 5.67188 12.0469 5.32812 11.5781 5.32812C11.2734 5.32812 11.0156 5.49219 10.8125 5.82031L7.76562 10.6641L6.40625 8.98438C6.19531 8.73438 5.97656 8.625 5.69531 8.625C5.21875 8.625 4.82812 9.00781 4.82812 9.49219C4.82812 9.71875 4.89844 9.91406 5.07812 10.1328L6.91406 12.3203C7.16406 12.625 7.4375 12.7812 7.78906 12.7812Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_4_ID" display="none" width="18" height="16" viewBox="0 0 18 16" fill="#FF2D55" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2.96094 15.5469C1.53125 15.5469 0.59375 14.4688 0.59375 13.1797C0.59375 12.7812 0.695312 12.375 0.914062 11.9922L6.92969 1.47656C7.38281 0.695312 8.17188 0.289062 8.97656 0.289062C9.77344 0.289062 10.5547 0.6875 11.0156 1.47656L17.0312 11.9844C17.25 12.3672 17.3516 12.7812 17.3516 13.1797C17.3516 14.4688 16.4141 15.5469 14.9844 15.5469H2.96094ZM8.98438 9.96094C9.52344 9.96094 9.83594 9.65625 9.86719 9.09375L9.99219 5.72656C10.0234 5.14062 9.59375 4.73438 8.97656 4.73438C8.35156 4.73438 7.92969 5.13281 7.96094 5.72656L8.08594 9.10156C8.10938 9.65625 8.42969 9.96094 8.98438 9.96094ZM8.98438 12.7812C9.60156 12.7812 10.0859 12.3906 10.0859 11.7891C10.0859 11.2031 9.60938 10.8047 8.98438 10.8047C8.35938 10.8047 7.875 11.2031 7.875 11.7891C7.875 12.3906 8.35938 12.7812 8.98438 12.7812Z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="DLP_VStack_8" id="DLP_Get_LISTEN_1_ID" style="display: none;">
+                        <p class="DLP_Text_Style_1 DLP_NoSelect" style="align-self: stretch; opacity: 0.5;">How many listening practices would you like to solve? (Requires Super Duolingo)</p>
+                        <div class="DLP_HStack_8">
+                            <div class="DLP_Input_Button_Style_1_Active DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Inset_Button_2_ID" style="width: 48px; padding: 0;">
+                                <svg id="DLP_Inset_Icon_1_ID" width="15" height="16" viewBox="0 0 15 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.49219 11.3594C0.875 11.3594 0.492188 11 0.492188 10.4297C0.492188 9.72656 0.960938 9.25 1.71875 9.25H3.5625L4.17188 6.17969H2.5C1.88281 6.17969 1.49219 5.80469 1.49219 5.24219C1.49219 4.53125 1.96875 4.05469 2.72656 4.05469H4.59375L5.17188 1.17188C5.30469 0.507812 5.67969 0.15625 6.35938 0.15625C6.97656 0.15625 7.35938 0.507812 7.35938 1.07031C7.35938 1.19531 7.33594 1.35938 7.32031 1.45312L6.79688 4.05469H9.71094L10.2891 1.17188C10.4219 0.507812 10.7891 0.15625 11.4688 0.15625C12.0781 0.15625 12.4609 0.507812 12.4609 1.07031C12.4609 1.19531 12.4453 1.35938 12.4297 1.45312L11.9062 4.05469H13.6875C14.3047 4.05469 14.6875 4.4375 14.6875 4.99219C14.6875 5.70312 14.2188 6.17969 13.4609 6.17969H11.4844L10.875 9.25H12.6797C13.2969 9.25 13.6797 9.64062 13.6797 10.1953C13.6797 10.8984 13.2109 11.3594 12.4453 11.3594H10.4531L9.82031 14.5469C9.6875 15.2266 9.27344 15.5547 8.61719 15.5547C8.00781 15.5547 7.63281 15.2109 7.63281 14.6406C7.63281 14.5391 7.64844 14.375 7.67188 14.2656L8.25 11.3594H5.34375L4.71094 14.5469C4.57812 15.2266 4.15625 15.5547 3.51562 15.5547C2.90625 15.5547 2.52344 15.2109 2.52344 14.6406C2.52344 14.5391 2.53906 14.375 2.5625 14.2656L3.14062 11.3594H1.49219ZM5.76562 9.25H8.67188L9.28906 6.17969H6.375L5.76562 9.25Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_2_ID" display="none" width="20" height="12" viewBox="0 0 20 12" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.30859 11.789C0.683594 11.789 0.191406 11.3359 0.191406 10.7656C0.191406 10.4765 0.285156 10.2265 0.511719 9.91407L3.32422 5.99219V5.92969L0.605469 2.22656C0.347656 1.88281 0.261719 1.62501 0.261719 1.32032C0.261719 0.679687 0.769532 0.210938 1.45703 0.210938C1.90234 0.210938 2.21484 0.40625 2.51953 0.867187L4.93359 4.42969H4.99609L7.48828 0.789063C7.76172 0.382813 7.99609 0.210938 8.44922 0.210938C9.0664 0.210938 9.59765 0.65625 9.59765 1.21874C9.59765 1.52343 9.51172 1.77343 9.28515 2.06251L6.35546 5.97656V6.03125L9.19922 9.86718C9.41796 10.1484 9.51172 10.414 9.51172 10.7265C9.51172 11.3437 9.03515 11.789 8.3789 11.789C7.94922 11.789 7.66015 11.6172 7.35546 11.2031L4.83984 7.69531H4.77734L2.30078 11.2109C2.0039 11.6406 1.7539 11.789 1.30859 11.789ZM12.496 11.789C11.7539 11.789 11.3164 11.3359 11.3164 10.5625V1.59374C11.3164 0.820313 11.7539 0.367187 12.496 0.367187H15.9023C18.2148 0.367187 19.8086 1.90624 19.8086 4.22656C19.8086 6.53906 18.1601 8.08594 15.7851 8.08594H13.6757V10.5625C13.6757 11.3359 13.2382 11.789 12.496 11.789ZM13.6757 6.24219H15.2695C16.621 6.24219 17.4101 5.52344 17.4101 4.23438C17.4101 2.95312 16.6289 2.23438 15.2773 2.23438H13.6757V6.24219Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_3_ID" display="none" width="24" height="12" viewBox="0 0 24 12" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M0.898438 5.85938C0.898438 2.69531 2.94531 0.609375 5.97656 0.609375C7.53125 0.609375 8.875 1.26562 10.2578 2.60938L11.9688 4.25781L13.6719 2.60938C15.0547 1.26562 16.3984 0.609375 17.9531 0.609375C20.9844 0.609375 23.0312 2.69531 23.0312 5.85938C23.0312 9.01562 20.9844 11.1016 17.9531 11.1016C16.3984 11.1016 15.0547 10.4531 13.6719 9.10938L11.9688 7.45312L10.2578 9.10938C8.875 10.4531 7.53125 11.1016 5.97656 11.1016C2.94531 11.1016 0.898438 9.01562 0.898438 5.85938ZM3.21875 5.85938C3.21875 7.63281 4.32031 8.78125 5.97656 8.78125C6.875 8.78125 7.70312 8.34375 8.63281 7.46094L10.3281 5.85938L8.63281 4.25781C7.70312 3.375 6.875 2.92969 5.97656 2.92969C4.32031 2.92969 3.21875 4.07812 3.21875 5.85938ZM13.6016 5.85938L15.2969 7.46094C16.2344 8.34375 17.0547 8.78125 17.9531 8.78125C19.6094 8.78125 20.7109 7.63281 20.7109 5.85938C20.7109 4.07812 19.6094 2.92969 17.9531 2.92969C17.0547 2.92969 16.2266 3.375 15.2969 4.25781L13.6016 5.85938Z"/>
+                                </svg>
+                            </div>
+                            <div class="DLP_Input_Style_1_Active">
+                                <p class="DLP_Text_Style_1 DLP_NoSelect" style="color: #007AFF; opacity: 0.5; display: none;">PATH</p>
+                                <svg width="15" height="16" viewBox="0 0 15 16" fill="#007AFF" opacity="0.5" xmlns="http://www.w3.org/2000/svg" display="none">
+                                    <path d="M1.39844 11.3594C0.78125 11.3594 0.398438 11 0.398438 10.4297C0.398438 9.72656 0.867188 9.25 1.625 9.25H3.46875L4.07812 6.17969H2.40625C1.78906 6.17969 1.39844 5.80469 1.39844 5.24219C1.39844 4.53125 1.875 4.05469 2.63281 4.05469H4.5L5.07812 1.17188C5.21094 0.507812 5.58594 0.15625 6.26562 0.15625C6.88281 0.15625 7.26562 0.507812 7.26562 1.07031C7.26562 1.19531 7.24219 1.35938 7.22656 1.45312L6.70312 4.05469H9.61719L10.1953 1.17188C10.3281 0.507812 10.6953 0.15625 11.375 0.15625C11.9844 0.15625 12.3672 0.507812 12.3672 1.07031C12.3672 1.19531 12.3516 1.35938 12.3359 1.45312L11.8125 4.05469H13.5938C14.2109 4.05469 14.5938 4.4375 14.5938 4.99219C14.5938 5.70312 14.125 6.17969 13.3672 6.17969H11.3906L10.7812 9.25H12.5859C13.2031 9.25 13.5859 9.64062 13.5859 10.1953C13.5859 10.8984 13.1172 11.3594 12.3516 11.3594H10.3594L9.72656 14.5469C9.59375 15.2266 9.17969 15.5547 8.52344 15.5547C7.91406 15.5547 7.53906 15.2109 7.53906 14.6406C7.53906 14.5391 7.55469 14.375 7.57812 14.2656L8.15625 11.3594H5.25L4.61719 14.5469C4.48438 15.2266 4.0625 15.5547 3.42188 15.5547C2.8125 15.5547 2.42969 15.2109 2.42969 14.6406C2.42969 14.5391 2.44531 14.375 2.46875 14.2656L3.04688 11.3594H1.39844ZM5.67188 9.25H8.57812L9.19531 6.17969H6.28125L5.67188 9.25Z"/>
+                                </svg>
+                                <input type="text" placeholder="0" id="DLP_Inset_Input_1_ID" class="DLP_Input_Input_Style_1">
+                            </div>
+                            <div class="DLP_Input_Button_Style_1_Active DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Inset_Button_1_ID">
+                                <p id="DLP_Inset_Text_1_ID" class="DLP_Text_Style_1" style="color: #FFF;">START</p>
+                                <svg id="DLP_Inset_Icon_1_ID" width="13" height="16" viewBox="0 0 13 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M-0.0078125 13.5391V2.17188C-0.0078125 1.17969 0.609375 0.671875 1.34375 0.671875C1.64844 0.671875 1.97656 0.757812 2.29688 0.945312L11.75 6.45312C12.4688 6.86719 12.8203 7.25781 12.8203 7.85938C12.8203 8.46094 12.4688 8.84375 11.75 9.26562L2.29688 14.7734C1.97656 14.9531 1.64844 15.0469 1.34375 15.0469C0.609375 15.0469 -0.0078125 14.5391 -0.0078125 13.5391Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_2_ID" display="none" width="11" height="15" viewBox="0 0 11 15" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.24219 14.8984C0.398438 14.8984 -0.0078125 14.4766 -0.0078125 13.6484V2.07031C-0.0078125 1.24219 0.414062 0.820312 1.24219 0.820312H3.17188C4 0.820312 4.42188 1.24219 4.42188 2.07031V13.6484C4.42188 14.4766 4 14.8984 3.17188 14.8984H1.24219ZM7.57031 14.8984C6.72656 14.8984 6.32031 14.4766 6.32031 13.6484V2.07031C6.32031 1.24219 6.74219 0.820312 7.57031 0.820312H9.5C10.3281 0.820312 10.75 1.24219 10.75 2.07031V13.6484C10.75 14.4766 10.3281 14.8984 9.5 14.8984H7.57031Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_3_ID" display="none" width="17" height="18" viewBox="0 0 17 18" fill="#34C759" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8.64844 17.1094C4.09375 17.1094 0.398438 13.4141 0.398438 8.85938C0.398438 4.30469 4.09375 0.609375 8.64844 0.609375C13.2031 0.609375 16.8984 4.30469 16.8984 8.85938C16.8984 13.4141 13.2031 17.1094 8.64844 17.1094ZM7.78906 12.7812C8.125 12.7812 8.42969 12.6094 8.63281 12.3125L12.2578 6.76562C12.3984 6.5625 12.4766 6.35156 12.4766 6.15625C12.4766 5.67188 12.0469 5.32812 11.5781 5.32812C11.2734 5.32812 11.0156 5.49219 10.8125 5.82031L7.76562 10.6641L6.40625 8.98438C6.19531 8.73438 5.97656 8.625 5.69531 8.625C5.21875 8.625 4.82812 9.00781 4.82812 9.49219C4.82812 9.71875 4.89844 9.91406 5.07812 10.1328L6.91406 12.3203C7.16406 12.625 7.4375 12.7812 7.78906 12.7812Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_4_ID" display="none" width="18" height="16" viewBox="0 0 18 16" fill="#FF2D55" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2.96094 15.5469C1.53125 15.5469 0.59375 14.4688 0.59375 13.1797C0.59375 12.7812 0.695312 12.375 0.914062 11.9922L6.92969 1.47656C7.38281 0.695312 8.17188 0.289062 8.97656 0.289062C9.77344 0.289062 10.5547 0.6875 11.0156 1.47656L17.0312 11.9844C17.25 12.3672 17.3516 12.7812 17.3516 13.1797C17.3516 14.4688 16.4141 15.5469 14.9844 15.5469H2.96094ZM8.98438 9.96094C9.52344 9.96094 9.83594 9.65625 9.86719 9.09375L9.99219 5.72656C10.0234 5.14062 9.59375 4.73438 8.97656 4.73438C8.35156 4.73438 7.92969 5.13281 7.96094 5.72656L8.08594 9.10156C8.10938 9.65625 8.42969 9.96094 8.98438 9.96094ZM8.98438 12.7812C9.60156 12.7812 10.0859 12.3906 10.0859 11.7891C10.0859 11.2031 9.60938 10.8047 8.98438 10.8047C8.35938 10.8047 7.875 11.2031 7.875 11.7891C7.875 12.3906 8.35938 12.7812 8.98438 12.7812Z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="DLP_VStack_8" id="DLP_Get_LESSON_1_ID" style="display: none;">
+                        <p class="DLP_Text_Style_1 DLP_NoSelect" style="align-self: stretch; opacity: 0.5;">Which and how many lessons would you like to repeat?</p>
+                        <div class="DLP_HStack_8">
+                            <div class="DLP_Input_Style_1_Active">
+                                <p class="DLP_Text_Style_1 DLP_NoSelect" style="color: #007AFF; opacity: 0.5; display: none;">PRACTICE</p>
+                                <svg width="15" height="16" viewBox="0 0 15 16" fill="#007AFF" opacity="0.5" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.39844 11.3594C0.78125 11.3594 0.398438 11 0.398438 10.4297C0.398438 9.72656 0.867188 9.25 1.625 9.25H3.46875L4.07812 6.17969H2.40625C1.78906 6.17969 1.39844 5.80469 1.39844 5.24219C1.39844 4.53125 1.875 4.05469 2.63281 4.05469H4.5L5.07812 1.17188C5.21094 0.507812 5.58594 0.15625 6.26562 0.15625C6.88281 0.15625 7.26562 0.507812 7.26562 1.07031C7.26562 1.19531 7.24219 1.35938 7.22656 1.45312L6.70312 4.05469H9.61719L10.1953 1.17188C10.3281 0.507812 10.6953 0.15625 11.375 0.15625C11.9844 0.15625 12.3672 0.507812 12.3672 1.07031C12.3672 1.19531 12.3516 1.35938 12.3359 1.45312L11.8125 4.05469H13.5938C14.2109 4.05469 14.5938 4.4375 14.5938 4.99219C14.5938 5.70312 14.125 6.17969 13.3672 6.17969H11.3906L10.7812 9.25H12.5859C13.2031 9.25 13.5859 9.64062 13.5859 10.1953C13.5859 10.8984 13.1172 11.3594 12.3516 11.3594H10.3594L9.72656 14.5469C9.59375 15.2266 9.17969 15.5547 8.52344 15.5547C7.91406 15.5547 7.53906 15.2109 7.53906 14.6406C7.53906 14.5391 7.55469 14.375 7.57812 14.2656L8.15625 11.3594H5.25L4.61719 14.5469C4.48438 15.2266 4.0625 15.5547 3.42188 15.5547C2.8125 15.5547 2.42969 15.2109 2.42969 14.6406C2.42969 14.5391 2.44531 14.375 2.46875 14.2656L3.04688 11.3594H1.39844ZM5.67188 9.25H8.57812L9.19531 6.17969H6.28125L5.67188 9.25Z"/>
+                                </svg>
+                                <div style="display: flex; align-items: center; gap: 8px; width: 100%; justify-content: flex-end;">
+                                    <p class="DLP_Text_Style_1 DLP_NoSelect" style="color: #007AFF; opacity: 0.5;">Unit:</p>
+                                    <input type="text" value="1" placeholder="0" id="DLP_Get_GEMS_Input_1_ID" class="DLP_Input_Input_Style_1" style="width: 30px;">
+                                    <p class="DLP_Text_Style_1 DLP_NoSelect" style="color: #007AFF; opacity: 0.5;">Lesson:</p>
+                                    <input type="text" value="1" placeholder="0" id="DLP_Get_GEMS_Input_1_ID" class="DLP_Input_Input_Style_1" style="width: 30px;">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="DLP_HStack_8">
+                            <div class="DLP_Input_Button_Style_1_Active DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Inset_Button_2_ID" style="width: 48px; padding: 0;">
+                                <svg id="DLP_Inset_Icon_1_ID" width="15" height="16" viewBox="0 0 15 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.49219 11.3594C0.875 11.3594 0.492188 11 0.492188 10.4297C0.492188 9.72656 0.960938 9.25 1.71875 9.25H3.5625L4.17188 6.17969H2.5C1.88281 6.17969 1.49219 5.80469 1.49219 5.24219C1.49219 4.53125 1.96875 4.05469 2.72656 4.05469H4.59375L5.17188 1.17188C5.30469 0.507812 5.67969 0.15625 6.35938 0.15625C6.97656 0.15625 7.35938 0.507812 7.35938 1.07031C7.35938 1.19531 7.33594 1.35938 7.32031 1.45312L6.79688 4.05469H9.71094L10.2891 1.17188C10.4219 0.507812 10.7891 0.15625 11.4688 0.15625C12.0781 0.15625 12.4609 0.507812 12.4609 1.07031C12.4609 1.19531 12.4453 1.35938 12.4297 1.45312L11.9062 4.05469H13.6875C14.3047 4.05469 14.6875 4.4375 14.6875 4.99219C14.6875 5.70312 14.2188 6.17969 13.4609 6.17969H11.4844L10.875 9.25H12.6797C13.2969 9.25 13.6797 9.64062 13.6797 10.1953C13.6797 10.8984 13.2109 11.3594 12.4453 11.3594H10.4531L9.82031 14.5469C9.6875 15.2266 9.27344 15.5547 8.61719 15.5547C8.00781 15.5547 7.63281 15.2109 7.63281 14.6406C7.63281 14.5391 7.64844 14.375 7.67188 14.2656L8.25 11.3594H5.34375L4.71094 14.5469C4.57812 15.2266 4.15625 15.5547 3.51562 15.5547C2.90625 15.5547 2.52344 15.2109 2.52344 14.6406C2.52344 14.5391 2.53906 14.375 2.5625 14.2656L3.14062 11.3594H1.49219ZM5.76562 9.25H8.67188L9.28906 6.17969H6.375L5.76562 9.25Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_2_ID" display="none" width="20" height="12" viewBox="0 0 20 12" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.30859 11.789C0.683594 11.789 0.191406 11.3359 0.191406 10.7656C0.191406 10.4765 0.285156 10.2265 0.511719 9.91407L3.32422 5.99219V5.92969L0.605469 2.22656C0.347656 1.88281 0.261719 1.62501 0.261719 1.32032C0.261719 0.679687 0.769532 0.210938 1.45703 0.210938C1.90234 0.210938 2.21484 0.40625 2.51953 0.867187L4.93359 4.42969H4.99609L7.48828 0.789063C7.76172 0.382813 7.99609 0.210938 8.44922 0.210938C9.0664 0.210938 9.59765 0.65625 9.59765 1.21874C9.59765 1.52343 9.51172 1.77343 9.28515 2.06251L6.35546 5.97656V6.03125L9.19922 9.86718C9.41796 10.1484 9.51172 10.414 9.51172 10.7265C9.51172 11.3437 9.03515 11.789 8.3789 11.789C7.94922 11.789 7.66015 11.6172 7.35546 11.2031L4.83984 7.69531H4.77734L2.30078 11.2109C2.0039 11.6406 1.7539 11.789 1.30859 11.789ZM12.496 11.789C11.7539 11.789 11.3164 11.3359 11.3164 10.5625V1.59374C11.3164 0.820313 11.7539 0.367187 12.496 0.367187H15.9023C18.2148 0.367187 19.8086 1.90624 19.8086 4.22656C19.8086 6.53906 18.1601 8.08594 15.7851 8.08594H13.6757V10.5625C13.6757 11.3359 13.2382 11.789 12.496 11.789ZM13.6757 6.24219H15.2695C16.621 6.24219 17.4101 5.52344 17.4101 4.23438C17.4101 2.95312 16.6289 2.23438 15.2773 2.23438H13.6757V6.24219Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_3_ID" display="none" width="24" height="12" viewBox="0 0 24 12" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M0.898438 5.85938C0.898438 2.69531 2.94531 0.609375 5.97656 0.609375C7.53125 0.609375 8.875 1.26562 10.2578 2.60938L11.9688 4.25781L13.6719 2.60938C15.0547 1.26562 16.3984 0.609375 17.9531 0.609375C20.9844 0.609375 23.0312 2.69531 23.0312 5.85938C23.0312 9.01562 20.9844 11.1016 17.9531 11.1016C16.3984 11.1016 15.0547 10.4531 13.6719 9.10938L11.9688 7.45312L10.2578 9.10938C8.875 10.4531 7.53125 11.1016 5.97656 11.1016C2.94531 11.1016 0.898438 9.01562 0.898438 5.85938ZM3.21875 5.85938C3.21875 7.63281 4.32031 8.78125 5.97656 8.78125C6.875 8.78125 7.70312 8.34375 8.63281 7.46094L10.3281 5.85938L8.63281 4.25781C7.70312 3.375 6.875 2.92969 5.97656 2.92969C4.32031 2.92969 3.21875 4.07812 3.21875 5.85938ZM13.6016 5.85938L15.2969 7.46094C16.2344 8.34375 17.0547 8.78125 17.9531 8.78125C19.6094 8.78125 20.7109 7.63281 20.7109 5.85938C20.7109 4.07812 19.6094 2.92969 17.9531 2.92969C17.0547 2.92969 16.2266 3.375 15.2969 4.25781L13.6016 5.85938Z"/>
+                                </svg>
+                            </div>
+                            <div class="DLP_Input_Style_1_Active">
+                                <p class="DLP_Text_Style_1 DLP_NoSelect" style="color: #007AFF; opacity: 0.5; display: none;">PRACTICE</p>
+                                <svg width="15" height="16" viewBox="0 0 15 16" fill="#007AFF" opacity="0.5" xmlns="http://www.w3.org/2000/svg" display="none">
+                                    <path d="M1.39844 11.3594C0.78125 11.3594 0.398438 11 0.398438 10.4297C0.398438 9.72656 0.867188 9.25 1.625 9.25H3.46875L4.07812 6.17969H2.40625C1.78906 6.17969 1.39844 5.80469 1.39844 5.24219C1.39844 4.53125 1.875 4.05469 2.63281 4.05469H4.5L5.07812 1.17188C5.21094 0.507812 5.58594 0.15625 6.26562 0.15625C6.88281 0.15625 7.26562 0.507812 7.26562 1.07031C7.26562 1.19531 7.24219 1.35938 7.22656 1.45312L6.70312 4.05469H9.61719L10.1953 1.17188C10.3281 0.507812 10.6953 0.15625 11.375 0.15625C11.9844 0.15625 12.3672 0.507812 12.3672 1.07031C12.3672 1.19531 12.3516 1.35938 12.3359 1.45312L11.8125 4.05469H13.5938C14.2109 4.05469 14.5938 4.4375 14.5938 4.99219C14.5938 5.70312 14.125 6.17969 13.3672 6.17969H11.3906L10.7812 9.25H12.5859C13.2031 9.25 13.5859 9.64062 13.5859 10.1953C13.5859 10.8984 13.1172 11.3594 12.3516 11.3594H10.3594L9.72656 14.5469C9.59375 15.2266 9.17969 15.5547 8.52344 15.5547C7.91406 15.5547 7.53906 15.2109 7.53906 14.6406C7.53906 14.5391 7.55469 14.375 7.57812 14.2656L8.15625 11.3594H5.25L4.61719 14.5469C4.48438 15.2266 4.0625 15.5547 3.42188 15.5547C2.8125 15.5547 2.42969 15.2109 2.42969 14.6406C2.42969 14.5391 2.44531 14.375 2.46875 14.2656L3.04688 11.3594H1.39844ZM5.67188 9.25H8.57812L9.19531 6.17969H6.28125L5.67188 9.25Z"/>
+                                </svg>
+                                <input type="text" placeholder="0" id="DLP_Inset_Input_1_ID" class="DLP_Input_Input_Style_1">
+                            </div>
+                            <div class="DLP_Input_Button_Style_1_Active DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Inset_Button_1_ID">
+                                <p id="DLP_Inset_Text_1_ID" class="DLP_Text_Style_1" style="color: #FFF;">START</p>
+                                <svg id="DLP_Inset_Icon_1_ID" width="13" height="16" viewBox="0 0 13 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M-0.0078125 13.5391V2.17188C-0.0078125 1.17969 0.609375 0.671875 1.34375 0.671875C1.64844 0.671875 1.97656 0.757812 2.29688 0.945312L11.75 6.45312C12.4688 6.86719 12.8203 7.25781 12.8203 7.85938C12.8203 8.46094 12.4688 8.84375 11.75 9.26562L2.29688 14.7734C1.97656 14.9531 1.64844 15.0469 1.34375 15.0469C0.609375 15.0469 -0.0078125 14.5391 -0.0078125 13.5391Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_2_ID" display="none" width="11" height="15" viewBox="0 0 11 15" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.24219 14.8984C0.398438 14.8984 -0.0078125 14.4766 -0.0078125 13.6484V2.07031C-0.0078125 1.24219 0.414062 0.820312 1.24219 0.820312H3.17188C4 0.820312 4.42188 1.24219 4.42188 2.07031V13.6484C4.42188 14.4766 4 14.8984 3.17188 14.8984H1.24219ZM7.57031 14.8984C6.72656 14.8984 6.32031 14.4766 6.32031 13.6484V2.07031C6.32031 1.24219 6.74219 0.820312 7.57031 0.820312H9.5C10.3281 0.820312 10.75 1.24219 10.75 2.07031V13.6484C10.75 14.4766 10.3281 14.8984 9.5 14.8984H7.57031Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_3_ID" display="none" width="17" height="18" viewBox="0 0 17 18" fill="#34C759" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8.64844 17.1094C4.09375 17.1094 0.398438 13.4141 0.398438 8.85938C0.398438 4.30469 4.09375 0.609375 8.64844 0.609375C13.2031 0.609375 16.8984 4.30469 16.8984 8.85938C16.8984 13.4141 13.2031 17.1094 8.64844 17.1094ZM7.78906 12.7812C8.125 12.7812 8.42969 12.6094 8.63281 12.3125L12.2578 6.76562C12.3984 6.5625 12.4766 6.35156 12.4766 6.15625C12.4766 5.67188 12.0469 5.32812 11.5781 5.32812C11.2734 5.32812 11.0156 5.49219 10.8125 5.82031L7.76562 10.6641L6.40625 8.98438C6.19531 8.73438 5.97656 8.625 5.69531 8.625C5.21875 8.625 4.82812 9.00781 4.82812 9.49219C4.82812 9.71875 4.89844 9.91406 5.07812 10.1328L6.91406 12.3203C7.16406 12.625 7.4375 12.7812 7.78906 12.7812Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_4_ID" display="none" width="18" height="16" viewBox="0 0 18 16" fill="#FF2D55" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2.96094 15.5469C1.53125 15.5469 0.59375 14.4688 0.59375 13.1797C0.59375 12.7812 0.695312 12.375 0.914062 11.9922L6.92969 1.47656C7.38281 0.695312 8.17188 0.289062 8.97656 0.289062C9.77344 0.289062 10.5547 0.6875 11.0156 1.47656L17.0312 11.9844C17.25 12.3672 17.3516 12.7812 17.3516 13.1797C17.3516 14.4688 16.4141 15.5469 14.9844 15.5469H2.96094ZM8.98438 9.96094C9.52344 9.96094 9.83594 9.65625 9.86719 9.09375L9.99219 5.72656C10.0234 5.14062 9.59375 4.73438 8.97656 4.73438C8.35156 4.73438 7.92969 5.13281 7.96094 5.72656L8.08594 9.10156C8.10938 9.65625 8.42969 9.96094 8.98438 9.96094ZM8.98438 12.7812C9.60156 12.7812 10.0859 12.3906 10.0859 11.7891C10.0859 11.2031 9.60938 10.8047 8.98438 10.8047C8.35938 10.8047 7.875 11.2031 7.875 11.7891C7.875 12.3906 8.35938 12.7812 8.98438 12.7812Z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="DLP_HStack_Auto" style="padding-top: 4px;">
+                        <div class="DLP_HStack_4 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Secondary_Terms_1_Button_1_ID" style="align-items: center;">
+                            <p class="DLP_Text_Style_1" style="color: #007AFF; opacity: 0.5;">Terms & Conditions</p>
+                        </div>
+                        <div class="DLP_HStack_4 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Secondary_See_More_1_Button_1_ID" style="align-items: center;">
+                            <p class="DLP_Text_Style_1" style="color: #007AFF;">See more</p>
+                            <svg width="9" height="15" viewBox="0 0 9 15" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M8.57031 7.35938C8.57031 7.74219 8.4375 8.0625 8.10938 8.375L2.20312 14.1641C1.96875 14.3984 1.67969 14.5156 1.33594 14.5156C0.648438 14.5156 0.0859375 13.9609 0.0859375 13.2734C0.0859375 12.9219 0.226562 12.6094 0.484375 12.3516L5.63281 7.35156L0.484375 2.35938C0.226562 2.10938 0.0859375 1.78906 0.0859375 1.44531C0.0859375 0.765625 0.648438 0.203125 1.33594 0.203125C1.67969 0.203125 1.96875 0.320312 2.20312 0.554688L8.10938 6.34375C8.42969 6.64844 8.57031 6.96875 8.57031 7.35938Z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="DLP_Main_Box_Divider" id="DLP_Main_Box_Divider_4_ID" style="display: none;">
+            <div class="DLP_VStack_8">
+                <div class="DLP_HStack_Auto DLP_NoSelect">
+                    <div class="DLP_HStack_4" style="align-items: flex-start;">
+                        <p class="DLP_Text_Style_2">Duolingo</p>
+                        <p class="DLP_Text_Style_2" style="background: url(${serverURL}/static/3.0/assets/images/flow_1_light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PRO LE</p>
+                    </div>
+                    <p class="DLP_Text_Style_1" style="font-size: 14px; background: url(${serverURL}/static/3.0/assets/images/flow_2_light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${versionName}</p>
+                </div>
+                <div class="DLP_VStack_8" id="DLP_Main_Inputs_1_Divider_1_ID">
+                    <div class="DLP_VStack_8" id="DLP_Get_PATH_2_ID">
+                        <div class="DLP_HStack_8" style="align-items: center;">
+                            <svg class="DLP_Magnetic_Hover_1 DLP_NoSelect" width="13" height="20" viewBox="0 0 13 20" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M0.140625 12.25C0.140625 10.5156 1.50781 8.80469 3.73438 7.96875L3.98438 4.25781C2.77344 3.57812 1.875 2.85156 1.47656 2.35156C1.24219 2.05469 1.13281 1.74219 1.13281 1.46094C1.13281 0.875 1.57812 0.453125 2.22656 0.453125H10.7578C11.4062 0.453125 11.8516 0.875 11.8516 1.46094C11.8516 1.74219 11.7422 2.05469 11.5078 2.35156C11.1094 2.85156 10.2109 3.57031 9 4.25781L9.25781 7.96875C11.4766 8.80469 12.8438 10.5156 12.8438 12.25C12.8438 13.0312 12.3047 13.5547 11.5 13.5547H7.40625V17.3203C7.40625 18.2578 6.74219 19.5703 6.49219 19.5703C6.24219 19.5703 5.57812 18.2578 5.57812 17.3203V13.5547H1.48438C0.679688 13.5547 0.140625 13.0312 0.140625 12.25Z"/>
+                            </svg>
+                            <svg class="DLP_Magnetic_Hover_1 DLP_NoSelect" width="13" height="20" viewBox="0 0 13 20" fill="rgb(var(--color-eel))" xmlns="http://www.w3.org/2000/svg" display="none">
+                                <path opacity="0.5" d="M1.48438 13.5547C0.679688 13.5547 0.140625 13.0312 0.140625 12.25C0.140625 10.5156 1.50781 8.85156 3.55469 8.01562L3.80469 4.25781C2.77344 3.57031 1.86719 2.85156 1.47656 2.34375C1.24219 2.05469 1.13281 1.74219 1.13281 1.46094C1.13281 0.875 1.57812 0.453125 2.22656 0.453125H10.7578C11.4062 0.453125 11.8516 0.875 11.8516 1.46094C11.8516 1.74219 11.7422 2.05469 11.5078 2.34375C11.1172 2.85156 10.2188 3.57031 9.17969 4.25781L9.42969 8.01562C11.4766 8.85156 12.8438 10.5156 12.8438 12.25C12.8438 13.0312 12.3047 13.5547 11.5 13.5547H7.40625V17.3203C7.40625 18.2578 6.74219 19.5703 6.49219 19.5703C6.24219 19.5703 5.57812 18.2578 5.57812 17.3203V13.5547H1.48438ZM6.49219 7.44531C6.92969 7.44531 7.35156 7.47656 7.75781 7.54688L7.53125 3.55469C7.52344 3.38281 7.5625 3.29688 7.69531 3.21875C8.5625 2.76562 9.23438 2.28125 9.46094 2.07812C9.53125 2.00781 9.49219 1.92969 9.41406 1.92969H3.57812C3.5 1.92969 3.45312 2.00781 3.52344 2.07812C3.75 2.28125 4.42188 2.76562 5.28906 3.21875C5.42188 3.29688 5.46094 3.38281 5.45312 3.55469L5.22656 7.54688C5.63281 7.47656 6.05469 7.44531 6.49219 7.44531ZM1.92188 11.9844H11.0625C11.1797 11.9844 11.2344 11.9141 11.2109 11.7734C10.9922 10.3906 9.08594 8.96875 6.49219 8.96875C3.89844 8.96875 1.99219 10.3906 1.77344 11.7734C1.75 11.9141 1.80469 11.9844 1.92188 11.9844Z"/>
+                            </svg>
+                            <p class="DLP_Text_Style_1 DLP_NoSelect" style="align-self: stretch; opacity: 0.5;">How many lessons would you like to solve on the path?</p>
+                        </div>
+                        <div class="DLP_HStack_8">
+                            <div class="DLP_Input_Button_Style_1_Active DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Inset_Button_2_ID" style="width: 48px; padding: 0;">
+                                <svg id="DLP_Inset_Icon_1_ID" width="15" height="16" viewBox="0 0 15 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.49219 11.3594C0.875 11.3594 0.492188 11 0.492188 10.4297C0.492188 9.72656 0.960938 9.25 1.71875 9.25H3.5625L4.17188 6.17969H2.5C1.88281 6.17969 1.49219 5.80469 1.49219 5.24219C1.49219 4.53125 1.96875 4.05469 2.72656 4.05469H4.59375L5.17188 1.17188C5.30469 0.507812 5.67969 0.15625 6.35938 0.15625C6.97656 0.15625 7.35938 0.507812 7.35938 1.07031C7.35938 1.19531 7.33594 1.35938 7.32031 1.45312L6.79688 4.05469H9.71094L10.2891 1.17188C10.4219 0.507812 10.7891 0.15625 11.4688 0.15625C12.0781 0.15625 12.4609 0.507812 12.4609 1.07031C12.4609 1.19531 12.4453 1.35938 12.4297 1.45312L11.9062 4.05469H13.6875C14.3047 4.05469 14.6875 4.4375 14.6875 4.99219C14.6875 5.70312 14.2188 6.17969 13.4609 6.17969H11.4844L10.875 9.25H12.6797C13.2969 9.25 13.6797 9.64062 13.6797 10.1953C13.6797 10.8984 13.2109 11.3594 12.4453 11.3594H10.4531L9.82031 14.5469C9.6875 15.2266 9.27344 15.5547 8.61719 15.5547C8.00781 15.5547 7.63281 15.2109 7.63281 14.6406C7.63281 14.5391 7.64844 14.375 7.67188 14.2656L8.25 11.3594H5.34375L4.71094 14.5469C4.57812 15.2266 4.15625 15.5547 3.51562 15.5547C2.90625 15.5547 2.52344 15.2109 2.52344 14.6406C2.52344 14.5391 2.53906 14.375 2.5625 14.2656L3.14062 11.3594H1.49219ZM5.76562 9.25H8.67188L9.28906 6.17969H6.375L5.76562 9.25Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_2_ID" display="none" width="20" height="12" viewBox="0 0 20 12" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.30859 11.789C0.683594 11.789 0.191406 11.3359 0.191406 10.7656C0.191406 10.4765 0.285156 10.2265 0.511719 9.91407L3.32422 5.99219V5.92969L0.605469 2.22656C0.347656 1.88281 0.261719 1.62501 0.261719 1.32032C0.261719 0.679687 0.769532 0.210938 1.45703 0.210938C1.90234 0.210938 2.21484 0.40625 2.51953 0.867187L4.93359 4.42969H4.99609L7.48828 0.789063C7.76172 0.382813 7.99609 0.210938 8.44922 0.210938C9.0664 0.210938 9.59765 0.65625 9.59765 1.21874C9.59765 1.52343 9.51172 1.77343 9.28515 2.06251L6.35546 5.97656V6.03125L9.19922 9.86718C9.41796 10.1484 9.51172 10.414 9.51172 10.7265C9.51172 11.3437 9.03515 11.789 8.3789 11.789C7.94922 11.789 7.66015 11.6172 7.35546 11.2031L4.83984 7.69531H4.77734L2.30078 11.2109C2.0039 11.6406 1.7539 11.789 1.30859 11.789ZM12.496 11.789C11.7539 11.789 11.3164 11.3359 11.3164 10.5625V1.59374C11.3164 0.820313 11.7539 0.367187 12.496 0.367187H15.9023C18.2148 0.367187 19.8086 1.90624 19.8086 4.22656C19.8086 6.53906 18.1601 8.08594 15.7851 8.08594H13.6757V10.5625C13.6757 11.3359 13.2382 11.789 12.496 11.789ZM13.6757 6.24219H15.2695C16.621 6.24219 17.4101 5.52344 17.4101 4.23438C17.4101 2.95312 16.6289 2.23438 15.2773 2.23438H13.6757V6.24219Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_3_ID" display="none" width="24" height="12" viewBox="0 0 24 12" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M0.898438 5.85938C0.898438 2.69531 2.94531 0.609375 5.97656 0.609375C7.53125 0.609375 8.875 1.26562 10.2578 2.60938L11.9688 4.25781L13.6719 2.60938C15.0547 1.26562 16.3984 0.609375 17.9531 0.609375C20.9844 0.609375 23.0312 2.69531 23.0312 5.85938C23.0312 9.01562 20.9844 11.1016 17.9531 11.1016C16.3984 11.1016 15.0547 10.4531 13.6719 9.10938L11.9688 7.45312L10.2578 9.10938C8.875 10.4531 7.53125 11.1016 5.97656 11.1016C2.94531 11.1016 0.898438 9.01562 0.898438 5.85938ZM3.21875 5.85938C3.21875 7.63281 4.32031 8.78125 5.97656 8.78125C6.875 8.78125 7.70312 8.34375 8.63281 7.46094L10.3281 5.85938L8.63281 4.25781C7.70312 3.375 6.875 2.92969 5.97656 2.92969C4.32031 2.92969 3.21875 4.07812 3.21875 5.85938ZM13.6016 5.85938L15.2969 7.46094C16.2344 8.34375 17.0547 8.78125 17.9531 8.78125C19.6094 8.78125 20.7109 7.63281 20.7109 5.85938C20.7109 4.07812 19.6094 2.92969 17.9531 2.92969C17.0547 2.92969 16.2266 3.375 15.2969 4.25781L13.6016 5.85938Z"/>
+                                </svg>
+                            </div>
+                            <div class="DLP_Input_Style_1_Active">
+                                <p class="DLP_Text_Style_1 DLP_NoSelect" style="color: #007AFF; opacity: 0.5; display: none;">PATH</p>
+                                <svg width="15" height="16" viewBox="0 0 15 16" fill="#007AFF" opacity="0.5" xmlns="http://www.w3.org/2000/svg" display="none">
+                                    <path d="M1.39844 11.3594C0.78125 11.3594 0.398438 11 0.398438 10.4297C0.398438 9.72656 0.867188 9.25 1.625 9.25H3.46875L4.07812 6.17969H2.40625C1.78906 6.17969 1.39844 5.80469 1.39844 5.24219C1.39844 4.53125 1.875 4.05469 2.63281 4.05469H4.5L5.07812 1.17188C5.21094 0.507812 5.58594 0.15625 6.26562 0.15625C6.88281 0.15625 7.26562 0.507812 7.26562 1.07031C7.26562 1.19531 7.24219 1.35938 7.22656 1.45312L6.70312 4.05469H9.61719L10.1953 1.17188C10.3281 0.507812 10.6953 0.15625 11.375 0.15625C11.9844 0.15625 12.3672 0.507812 12.3672 1.07031C12.3672 1.19531 12.3516 1.35938 12.3359 1.45312L11.8125 4.05469H13.5938C14.2109 4.05469 14.5938 4.4375 14.5938 4.99219C14.5938 5.70312 14.125 6.17969 13.3672 6.17969H11.3906L10.7812 9.25H12.5859C13.2031 9.25 13.5859 9.64062 13.5859 10.1953C13.5859 10.8984 13.1172 11.3594 12.3516 11.3594H10.3594L9.72656 14.5469C9.59375 15.2266 9.17969 15.5547 8.52344 15.5547C7.91406 15.5547 7.53906 15.2109 7.53906 14.6406C7.53906 14.5391 7.55469 14.375 7.57812 14.2656L8.15625 11.3594H5.25L4.61719 14.5469C4.48438 15.2266 4.0625 15.5547 3.42188 15.5547C2.8125 15.5547 2.42969 15.2109 2.42969 14.6406C2.42969 14.5391 2.44531 14.375 2.46875 14.2656L3.04688 11.3594H1.39844ZM5.67188 9.25H8.57812L9.19531 6.17969H6.28125L5.67188 9.25Z"/>
+                                </svg>
+                                <input type="text" placeholder="0" id="DLP_Inset_Input_1_ID" class="DLP_Input_Input_Style_1">
+                            </div>
+                            <div class="DLP_Input_Button_Style_1_Active DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Inset_Button_1_ID">
+                                <p id="DLP_Inset_Text_1_ID" class="DLP_Text_Style_1" style="color: #FFF;">START</p>
+                                <svg id="DLP_Inset_Icon_1_ID" width="13" height="16" viewBox="0 0 13 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M-0.0078125 13.5391V2.17188C-0.0078125 1.17969 0.609375 0.671875 1.34375 0.671875C1.64844 0.671875 1.97656 0.757812 2.29688 0.945312L11.75 6.45312C12.4688 6.86719 12.8203 7.25781 12.8203 7.85938C12.8203 8.46094 12.4688 8.84375 11.75 9.26562L2.29688 14.7734C1.97656 14.9531 1.64844 15.0469 1.34375 15.0469C0.609375 15.0469 -0.0078125 14.5391 -0.0078125 13.5391Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_2_ID" display="none" width="11" height="15" viewBox="0 0 11 15" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.24219 14.8984C0.398438 14.8984 -0.0078125 14.4766 -0.0078125 13.6484V2.07031C-0.0078125 1.24219 0.414062 0.820312 1.24219 0.820312H3.17188C4 0.820312 4.42188 1.24219 4.42188 2.07031V13.6484C4.42188 14.4766 4 14.8984 3.17188 14.8984H1.24219ZM7.57031 14.8984C6.72656 14.8984 6.32031 14.4766 6.32031 13.6484V2.07031C6.32031 1.24219 6.74219 0.820312 7.57031 0.820312H9.5C10.3281 0.820312 10.75 1.24219 10.75 2.07031V13.6484C10.75 14.4766 10.3281 14.8984 9.5 14.8984H7.57031Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_3_ID" display="none" width="17" height="18" viewBox="0 0 17 18" fill="#34C759" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8.64844 17.1094C4.09375 17.1094 0.398438 13.4141 0.398438 8.85938C0.398438 4.30469 4.09375 0.609375 8.64844 0.609375C13.2031 0.609375 16.8984 4.30469 16.8984 8.85938C16.8984 13.4141 13.2031 17.1094 8.64844 17.1094ZM7.78906 12.7812C8.125 12.7812 8.42969 12.6094 8.63281 12.3125L12.2578 6.76562C12.3984 6.5625 12.4766 6.35156 12.4766 6.15625C12.4766 5.67188 12.0469 5.32812 11.5781 5.32812C11.2734 5.32812 11.0156 5.49219 10.8125 5.82031L7.76562 10.6641L6.40625 8.98438C6.19531 8.73438 5.97656 8.625 5.69531 8.625C5.21875 8.625 4.82812 9.00781 4.82812 9.49219C4.82812 9.71875 4.89844 9.91406 5.07812 10.1328L6.91406 12.3203C7.16406 12.625 7.4375 12.7812 7.78906 12.7812Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_4_ID" display="none" width="18" height="16" viewBox="0 0 18 16" fill="#FF2D55" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2.96094 15.5469C1.53125 15.5469 0.59375 14.4688 0.59375 13.1797C0.59375 12.7812 0.695312 12.375 0.914062 11.9922L6.92969 1.47656C7.38281 0.695312 8.17188 0.289062 8.97656 0.289062C9.77344 0.289062 10.5547 0.6875 11.0156 1.47656L17.0312 11.9844C17.25 12.3672 17.3516 12.7812 17.3516 13.1797C17.3516 14.4688 16.4141 15.5469 14.9844 15.5469H2.96094ZM8.98438 9.96094C9.52344 9.96094 9.83594 9.65625 9.86719 9.09375L9.99219 5.72656C10.0234 5.14062 9.59375 4.73438 8.97656 4.73438C8.35156 4.73438 7.92969 5.13281 7.96094 5.72656L8.08594 9.10156C8.10938 9.65625 8.42969 9.96094 8.98438 9.96094ZM8.98438 12.7812C9.60156 12.7812 10.0859 12.3906 10.0859 11.7891C10.0859 11.2031 9.60938 10.8047 8.98438 10.8047C8.35938 10.8047 7.875 11.2031 7.875 11.7891C7.875 12.3906 8.35938 12.7812 8.98438 12.7812Z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="DLP_VStack_8" id="DLP_Get_PRACTICE_2_ID">
+                        <div class="DLP_HStack_8" style="align-items: center;">
+                            <svg class="DLP_Magnetic_Hover_1 DLP_NoSelect" width="13" height="20" viewBox="0 0 13 20" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M0.140625 12.25C0.140625 10.5156 1.50781 8.80469 3.73438 7.96875L3.98438 4.25781C2.77344 3.57812 1.875 2.85156 1.47656 2.35156C1.24219 2.05469 1.13281 1.74219 1.13281 1.46094C1.13281 0.875 1.57812 0.453125 2.22656 0.453125H10.7578C11.4062 0.453125 11.8516 0.875 11.8516 1.46094C11.8516 1.74219 11.7422 2.05469 11.5078 2.35156C11.1094 2.85156 10.2109 3.57031 9 4.25781L9.25781 7.96875C11.4766 8.80469 12.8438 10.5156 12.8438 12.25C12.8438 13.0312 12.3047 13.5547 11.5 13.5547H7.40625V17.3203C7.40625 18.2578 6.74219 19.5703 6.49219 19.5703C6.24219 19.5703 5.57812 18.2578 5.57812 17.3203V13.5547H1.48438C0.679688 13.5547 0.140625 13.0312 0.140625 12.25Z"/>
+                            </svg>
+                            <svg class="DLP_Magnetic_Hover_1 DLP_NoSelect" width="13" height="20" viewBox="0 0 13 20" fill="rgb(var(--color-eel))" xmlns="http://www.w3.org/2000/svg" display="none">
+                                <path opacity="0.5" d="M1.48438 13.5547C0.679688 13.5547 0.140625 13.0312 0.140625 12.25C0.140625 10.5156 1.50781 8.85156 3.55469 8.01562L3.80469 4.25781C2.77344 3.57031 1.86719 2.85156 1.47656 2.34375C1.24219 2.05469 1.13281 1.74219 1.13281 1.46094C1.13281 0.875 1.57812 0.453125 2.22656 0.453125H10.7578C11.4062 0.453125 11.8516 0.875 11.8516 1.46094C11.8516 1.74219 11.7422 2.05469 11.5078 2.34375C11.1172 2.85156 10.2188 3.57031 9.17969 4.25781L9.42969 8.01562C11.4766 8.85156 12.8438 10.5156 12.8438 12.25C12.8438 13.0312 12.3047 13.5547 11.5 13.5547H7.40625V17.3203C7.40625 18.2578 6.74219 19.5703 6.49219 19.5703C6.24219 19.5703 5.57812 18.2578 5.57812 17.3203V13.5547H1.48438ZM6.49219 7.44531C6.92969 7.44531 7.35156 7.47656 7.75781 7.54688L7.53125 3.55469C7.52344 3.38281 7.5625 3.29688 7.69531 3.21875C8.5625 2.76562 9.23438 2.28125 9.46094 2.07812C9.53125 2.00781 9.49219 1.92969 9.41406 1.92969H3.57812C3.5 1.92969 3.45312 2.00781 3.52344 2.07812C3.75 2.28125 4.42188 2.76562 5.28906 3.21875C5.42188 3.29688 5.46094 3.38281 5.45312 3.55469L5.22656 7.54688C5.63281 7.47656 6.05469 7.44531 6.49219 7.44531ZM1.92188 11.9844H11.0625C11.1797 11.9844 11.2344 11.9141 11.2109 11.7734C10.9922 10.3906 9.08594 8.96875 6.49219 8.96875C3.89844 8.96875 1.99219 10.3906 1.77344 11.7734C1.75 11.9141 1.80469 11.9844 1.92188 11.9844Z"/>
+                            </svg>
+                            <p class="DLP_Text_Style_1 DLP_NoSelect" style="align-self: stretch; opacity: 0.5;">How many practices would you like to solve?</p>
+                        </div>
+                        <div class="DLP_HStack_8">
+                            <div class="DLP_Input_Button_Style_1_Active DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Inset_Button_2_ID" style="width: 48px; padding: 0;">
+                                <svg id="DLP_Inset_Icon_1_ID" width="15" height="16" viewBox="0 0 15 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.49219 11.3594C0.875 11.3594 0.492188 11 0.492188 10.4297C0.492188 9.72656 0.960938 9.25 1.71875 9.25H3.5625L4.17188 6.17969H2.5C1.88281 6.17969 1.49219 5.80469 1.49219 5.24219C1.49219 4.53125 1.96875 4.05469 2.72656 4.05469H4.59375L5.17188 1.17188C5.30469 0.507812 5.67969 0.15625 6.35938 0.15625C6.97656 0.15625 7.35938 0.507812 7.35938 1.07031C7.35938 1.19531 7.33594 1.35938 7.32031 1.45312L6.79688 4.05469H9.71094L10.2891 1.17188C10.4219 0.507812 10.7891 0.15625 11.4688 0.15625C12.0781 0.15625 12.4609 0.507812 12.4609 1.07031C12.4609 1.19531 12.4453 1.35938 12.4297 1.45312L11.9062 4.05469H13.6875C14.3047 4.05469 14.6875 4.4375 14.6875 4.99219C14.6875 5.70312 14.2188 6.17969 13.4609 6.17969H11.4844L10.875 9.25H12.6797C13.2969 9.25 13.6797 9.64062 13.6797 10.1953C13.6797 10.8984 13.2109 11.3594 12.4453 11.3594H10.4531L9.82031 14.5469C9.6875 15.2266 9.27344 15.5547 8.61719 15.5547C8.00781 15.5547 7.63281 15.2109 7.63281 14.6406C7.63281 14.5391 7.64844 14.375 7.67188 14.2656L8.25 11.3594H5.34375L4.71094 14.5469C4.57812 15.2266 4.15625 15.5547 3.51562 15.5547C2.90625 15.5547 2.52344 15.2109 2.52344 14.6406C2.52344 14.5391 2.53906 14.375 2.5625 14.2656L3.14062 11.3594H1.49219ZM5.76562 9.25H8.67188L9.28906 6.17969H6.375L5.76562 9.25Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_2_ID" display="none" width="20" height="12" viewBox="0 0 20 12" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.30859 11.789C0.683594 11.789 0.191406 11.3359 0.191406 10.7656C0.191406 10.4765 0.285156 10.2265 0.511719 9.91407L3.32422 5.99219V5.92969L0.605469 2.22656C0.347656 1.88281 0.261719 1.62501 0.261719 1.32032C0.261719 0.679687 0.769532 0.210938 1.45703 0.210938C1.90234 0.210938 2.21484 0.40625 2.51953 0.867187L4.93359 4.42969H4.99609L7.48828 0.789063C7.76172 0.382813 7.99609 0.210938 8.44922 0.210938C9.0664 0.210938 9.59765 0.65625 9.59765 1.21874C9.59765 1.52343 9.51172 1.77343 9.28515 2.06251L6.35546 5.97656V6.03125L9.19922 9.86718C9.41796 10.1484 9.51172 10.414 9.51172 10.7265C9.51172 11.3437 9.03515 11.789 8.3789 11.789C7.94922 11.789 7.66015 11.6172 7.35546 11.2031L4.83984 7.69531H4.77734L2.30078 11.2109C2.0039 11.6406 1.7539 11.789 1.30859 11.789ZM12.496 11.789C11.7539 11.789 11.3164 11.3359 11.3164 10.5625V1.59374C11.3164 0.820313 11.7539 0.367187 12.496 0.367187H15.9023C18.2148 0.367187 19.8086 1.90624 19.8086 4.22656C19.8086 6.53906 18.1601 8.08594 15.7851 8.08594H13.6757V10.5625C13.6757 11.3359 13.2382 11.789 12.496 11.789ZM13.6757 6.24219H15.2695C16.621 6.24219 17.4101 5.52344 17.4101 4.23438C17.4101 2.95312 16.6289 2.23438 15.2773 2.23438H13.6757V6.24219Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_3_ID" display="none" width="24" height="12" viewBox="0 0 24 12" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M0.898438 5.85938C0.898438 2.69531 2.94531 0.609375 5.97656 0.609375C7.53125 0.609375 8.875 1.26562 10.2578 2.60938L11.9688 4.25781L13.6719 2.60938C15.0547 1.26562 16.3984 0.609375 17.9531 0.609375C20.9844 0.609375 23.0312 2.69531 23.0312 5.85938C23.0312 9.01562 20.9844 11.1016 17.9531 11.1016C16.3984 11.1016 15.0547 10.4531 13.6719 9.10938L11.9688 7.45312L10.2578 9.10938C8.875 10.4531 7.53125 11.1016 5.97656 11.1016C2.94531 11.1016 0.898438 9.01562 0.898438 5.85938ZM3.21875 5.85938C3.21875 7.63281 4.32031 8.78125 5.97656 8.78125C6.875 8.78125 7.70312 8.34375 8.63281 7.46094L10.3281 5.85938L8.63281 4.25781C7.70312 3.375 6.875 2.92969 5.97656 2.92969C4.32031 2.92969 3.21875 4.07812 3.21875 5.85938ZM13.6016 5.85938L15.2969 7.46094C16.2344 8.34375 17.0547 8.78125 17.9531 8.78125C19.6094 8.78125 20.7109 7.63281 20.7109 5.85938C20.7109 4.07812 19.6094 2.92969 17.9531 2.92969C17.0547 2.92969 16.2266 3.375 15.2969 4.25781L13.6016 5.85938Z"/>
+                                </svg>
+                            </div>
+                            <div class="DLP_Input_Style_1_Active">
+                                <p class="DLP_Text_Style_1 DLP_NoSelect" style="color: #007AFF; opacity: 0.5; display: none;">PRACTICE</p>
+                                <svg width="15" height="16" viewBox="0 0 15 16" fill="#007AFF" opacity="0.5" xmlns="http://www.w3.org/2000/svg" display="none">
+                                    <path d="M1.39844 11.3594C0.78125 11.3594 0.398438 11 0.398438 10.4297C0.398438 9.72656 0.867188 9.25 1.625 9.25H3.46875L4.07812 6.17969H2.40625C1.78906 6.17969 1.39844 5.80469 1.39844 5.24219C1.39844 4.53125 1.875 4.05469 2.63281 4.05469H4.5L5.07812 1.17188C5.21094 0.507812 5.58594 0.15625 6.26562 0.15625C6.88281 0.15625 7.26562 0.507812 7.26562 1.07031C7.26562 1.19531 7.24219 1.35938 7.22656 1.45312L6.70312 4.05469H9.61719L10.1953 1.17188C10.3281 0.507812 10.6953 0.15625 11.375 0.15625C11.9844 0.15625 12.3672 0.507812 12.3672 1.07031C12.3672 1.19531 12.3516 1.35938 12.3359 1.45312L11.8125 4.05469H13.5938C14.2109 4.05469 14.5938 4.4375 14.5938 4.99219C14.5938 5.70312 14.125 6.17969 13.3672 6.17969H11.3906L10.7812 9.25H12.5859C13.2031 9.25 13.5859 9.64062 13.5859 10.1953C13.5859 10.8984 13.1172 11.3594 12.3516 11.3594H10.3594L9.72656 14.5469C9.59375 15.2266 9.17969 15.5547 8.52344 15.5547C7.91406 15.5547 7.53906 15.2109 7.53906 14.6406C7.53906 14.5391 7.55469 14.375 7.57812 14.2656L8.15625 11.3594H5.25L4.61719 14.5469C4.48438 15.2266 4.0625 15.5547 3.42188 15.5547C2.8125 15.5547 2.42969 15.2109 2.42969 14.6406C2.42969 14.5391 2.44531 14.375 2.46875 14.2656L3.04688 11.3594H1.39844ZM5.67188 9.25H8.57812L9.19531 6.17969H6.28125L5.67188 9.25Z"/>
+                                </svg>
+                                <input type="text" placeholder="0" id="DLP_Inset_Input_1_ID" class="DLP_Input_Input_Style_1">
+                            </div>
+                            <div class="DLP_Input_Button_Style_1_Active DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Inset_Button_1_ID">
+                                <p id="DLP_Inset_Text_1_ID" class="DLP_Text_Style_1" style="color: #FFF;">START</p>
+                                <svg id="DLP_Inset_Icon_1_ID" width="13" height="16" viewBox="0 0 13 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M-0.0078125 13.5391V2.17188C-0.0078125 1.17969 0.609375 0.671875 1.34375 0.671875C1.64844 0.671875 1.97656 0.757812 2.29688 0.945312L11.75 6.45312C12.4688 6.86719 12.8203 7.25781 12.8203 7.85938C12.8203 8.46094 12.4688 8.84375 11.75 9.26562L2.29688 14.7734C1.97656 14.9531 1.64844 15.0469 1.34375 15.0469C0.609375 15.0469 -0.0078125 14.5391 -0.0078125 13.5391Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_2_ID" display="none" width="11" height="15" viewBox="0 0 11 15" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.24219 14.8984C0.398438 14.8984 -0.0078125 14.4766 -0.0078125 13.6484V2.07031C-0.0078125 1.24219 0.414062 0.820312 1.24219 0.820312H3.17188C4 0.820312 4.42188 1.24219 4.42188 2.07031V13.6484C4.42188 14.4766 4 14.8984 3.17188 14.8984H1.24219ZM7.57031 14.8984C6.72656 14.8984 6.32031 14.4766 6.32031 13.6484V2.07031C6.32031 1.24219 6.74219 0.820312 7.57031 0.820312H9.5C10.3281 0.820312 10.75 1.24219 10.75 2.07031V13.6484C10.75 14.4766 10.3281 14.8984 9.5 14.8984H7.57031Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_3_ID" display="none" width="17" height="18" viewBox="0 0 17 18" fill="#34C759" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8.64844 17.1094C4.09375 17.1094 0.398438 13.4141 0.398438 8.85938C0.398438 4.30469 4.09375 0.609375 8.64844 0.609375C13.2031 0.609375 16.8984 4.30469 16.8984 8.85938C16.8984 13.4141 13.2031 17.1094 8.64844 17.1094ZM7.78906 12.7812C8.125 12.7812 8.42969 12.6094 8.63281 12.3125L12.2578 6.76562C12.3984 6.5625 12.4766 6.35156 12.4766 6.15625C12.4766 5.67188 12.0469 5.32812 11.5781 5.32812C11.2734 5.32812 11.0156 5.49219 10.8125 5.82031L7.76562 10.6641L6.40625 8.98438C6.19531 8.73438 5.97656 8.625 5.69531 8.625C5.21875 8.625 4.82812 9.00781 4.82812 9.49219C4.82812 9.71875 4.89844 9.91406 5.07812 10.1328L6.91406 12.3203C7.16406 12.625 7.4375 12.7812 7.78906 12.7812Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_4_ID" display="none" width="18" height="16" viewBox="0 0 18 16" fill="#FF2D55" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2.96094 15.5469C1.53125 15.5469 0.59375 14.4688 0.59375 13.1797C0.59375 12.7812 0.695312 12.375 0.914062 11.9922L6.92969 1.47656C7.38281 0.695312 8.17188 0.289062 8.97656 0.289062C9.77344 0.289062 10.5547 0.6875 11.0156 1.47656L17.0312 11.9844C17.25 12.3672 17.3516 12.7812 17.3516 13.1797C17.3516 14.4688 16.4141 15.5469 14.9844 15.5469H2.96094ZM8.98438 9.96094C9.52344 9.96094 9.83594 9.65625 9.86719 9.09375L9.99219 5.72656C10.0234 5.14062 9.59375 4.73438 8.97656 4.73438C8.35156 4.73438 7.92969 5.13281 7.96094 5.72656L8.08594 9.10156C8.10938 9.65625 8.42969 9.96094 8.98438 9.96094ZM8.98438 12.7812C9.60156 12.7812 10.0859 12.3906 10.0859 11.7891C10.0859 11.2031 9.60938 10.8047 8.98438 10.8047C8.35938 10.8047 7.875 11.2031 7.875 11.7891C7.875 12.3906 8.35938 12.7812 8.98438 12.7812Z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="DLP_VStack_8" id="DLP_Get_LISTEN_2_ID">
+                        <div class="DLP_HStack_8" style="align-items: center;">
+                            <svg class="DLP_Magnetic_Hover_1 DLP_NoSelect" width="13" height="20" viewBox="0 0 13 20" fill="#007AFF" xmlns="http://www.w3.org/2000/svg" display="none">
+                                <path d="M0.140625 12.25C0.140625 10.5156 1.50781 8.80469 3.73438 7.96875L3.98438 4.25781C2.77344 3.57812 1.875 2.85156 1.47656 2.35156C1.24219 2.05469 1.13281 1.74219 1.13281 1.46094C1.13281 0.875 1.57812 0.453125 2.22656 0.453125H10.7578C11.4062 0.453125 11.8516 0.875 11.8516 1.46094C11.8516 1.74219 11.7422 2.05469 11.5078 2.35156C11.1094 2.85156 10.2109 3.57031 9 4.25781L9.25781 7.96875C11.4766 8.80469 12.8438 10.5156 12.8438 12.25C12.8438 13.0312 12.3047 13.5547 11.5 13.5547H7.40625V17.3203C7.40625 18.2578 6.74219 19.5703 6.49219 19.5703C6.24219 19.5703 5.57812 18.2578 5.57812 17.3203V13.5547H1.48438C0.679688 13.5547 0.140625 13.0312 0.140625 12.25Z"/>
+                            </svg>
+                            <svg class="DLP_Magnetic_Hover_1 DLP_NoSelect" width="13" height="20" viewBox="0 0 13 20" fill="rgb(var(--color-eel))" xmlns="http://www.w3.org/2000/svg">
+                                <path opacity="0.5" d="M1.48438 13.5547C0.679688 13.5547 0.140625 13.0312 0.140625 12.25C0.140625 10.5156 1.50781 8.85156 3.55469 8.01562L3.80469 4.25781C2.77344 3.57031 1.86719 2.85156 1.47656 2.34375C1.24219 2.05469 1.13281 1.74219 1.13281 1.46094C1.13281 0.875 1.57812 0.453125 2.22656 0.453125H10.7578C11.4062 0.453125 11.8516 0.875 11.8516 1.46094C11.8516 1.74219 11.7422 2.05469 11.5078 2.34375C11.1172 2.85156 10.2188 3.57031 9.17969 4.25781L9.42969 8.01562C11.4766 8.85156 12.8438 10.5156 12.8438 12.25C12.8438 13.0312 12.3047 13.5547 11.5 13.5547H7.40625V17.3203C7.40625 18.2578 6.74219 19.5703 6.49219 19.5703C6.24219 19.5703 5.57812 18.2578 5.57812 17.3203V13.5547H1.48438ZM6.49219 7.44531C6.92969 7.44531 7.35156 7.47656 7.75781 7.54688L7.53125 3.55469C7.52344 3.38281 7.5625 3.29688 7.69531 3.21875C8.5625 2.76562 9.23438 2.28125 9.46094 2.07812C9.53125 2.00781 9.49219 1.92969 9.41406 1.92969H3.57812C3.5 1.92969 3.45312 2.00781 3.52344 2.07812C3.75 2.28125 4.42188 2.76562 5.28906 3.21875C5.42188 3.29688 5.46094 3.38281 5.45312 3.55469L5.22656 7.54688C5.63281 7.47656 6.05469 7.44531 6.49219 7.44531ZM1.92188 11.9844H11.0625C11.1797 11.9844 11.2344 11.9141 11.2109 11.7734C10.9922 10.3906 9.08594 8.96875 6.49219 8.96875C3.89844 8.96875 1.99219 10.3906 1.77344 11.7734C1.75 11.9141 1.80469 11.9844 1.92188 11.9844Z"/>
+                            </svg>
+                            <p class="DLP_Text_Style_1 DLP_NoSelect" style="align-self: stretch; opacity: 0.5;">How many listening practices would you like to solve? (Requires Super Duolingo)</p>
+                        </div>
+                        <div class="DLP_HStack_8">
+                            <div class="DLP_Input_Button_Style_1_Active DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Inset_Button_2_ID" style="width: 48px; padding: 0;">
+                                <svg id="DLP_Inset_Icon_1_ID" width="15" height="16" viewBox="0 0 15 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.49219 11.3594C0.875 11.3594 0.492188 11 0.492188 10.4297C0.492188 9.72656 0.960938 9.25 1.71875 9.25H3.5625L4.17188 6.17969H2.5C1.88281 6.17969 1.49219 5.80469 1.49219 5.24219C1.49219 4.53125 1.96875 4.05469 2.72656 4.05469H4.59375L5.17188 1.17188C5.30469 0.507812 5.67969 0.15625 6.35938 0.15625C6.97656 0.15625 7.35938 0.507812 7.35938 1.07031C7.35938 1.19531 7.33594 1.35938 7.32031 1.45312L6.79688 4.05469H9.71094L10.2891 1.17188C10.4219 0.507812 10.7891 0.15625 11.4688 0.15625C12.0781 0.15625 12.4609 0.507812 12.4609 1.07031C12.4609 1.19531 12.4453 1.35938 12.4297 1.45312L11.9062 4.05469H13.6875C14.3047 4.05469 14.6875 4.4375 14.6875 4.99219C14.6875 5.70312 14.2188 6.17969 13.4609 6.17969H11.4844L10.875 9.25H12.6797C13.2969 9.25 13.6797 9.64062 13.6797 10.1953C13.6797 10.8984 13.2109 11.3594 12.4453 11.3594H10.4531L9.82031 14.5469C9.6875 15.2266 9.27344 15.5547 8.61719 15.5547C8.00781 15.5547 7.63281 15.2109 7.63281 14.6406C7.63281 14.5391 7.64844 14.375 7.67188 14.2656L8.25 11.3594H5.34375L4.71094 14.5469C4.57812 15.2266 4.15625 15.5547 3.51562 15.5547C2.90625 15.5547 2.52344 15.2109 2.52344 14.6406C2.52344 14.5391 2.53906 14.375 2.5625 14.2656L3.14062 11.3594H1.49219ZM5.76562 9.25H8.67188L9.28906 6.17969H6.375L5.76562 9.25Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_2_ID" display="none" width="20" height="12" viewBox="0 0 20 12" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.30859 11.789C0.683594 11.789 0.191406 11.3359 0.191406 10.7656C0.191406 10.4765 0.285156 10.2265 0.511719 9.91407L3.32422 5.99219V5.92969L0.605469 2.22656C0.347656 1.88281 0.261719 1.62501 0.261719 1.32032C0.261719 0.679687 0.769532 0.210938 1.45703 0.210938C1.90234 0.210938 2.21484 0.40625 2.51953 0.867187L4.93359 4.42969H4.99609L7.48828 0.789063C7.76172 0.382813 7.99609 0.210938 8.44922 0.210938C9.0664 0.210938 9.59765 0.65625 9.59765 1.21874C9.59765 1.52343 9.51172 1.77343 9.28515 2.06251L6.35546 5.97656V6.03125L9.19922 9.86718C9.41796 10.1484 9.51172 10.414 9.51172 10.7265C9.51172 11.3437 9.03515 11.789 8.3789 11.789C7.94922 11.789 7.66015 11.6172 7.35546 11.2031L4.83984 7.69531H4.77734L2.30078 11.2109C2.0039 11.6406 1.7539 11.789 1.30859 11.789ZM12.496 11.789C11.7539 11.789 11.3164 11.3359 11.3164 10.5625V1.59374C11.3164 0.820313 11.7539 0.367187 12.496 0.367187H15.9023C18.2148 0.367187 19.8086 1.90624 19.8086 4.22656C19.8086 6.53906 18.1601 8.08594 15.7851 8.08594H13.6757V10.5625C13.6757 11.3359 13.2382 11.789 12.496 11.789ZM13.6757 6.24219H15.2695C16.621 6.24219 17.4101 5.52344 17.4101 4.23438C17.4101 2.95312 16.6289 2.23438 15.2773 2.23438H13.6757V6.24219Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_3_ID" display="none" width="24" height="12" viewBox="0 0 24 12" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M0.898438 5.85938C0.898438 2.69531 2.94531 0.609375 5.97656 0.609375C7.53125 0.609375 8.875 1.26562 10.2578 2.60938L11.9688 4.25781L13.6719 2.60938C15.0547 1.26562 16.3984 0.609375 17.9531 0.609375C20.9844 0.609375 23.0312 2.69531 23.0312 5.85938C23.0312 9.01562 20.9844 11.1016 17.9531 11.1016C16.3984 11.1016 15.0547 10.4531 13.6719 9.10938L11.9688 7.45312L10.2578 9.10938C8.875 10.4531 7.53125 11.1016 5.97656 11.1016C2.94531 11.1016 0.898438 9.01562 0.898438 5.85938ZM3.21875 5.85938C3.21875 7.63281 4.32031 8.78125 5.97656 8.78125C6.875 8.78125 7.70312 8.34375 8.63281 7.46094L10.3281 5.85938L8.63281 4.25781C7.70312 3.375 6.875 2.92969 5.97656 2.92969C4.32031 2.92969 3.21875 4.07812 3.21875 5.85938ZM13.6016 5.85938L15.2969 7.46094C16.2344 8.34375 17.0547 8.78125 17.9531 8.78125C19.6094 8.78125 20.7109 7.63281 20.7109 5.85938C20.7109 4.07812 19.6094 2.92969 17.9531 2.92969C17.0547 2.92969 16.2266 3.375 15.2969 4.25781L13.6016 5.85938Z"/>
+                                </svg>
+                            </div>
+                            <div class="DLP_Input_Style_1_Active">
+                                <p class="DLP_Text_Style_1 DLP_NoSelect" style="color: #007AFF; opacity: 0.5; display: none;">PATH</p>
+                                <svg width="15" height="16" viewBox="0 0 15 16" fill="#007AFF" opacity="0.5" xmlns="http://www.w3.org/2000/svg" display="none">
+                                    <path d="M1.39844 11.3594C0.78125 11.3594 0.398438 11 0.398438 10.4297C0.398438 9.72656 0.867188 9.25 1.625 9.25H3.46875L4.07812 6.17969H2.40625C1.78906 6.17969 1.39844 5.80469 1.39844 5.24219C1.39844 4.53125 1.875 4.05469 2.63281 4.05469H4.5L5.07812 1.17188C5.21094 0.507812 5.58594 0.15625 6.26562 0.15625C6.88281 0.15625 7.26562 0.507812 7.26562 1.07031C7.26562 1.19531 7.24219 1.35938 7.22656 1.45312L6.70312 4.05469H9.61719L10.1953 1.17188C10.3281 0.507812 10.6953 0.15625 11.375 0.15625C11.9844 0.15625 12.3672 0.507812 12.3672 1.07031C12.3672 1.19531 12.3516 1.35938 12.3359 1.45312L11.8125 4.05469H13.5938C14.2109 4.05469 14.5938 4.4375 14.5938 4.99219C14.5938 5.70312 14.125 6.17969 13.3672 6.17969H11.3906L10.7812 9.25H12.5859C13.2031 9.25 13.5859 9.64062 13.5859 10.1953C13.5859 10.8984 13.1172 11.3594 12.3516 11.3594H10.3594L9.72656 14.5469C9.59375 15.2266 9.17969 15.5547 8.52344 15.5547C7.91406 15.5547 7.53906 15.2109 7.53906 14.6406C7.53906 14.5391 7.55469 14.375 7.57812 14.2656L8.15625 11.3594H5.25L4.61719 14.5469C4.48438 15.2266 4.0625 15.5547 3.42188 15.5547C2.8125 15.5547 2.42969 15.2109 2.42969 14.6406C2.42969 14.5391 2.44531 14.375 2.46875 14.2656L3.04688 11.3594H1.39844ZM5.67188 9.25H8.57812L9.19531 6.17969H6.28125L5.67188 9.25Z"/>
+                                </svg>
+                                <input type="text" placeholder="0" id="DLP_Inset_Input_1_ID" class="DLP_Input_Input_Style_1">
+                            </div>
+                            <div class="DLP_Input_Button_Style_1_Active DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Inset_Button_1_ID">
+                                <p id="DLP_Inset_Text_1_ID" class="DLP_Text_Style_1" style="color: #FFF;">START</p>
+                                <svg id="DLP_Inset_Icon_1_ID" width="13" height="16" viewBox="0 0 13 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M-0.0078125 13.5391V2.17188C-0.0078125 1.17969 0.609375 0.671875 1.34375 0.671875C1.64844 0.671875 1.97656 0.757812 2.29688 0.945312L11.75 6.45312C12.4688 6.86719 12.8203 7.25781 12.8203 7.85938C12.8203 8.46094 12.4688 8.84375 11.75 9.26562L2.29688 14.7734C1.97656 14.9531 1.64844 15.0469 1.34375 15.0469C0.609375 15.0469 -0.0078125 14.5391 -0.0078125 13.5391Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_2_ID" display="none" width="11" height="15" viewBox="0 0 11 15" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.24219 14.8984C0.398438 14.8984 -0.0078125 14.4766 -0.0078125 13.6484V2.07031C-0.0078125 1.24219 0.414062 0.820312 1.24219 0.820312H3.17188C4 0.820312 4.42188 1.24219 4.42188 2.07031V13.6484C4.42188 14.4766 4 14.8984 3.17188 14.8984H1.24219ZM7.57031 14.8984C6.72656 14.8984 6.32031 14.4766 6.32031 13.6484V2.07031C6.32031 1.24219 6.74219 0.820312 7.57031 0.820312H9.5C10.3281 0.820312 10.75 1.24219 10.75 2.07031V13.6484C10.75 14.4766 10.3281 14.8984 9.5 14.8984H7.57031Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_3_ID" display="none" width="17" height="18" viewBox="0 0 17 18" fill="#34C759" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8.64844 17.1094C4.09375 17.1094 0.398438 13.4141 0.398438 8.85938C0.398438 4.30469 4.09375 0.609375 8.64844 0.609375C13.2031 0.609375 16.8984 4.30469 16.8984 8.85938C16.8984 13.4141 13.2031 17.1094 8.64844 17.1094ZM7.78906 12.7812C8.125 12.7812 8.42969 12.6094 8.63281 12.3125L12.2578 6.76562C12.3984 6.5625 12.4766 6.35156 12.4766 6.15625C12.4766 5.67188 12.0469 5.32812 11.5781 5.32812C11.2734 5.32812 11.0156 5.49219 10.8125 5.82031L7.76562 10.6641L6.40625 8.98438C6.19531 8.73438 5.97656 8.625 5.69531 8.625C5.21875 8.625 4.82812 9.00781 4.82812 9.49219C4.82812 9.71875 4.89844 9.91406 5.07812 10.1328L6.91406 12.3203C7.16406 12.625 7.4375 12.7812 7.78906 12.7812Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_4_ID" display="none" width="18" height="16" viewBox="0 0 18 16" fill="#FF2D55" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2.96094 15.5469C1.53125 15.5469 0.59375 14.4688 0.59375 13.1797C0.59375 12.7812 0.695312 12.375 0.914062 11.9922L6.92969 1.47656C7.38281 0.695312 8.17188 0.289062 8.97656 0.289062C9.77344 0.289062 10.5547 0.6875 11.0156 1.47656L17.0312 11.9844C17.25 12.3672 17.3516 12.7812 17.3516 13.1797C17.3516 14.4688 16.4141 15.5469 14.9844 15.5469H2.96094ZM8.98438 9.96094C9.52344 9.96094 9.83594 9.65625 9.86719 9.09375L9.99219 5.72656C10.0234 5.14062 9.59375 4.73438 8.97656 4.73438C8.35156 4.73438 7.92969 5.13281 7.96094 5.72656L8.08594 9.10156C8.10938 9.65625 8.42969 9.96094 8.98438 9.96094ZM8.98438 12.7812C9.60156 12.7812 10.0859 12.3906 10.0859 11.7891C10.0859 11.2031 9.60938 10.8047 8.98438 10.8047C8.35938 10.8047 7.875 11.2031 7.875 11.7891C7.875 12.3906 8.35938 12.7812 8.98438 12.7812Z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="DLP_VStack_8" id="DLP_Get_LESSON_2_ID">
+                        <div class="DLP_HStack_8" style="align-items: center;">
+                            <svg class="DLP_Magnetic_Hover_1 DLP_NoSelect" width="13" height="20" viewBox="0 0 13 20" fill="#007AFF" xmlns="http://www.w3.org/2000/svg" display="none">
+                                <path d="M0.140625 12.25C0.140625 10.5156 1.50781 8.80469 3.73438 7.96875L3.98438 4.25781C2.77344 3.57812 1.875 2.85156 1.47656 2.35156C1.24219 2.05469 1.13281 1.74219 1.13281 1.46094C1.13281 0.875 1.57812 0.453125 2.22656 0.453125H10.7578C11.4062 0.453125 11.8516 0.875 11.8516 1.46094C11.8516 1.74219 11.7422 2.05469 11.5078 2.35156C11.1094 2.85156 10.2109 3.57031 9 4.25781L9.25781 7.96875C11.4766 8.80469 12.8438 10.5156 12.8438 12.25C12.8438 13.0312 12.3047 13.5547 11.5 13.5547H7.40625V17.3203C7.40625 18.2578 6.74219 19.5703 6.49219 19.5703C6.24219 19.5703 5.57812 18.2578 5.57812 17.3203V13.5547H1.48438C0.679688 13.5547 0.140625 13.0312 0.140625 12.25Z"/>
+                            </svg>
+                            <svg class="DLP_Magnetic_Hover_1 DLP_NoSelect" width="13" height="20" viewBox="0 0 13 20" fill="rgb(var(--color-eel))" xmlns="http://www.w3.org/2000/svg">
+                                <path opacity="0.5" d="M1.48438 13.5547C0.679688 13.5547 0.140625 13.0312 0.140625 12.25C0.140625 10.5156 1.50781 8.85156 3.55469 8.01562L3.80469 4.25781C2.77344 3.57031 1.86719 2.85156 1.47656 2.34375C1.24219 2.05469 1.13281 1.74219 1.13281 1.46094C1.13281 0.875 1.57812 0.453125 2.22656 0.453125H10.7578C11.4062 0.453125 11.8516 0.875 11.8516 1.46094C11.8516 1.74219 11.7422 2.05469 11.5078 2.34375C11.1172 2.85156 10.2188 3.57031 9.17969 4.25781L9.42969 8.01562C11.4766 8.85156 12.8438 10.5156 12.8438 12.25C12.8438 13.0312 12.3047 13.5547 11.5 13.5547H7.40625V17.3203C7.40625 18.2578 6.74219 19.5703 6.49219 19.5703C6.24219 19.5703 5.57812 18.2578 5.57812 17.3203V13.5547H1.48438ZM6.49219 7.44531C6.92969 7.44531 7.35156 7.47656 7.75781 7.54688L7.53125 3.55469C7.52344 3.38281 7.5625 3.29688 7.69531 3.21875C8.5625 2.76562 9.23438 2.28125 9.46094 2.07812C9.53125 2.00781 9.49219 1.92969 9.41406 1.92969H3.57812C3.5 1.92969 3.45312 2.00781 3.52344 2.07812C3.75 2.28125 4.42188 2.76562 5.28906 3.21875C5.42188 3.29688 5.46094 3.38281 5.45312 3.55469L5.22656 7.54688C5.63281 7.47656 6.05469 7.44531 6.49219 7.44531ZM1.92188 11.9844H11.0625C11.1797 11.9844 11.2344 11.9141 11.2109 11.7734C10.9922 10.3906 9.08594 8.96875 6.49219 8.96875C3.89844 8.96875 1.99219 10.3906 1.77344 11.7734C1.75 11.9141 1.80469 11.9844 1.92188 11.9844Z"/>
+                            </svg>
+                            <p class="DLP_Text_Style_1 DLP_NoSelect" style="align-self: stretch; opacity: 0.5;">Which and how many lessons would you like to repeat?</p>
+                        </div>
+                        <div class="DLP_HStack_8">
+                            <div class="DLP_Input_Style_1_Active">
+                                <p class="DLP_Text_Style_1 DLP_NoSelect" style="color: #007AFF; opacity: 0.5; display: none;">PRACTICE</p>
+                                <svg width="15" height="16" viewBox="0 0 15 16" fill="#007AFF" opacity="0.5" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.39844 11.3594C0.78125 11.3594 0.398438 11 0.398438 10.4297C0.398438 9.72656 0.867188 9.25 1.625 9.25H3.46875L4.07812 6.17969H2.40625C1.78906 6.17969 1.39844 5.80469 1.39844 5.24219C1.39844 4.53125 1.875 4.05469 2.63281 4.05469H4.5L5.07812 1.17188C5.21094 0.507812 5.58594 0.15625 6.26562 0.15625C6.88281 0.15625 7.26562 0.507812 7.26562 1.07031C7.26562 1.19531 7.24219 1.35938 7.22656 1.45312L6.70312 4.05469H9.61719L10.1953 1.17188C10.3281 0.507812 10.6953 0.15625 11.375 0.15625C11.9844 0.15625 12.3672 0.507812 12.3672 1.07031C12.3672 1.19531 12.3516 1.35938 12.3359 1.45312L11.8125 4.05469H13.5938C14.2109 4.05469 14.5938 4.4375 14.5938 4.99219C14.5938 5.70312 14.125 6.17969 13.3672 6.17969H11.3906L10.7812 9.25H12.5859C13.2031 9.25 13.5859 9.64062 13.5859 10.1953C13.5859 10.8984 13.1172 11.3594 12.3516 11.3594H10.3594L9.72656 14.5469C9.59375 15.2266 9.17969 15.5547 8.52344 15.5547C7.91406 15.5547 7.53906 15.2109 7.53906 14.6406C7.53906 14.5391 7.55469 14.375 7.57812 14.2656L8.15625 11.3594H5.25L4.61719 14.5469C4.48438 15.2266 4.0625 15.5547 3.42188 15.5547C2.8125 15.5547 2.42969 15.2109 2.42969 14.6406C2.42969 14.5391 2.44531 14.375 2.46875 14.2656L3.04688 11.3594H1.39844ZM5.67188 9.25H8.57812L9.19531 6.17969H6.28125L5.67188 9.25Z"/>
+                                </svg>
+                                <div style="display: flex; align-items: center; gap: 8px; width: 100%; justify-content: flex-end;">
+                                    <p class="DLP_Text_Style_1 DLP_NoSelect" style="color: #007AFF; opacity: 0.5;">Unit:</p>
+                                    <input type="text" value="1" placeholder="0" id="DLP_Get_GEMS_Input_1_ID" class="DLP_Input_Input_Style_1" style="width: 30px;">
+                                    <p class="DLP_Text_Style_1 DLP_NoSelect" style="color: #007AFF; opacity: 0.5;">Lesson:</p>
+                                    <input type="text" value="1" placeholder="0" id="DLP_Get_GEMS_Input_1_ID" class="DLP_Input_Input_Style_1" style="width: 30px;">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="DLP_HStack_8">
+                            <div class="DLP_Input_Button_Style_1_Active DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Inset_Button_2_ID" style="width: 48px; padding: 0;">
+                                <svg id="DLP_Inset_Icon_1_ID" width="15" height="16" viewBox="0 0 15 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.49219 11.3594C0.875 11.3594 0.492188 11 0.492188 10.4297C0.492188 9.72656 0.960938 9.25 1.71875 9.25H3.5625L4.17188 6.17969H2.5C1.88281 6.17969 1.49219 5.80469 1.49219 5.24219C1.49219 4.53125 1.96875 4.05469 2.72656 4.05469H4.59375L5.17188 1.17188C5.30469 0.507812 5.67969 0.15625 6.35938 0.15625C6.97656 0.15625 7.35938 0.507812 7.35938 1.07031C7.35938 1.19531 7.33594 1.35938 7.32031 1.45312L6.79688 4.05469H9.71094L10.2891 1.17188C10.4219 0.507812 10.7891 0.15625 11.4688 0.15625C12.0781 0.15625 12.4609 0.507812 12.4609 1.07031C12.4609 1.19531 12.4453 1.35938 12.4297 1.45312L11.9062 4.05469H13.6875C14.3047 4.05469 14.6875 4.4375 14.6875 4.99219C14.6875 5.70312 14.2188 6.17969 13.4609 6.17969H11.4844L10.875 9.25H12.6797C13.2969 9.25 13.6797 9.64062 13.6797 10.1953C13.6797 10.8984 13.2109 11.3594 12.4453 11.3594H10.4531L9.82031 14.5469C9.6875 15.2266 9.27344 15.5547 8.61719 15.5547C8.00781 15.5547 7.63281 15.2109 7.63281 14.6406C7.63281 14.5391 7.64844 14.375 7.67188 14.2656L8.25 11.3594H5.34375L4.71094 14.5469C4.57812 15.2266 4.15625 15.5547 3.51562 15.5547C2.90625 15.5547 2.52344 15.2109 2.52344 14.6406C2.52344 14.5391 2.53906 14.375 2.5625 14.2656L3.14062 11.3594H1.49219ZM5.76562 9.25H8.67188L9.28906 6.17969H6.375L5.76562 9.25Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_2_ID" display="none" width="20" height="12" viewBox="0 0 20 12" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.30859 11.789C0.683594 11.789 0.191406 11.3359 0.191406 10.7656C0.191406 10.4765 0.285156 10.2265 0.511719 9.91407L3.32422 5.99219V5.92969L0.605469 2.22656C0.347656 1.88281 0.261719 1.62501 0.261719 1.32032C0.261719 0.679687 0.769532 0.210938 1.45703 0.210938C1.90234 0.210938 2.21484 0.40625 2.51953 0.867187L4.93359 4.42969H4.99609L7.48828 0.789063C7.76172 0.382813 7.99609 0.210938 8.44922 0.210938C9.0664 0.210938 9.59765 0.65625 9.59765 1.21874C9.59765 1.52343 9.51172 1.77343 9.28515 2.06251L6.35546 5.97656V6.03125L9.19922 9.86718C9.41796 10.1484 9.51172 10.414 9.51172 10.7265C9.51172 11.3437 9.03515 11.789 8.3789 11.789C7.94922 11.789 7.66015 11.6172 7.35546 11.2031L4.83984 7.69531H4.77734L2.30078 11.2109C2.0039 11.6406 1.7539 11.789 1.30859 11.789ZM12.496 11.789C11.7539 11.789 11.3164 11.3359 11.3164 10.5625V1.59374C11.3164 0.820313 11.7539 0.367187 12.496 0.367187H15.9023C18.2148 0.367187 19.8086 1.90624 19.8086 4.22656C19.8086 6.53906 18.1601 8.08594 15.7851 8.08594H13.6757V10.5625C13.6757 11.3359 13.2382 11.789 12.496 11.789ZM13.6757 6.24219H15.2695C16.621 6.24219 17.4101 5.52344 17.4101 4.23438C17.4101 2.95312 16.6289 2.23438 15.2773 2.23438H13.6757V6.24219Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_3_ID" display="none" width="24" height="12" viewBox="0 0 24 12" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M0.898438 5.85938C0.898438 2.69531 2.94531 0.609375 5.97656 0.609375C7.53125 0.609375 8.875 1.26562 10.2578 2.60938L11.9688 4.25781L13.6719 2.60938C15.0547 1.26562 16.3984 0.609375 17.9531 0.609375C20.9844 0.609375 23.0312 2.69531 23.0312 5.85938C23.0312 9.01562 20.9844 11.1016 17.9531 11.1016C16.3984 11.1016 15.0547 10.4531 13.6719 9.10938L11.9688 7.45312L10.2578 9.10938C8.875 10.4531 7.53125 11.1016 5.97656 11.1016C2.94531 11.1016 0.898438 9.01562 0.898438 5.85938ZM3.21875 5.85938C3.21875 7.63281 4.32031 8.78125 5.97656 8.78125C6.875 8.78125 7.70312 8.34375 8.63281 7.46094L10.3281 5.85938L8.63281 4.25781C7.70312 3.375 6.875 2.92969 5.97656 2.92969C4.32031 2.92969 3.21875 4.07812 3.21875 5.85938ZM13.6016 5.85938L15.2969 7.46094C16.2344 8.34375 17.0547 8.78125 17.9531 8.78125C19.6094 8.78125 20.7109 7.63281 20.7109 5.85938C20.7109 4.07812 19.6094 2.92969 17.9531 2.92969C17.0547 2.92969 16.2266 3.375 15.2969 4.25781L13.6016 5.85938Z"/>
+                                </svg>
+                            </div>
+                            <div class="DLP_Input_Style_1_Active">
+                                <p class="DLP_Text_Style_1 DLP_NoSelect" style="color: #007AFF; opacity: 0.5; display: none;">PRACTICE</p>
+                                <svg width="15" height="16" viewBox="0 0 15 16" fill="#007AFF" opacity="0.5" xmlns="http://www.w3.org/2000/svg" display="none">
+                                    <path d="M1.39844 11.3594C0.78125 11.3594 0.398438 11 0.398438 10.4297C0.398438 9.72656 0.867188 9.25 1.625 9.25H3.46875L4.07812 6.17969H2.40625C1.78906 6.17969 1.39844 5.80469 1.39844 5.24219C1.39844 4.53125 1.875 4.05469 2.63281 4.05469H4.5L5.07812 1.17188C5.21094 0.507812 5.58594 0.15625 6.26562 0.15625C6.88281 0.15625 7.26562 0.507812 7.26562 1.07031C7.26562 1.19531 7.24219 1.35938 7.22656 1.45312L6.70312 4.05469H9.61719L10.1953 1.17188C10.3281 0.507812 10.6953 0.15625 11.375 0.15625C11.9844 0.15625 12.3672 0.507812 12.3672 1.07031C12.3672 1.19531 12.3516 1.35938 12.3359 1.45312L11.8125 4.05469H13.5938C14.2109 4.05469 14.5938 4.4375 14.5938 4.99219C14.5938 5.70312 14.125 6.17969 13.3672 6.17969H11.3906L10.7812 9.25H12.5859C13.2031 9.25 13.5859 9.64062 13.5859 10.1953C13.5859 10.8984 13.1172 11.3594 12.3516 11.3594H10.3594L9.72656 14.5469C9.59375 15.2266 9.17969 15.5547 8.52344 15.5547C7.91406 15.5547 7.53906 15.2109 7.53906 14.6406C7.53906 14.5391 7.55469 14.375 7.57812 14.2656L8.15625 11.3594H5.25L4.61719 14.5469C4.48438 15.2266 4.0625 15.5547 3.42188 15.5547C2.8125 15.5547 2.42969 15.2109 2.42969 14.6406C2.42969 14.5391 2.44531 14.375 2.46875 14.2656L3.04688 11.3594H1.39844ZM5.67188 9.25H8.57812L9.19531 6.17969H6.28125L5.67188 9.25Z"/>
+                                </svg>
+                                <input type="text" placeholder="0" id="DLP_Inset_Input_1_ID" class="DLP_Input_Input_Style_1">
+                            </div>
+                            <div class="DLP_Input_Button_Style_1_Active DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Inset_Button_1_ID">
+                                <p id="DLP_Inset_Text_1_ID" class="DLP_Text_Style_1" style="color: #FFF;">START</p>
+                                <svg id="DLP_Inset_Icon_1_ID" width="13" height="16" viewBox="0 0 13 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M-0.0078125 13.5391V2.17188C-0.0078125 1.17969 0.609375 0.671875 1.34375 0.671875C1.64844 0.671875 1.97656 0.757812 2.29688 0.945312L11.75 6.45312C12.4688 6.86719 12.8203 7.25781 12.8203 7.85938C12.8203 8.46094 12.4688 8.84375 11.75 9.26562L2.29688 14.7734C1.97656 14.9531 1.64844 15.0469 1.34375 15.0469C0.609375 15.0469 -0.0078125 14.5391 -0.0078125 13.5391Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_2_ID" display="none" width="11" height="15" viewBox="0 0 11 15" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.24219 14.8984C0.398438 14.8984 -0.0078125 14.4766 -0.0078125 13.6484V2.07031C-0.0078125 1.24219 0.414062 0.820312 1.24219 0.820312H3.17188C4 0.820312 4.42188 1.24219 4.42188 2.07031V13.6484C4.42188 14.4766 4 14.8984 3.17188 14.8984H1.24219ZM7.57031 14.8984C6.72656 14.8984 6.32031 14.4766 6.32031 13.6484V2.07031C6.32031 1.24219 6.74219 0.820312 7.57031 0.820312H9.5C10.3281 0.820312 10.75 1.24219 10.75 2.07031V13.6484C10.75 14.4766 10.3281 14.8984 9.5 14.8984H7.57031Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_3_ID" display="none" width="17" height="18" viewBox="0 0 17 18" fill="#34C759" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8.64844 17.1094C4.09375 17.1094 0.398438 13.4141 0.398438 8.85938C0.398438 4.30469 4.09375 0.609375 8.64844 0.609375C13.2031 0.609375 16.8984 4.30469 16.8984 8.85938C16.8984 13.4141 13.2031 17.1094 8.64844 17.1094ZM7.78906 12.7812C8.125 12.7812 8.42969 12.6094 8.63281 12.3125L12.2578 6.76562C12.3984 6.5625 12.4766 6.35156 12.4766 6.15625C12.4766 5.67188 12.0469 5.32812 11.5781 5.32812C11.2734 5.32812 11.0156 5.49219 10.8125 5.82031L7.76562 10.6641L6.40625 8.98438C6.19531 8.73438 5.97656 8.625 5.69531 8.625C5.21875 8.625 4.82812 9.00781 4.82812 9.49219C4.82812 9.71875 4.89844 9.91406 5.07812 10.1328L6.91406 12.3203C7.16406 12.625 7.4375 12.7812 7.78906 12.7812Z"/>
+                                </svg>
+                                <svg id="DLP_Inset_Icon_4_ID" display="none" width="18" height="16" viewBox="0 0 18 16" fill="#FF2D55" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2.96094 15.5469C1.53125 15.5469 0.59375 14.4688 0.59375 13.1797C0.59375 12.7812 0.695312 12.375 0.914062 11.9922L6.92969 1.47656C7.38281 0.695312 8.17188 0.289062 8.97656 0.289062C9.77344 0.289062 10.5547 0.6875 11.0156 1.47656L17.0312 11.9844C17.25 12.3672 17.3516 12.7812 17.3516 13.1797C17.3516 14.4688 16.4141 15.5469 14.9844 15.5469H2.96094ZM8.98438 9.96094C9.52344 9.96094 9.83594 9.65625 9.86719 9.09375L9.99219 5.72656C10.0234 5.14062 9.59375 4.73438 8.97656 4.73438C8.35156 4.73438 7.92969 5.13281 7.96094 5.72656L8.08594 9.10156C8.10938 9.65625 8.42969 9.96094 8.98438 9.96094ZM8.98438 12.7812C9.60156 12.7812 10.0859 12.3906 10.0859 11.7891C10.0859 11.2031 9.60938 10.8047 8.98438 10.8047C8.35938 10.8047 7.875 11.2031 7.875 11.7891C7.875 12.3906 8.35938 12.7812 8.98438 12.7812Z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="DLP_HStack_Auto" style="padding-top: 4px;">
+                        <div class="DLP_HStack_4 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Secondary_2_Back_1_Button_1_ID" style="align-items: center;">
+                            <svg width="10" height="15" viewBox="0 0 10 15" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M0.90625 7.35938C0.914062 6.96875 1.04688 6.64844 1.36719 6.34375L7.27344 0.554688C7.51562 0.320312 7.79688 0.203125 8.14062 0.203125C8.82812 0.203125 9.39844 0.765625 9.39844 1.44531C9.39844 1.78906 9.25 2.10938 8.99219 2.35938L3.84375 7.35156L8.99219 12.3516C9.25 12.6094 9.39844 12.9219 9.39844 13.2734C9.39844 13.9609 8.82812 14.5156 8.14062 14.5156C7.79688 14.5156 7.51562 14.3984 7.27344 14.1641L1.36719 8.375C1.04688 8.0625 0.90625 7.74219 0.90625 7.35938Z"/>
+                            </svg>
+                            <p class="DLP_Text_Style_1" style="color: #007AFF;">Back</p>
+                        </div>
+                        <div class="DLP_HStack_4 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Secondary_2_Terms_1_Button_1_ID"style="align-items: center;">
+                            <p class="DLP_Text_Style_1" style="color: #007AFF; opacity: 0.5;">Terms & Conditions</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="DLP_Main_Box_Divider" id="DLP_Main_Box_Divider_5_ID" style="display: none;">
+            <div class="DLP_VStack_8">
+                <div class="DLP_HStack_Auto DLP_NoSelect">
+                    <div class="DLP_HStack_4" style="align-items: flex-start;">
+                        <p class="DLP_Text_Style_2">Duolingo</p>
+                        <p class="DLP_Text_Style_2" style="background: url(${serverURL}/static/3.0/assets/images/flow_1_light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PRO 3.0</p>
+                    </div>
+                    <p class="DLP_Text_Style_1" style="font-size: 14px; background: url(${serverURL}/static/3.0/assets/images/flow_2_light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${versionName}</p>
+                </div>
+                <p class="DLP_Text_Style_1 DLP_NoSelect" id="DLP_Terms_1_Text_1_ID" style="opacity: 0.5;">Please read and accept the Terms & Conditions to use Duolingo PRO 3.0. </p>
+                <p class="DLP_Text_Style_1 DLP_NoSelect" id="DLP_Terms_1_Text_2_ID" style="opacity: 0.5; display: none;">These are the Terms & Conditions you agreed to use Duolingo PRO 3.0. </p>
+                <div class="DLP_Scroll_Box_Style_1">
+                    <p id="DLP_Terms_Main_Text_1_ID" class="DLP_Scroll_Box_Text_Style_1">MIT License<br><br>Copyright (c) 2024 anonymoushackerIV<br><br>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:<br><br>The above copyright notice and this permission notice shall be included in allcopies or substantial portions of the Software.<br><br>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
+                </div>
+                <div class="DLP_HStack_8" id="DLP_Terms_1_Button_1_ID">
+                    <div id="DLP_Terms_Decline_Button_1_ID" class="DLP_Button_Style_2 DLP_Magnetic_Hover_1 DLP_NoSelect" style="outline: 2px solid rgba(0, 122, 255, 0.20); outline-offset: -2px; background: rgba(0, 122, 255, 0.10);">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M0.867188 12.9922C0.414062 12.5469 0.429688 11.7578 0.851562 11.3359L5.32031 6.86719L0.851562 2.41406C0.429688 1.98438 0.414062 1.20312 0.867188 0.75C1.32031 0.289062 2.10938 0.304688 2.53125 0.734375L6.99219 5.19531L11.4531 0.734375C11.8906 0.296875 12.6562 0.296875 13.1094 0.75C13.5703 1.20312 13.5703 1.96875 13.125 2.41406L8.67188 6.86719L13.125 11.3281C13.5703 11.7734 13.5625 12.5312 13.1094 12.9922C12.6641 13.4453 11.8906 13.4453 11.4531 13.0078L6.99219 8.54688L2.53125 13.0078C2.10938 13.4375 1.32812 13.4453 0.867188 12.9922Z"/>
+                        </svg>
+                        <p class="DLP_Text_Style_1" style="color: #007AFF;">DECLINE</p>
+                    </div>
+                    <div id="DLP_Terms_Accept_Button_1_ID" class="DLP_Button_Style_2 DLP_Magnetic_Hover_1 DLP_NoSelect" style="outline: 2px solid rgba(0, 0, 0, 0.20); outline-offset: -2px; background: #007AFF;">
+                        <p class="DLP_Text_Style_1" style="color: #FFF;">ACCEPT</p>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1.25 15.0156C0.554688 15.0156 -0.0078125 14.4609 -0.0078125 13.7734C-0.0078125 13.4297 0.140625 13.1094 0.390625 12.8516L5.54688 7.85156L0.390625 2.85938C0.132812 2.60156 -0.0078125 2.28125 -0.0078125 1.94531C-0.0078125 1.25781 0.554688 0.703125 1.25 0.703125C1.59375 0.703125 1.875 0.820312 2.10938 1.05469L8.02344 6.83594C8.33594 7.14062 8.48438 7.46875 8.48438 7.85938C8.48438 8.24219 8.34375 8.5625 8.02344 8.88281L2.10938 14.6641C1.86719 14.8984 1.58594 15.0156 1.25 15.0156ZM8.22656 15.0156C7.53125 15.0156 6.96875 14.4609 6.96875 13.7734C6.96875 13.4297 7.11719 13.1094 7.375 12.8516L12.5234 7.85156L7.375 2.85938C7.10938 2.60156 6.96875 2.28125 6.96875 1.94531C6.96875 1.25781 7.53125 0.703125 8.22656 0.703125C8.57031 0.703125 8.85156 0.820312 9.09375 1.05469L15 6.83594C15.3203 7.14062 15.4609 7.46875 15.4688 7.85938C15.4688 8.24219 15.3203 8.5625 15.0078 8.88281L9.09375 14.6641C8.85156 14.8984 8.57031 15.0156 8.22656 15.0156Z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="DLP_HStack_8" id="DLP_Terms_1_Button_2_ID" style="display: none;">
+                    <div class="DLP_Button_Style_2 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Terms_Back_Button_1_ID" style="outline: 2px solid rgba(0, 122, 255, 0.20); outline-offset: -2px; background: rgba(0, 122, 255, 0.10);">
+                        <svg width="9" height="16" viewBox="0 0 9 16" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M0.164062 7.85938C0.171875 7.46875 0.304688 7.14844 0.625 6.84375L6.53125 1.05469C6.77344 0.820312 7.05469 0.703125 7.39844 0.703125C8.08594 0.703125 8.65625 1.26562 8.65625 1.94531C8.65625 2.28906 8.50781 2.60938 8.25 2.85938L3.10156 7.85156L8.25 12.8516C8.50781 13.1094 8.65625 13.4219 8.65625 13.7734C8.65625 14.4609 8.08594 15.0156 7.39844 15.0156C7.05469 15.0156 6.77344 14.8984 6.53125 14.6641L0.625 8.875C0.304688 8.5625 0.164062 8.24219 0.164062 7.85938Z"/>
+                        </svg>
+                        <p class="DLP_Text_Style_1" style="color: #007AFF;">BACK</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="DLP_Main_Box_Divider" id="DLP_Main_Box_Divider_6_ID" style="display: none;">
+            <div class="DLP_VStack_8">
+                <div class="DLP_HStack_Auto DLP_NoSelect">
+                    <div class="DLP_HStack_4" style="align-items: flex-start;">
+                        <p class="DLP_Text_Style_2">Duolingo</p>
+                        <p class="DLP_Text_Style_2" style="background: url(${serverURL}/static/3.0/assets/images/flow_1_light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PRO 3.0</p>
+                    </div>
+                    <p class="DLP_Text_Style_1" style="font-size: 14px; background: url(${serverURL}/static/3.0/assets/images/flow_2_light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${versionName}</p>
+                </div>
+                <p class="DLP_Text_Style_1 DLP_NoSelect" style="opacity: 0.5;">Without accepting the Terms & Conditions, you cannot use Duolingo PRO 3.0. </p>
+                <div class="DLP_HStack_8">
+                    <div id="DLP_Terms_Declined_Back_Button_1_ID" class="DLP_Button_Style_2 DLP_Magnetic_Hover_1 DLP_NoSelect" style="outline: 2px solid rgba(0, 122, 255, 0.20); outline-offset: -2px; background: rgba(0, 122, 255, 0.10);">
+                        <svg width="9" height="16" viewBox="0 0 9 16" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M0.164062 7.85938C0.171875 7.46875 0.304688 7.14844 0.625 6.84375L6.53125 1.05469C6.77344 0.820312 7.05469 0.703125 7.39844 0.703125C8.08594 0.703125 8.65625 1.26562 8.65625 1.94531C8.65625 2.28906 8.50781 2.60938 8.25 2.85938L3.10156 7.85156L8.25 12.8516C8.50781 13.1094 8.65625 13.4219 8.65625 13.7734C8.65625 14.4609 8.08594 15.0156 7.39844 15.0156C7.05469 15.0156 6.77344 14.8984 6.53125 14.6641L0.625 8.875C0.304688 8.5625 0.164062 8.24219 0.164062 7.85938Z"/>
+                        </svg>
+                        <p class="DLP_Text_Style_1" style="color: #007AFF;">BACK</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="DLP_Main_Box_Divider" id="DLP_Main_Box_Divider_7_ID" style="display: none;">
+            <div class="DLP_VStack_8">
+                <div class="DLP_HStack_Auto DLP_NoSelect">
+                    <div class="DLP_HStack_4" style="align-items: flex-start;">
+                        <p class="DLP_Text_Style_2" style="background: url(${serverURL}/static/3.0/assets/images/flow_1_light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Settings</p>
+                    </div>
+                    <p class="DLP_Text_Style_1" style="font-size: 14px; background: url(${serverURL}/static/3.0/assets/images/flow_2_light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${versionName}</p>
+                </div>
+                <div class="DLP_HStack_8" style="justify-content: center; align-items: center;">
+                    <div class="DLP_VStack_0" style="align-items: flex-start;">
+                        <p class="DLP_Text_Style_1 DLP_NoSelect" style="opacity: 0.5;">Automatic Updates</p>
+                        <p class="DLP_Text_Style_1 DLP_NoSelect" style="opacity: 0.25;">Duolingo PRO 3.0 will automatically update itself when there's a new version available. </p>
+                    </div>
+                    <div class="DLP_Toggle_Style_1 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Settings_Auto_Update_Toggle_1_ID">
+                        <svg id="DLP_Inset_Icon_1_ID" width="18" height="18" viewBox="0 0 18 18" fill="#FFF" xmlns="http://www.w3.org/2000/svg" display="none">
+                            <path d="M9 17.1094C4.44531 17.1094 0.75 13.4141 0.75 8.85938C0.75 4.30469 4.44531 0.609375 9 0.609375C13.5547 0.609375 17.25 4.30469 17.25 8.85938C17.25 13.4141 13.5547 17.1094 9 17.1094ZM8.14062 12.7812C8.47656 12.7812 8.78125 12.6094 8.98438 12.3125L12.6094 6.76562C12.75 6.5625 12.8281 6.35156 12.8281 6.15625C12.8281 5.67188 12.3984 5.32812 11.9297 5.32812C11.625 5.32812 11.3672 5.49219 11.1641 5.82031L8.11719 10.6641L6.75781 8.98438C6.54688 8.73438 6.32812 8.625 6.04688 8.625C5.57031 8.625 5.17969 9.00781 5.17969 9.49219C5.17969 9.71875 5.25 9.91406 5.42969 10.1328L7.26562 12.3203C7.51562 12.625 7.78906 12.7812 8.14062 12.7812Z"/>
+                        </svg>
+                        <svg id="DLP_Inset_Icon_2_ID" width="18" height="18" viewBox="0 0 18 18" fill="#FFF" xmlns="http://www.w3.org/2000/svg" display="none">
+                            <path d="M9 17.1094C4.44531 17.1094 0.75 13.4141 0.75 8.85938C0.75 4.30469 4.44531 0.609375 9 0.609375C13.5547 0.609375 17.25 4.30469 17.25 8.85938C17.25 13.4141 13.5547 17.1094 9 17.1094ZM6.53906 12.2188C6.8125 12.2188 7.03125 12.125 7.20312 11.9531L9 10.1484L10.8047 11.9531C10.9766 12.125 11.2031 12.2188 11.4688 12.2188C11.9766 12.2188 12.3672 11.8203 12.3672 11.3125C12.3672 11.0781 12.2734 10.8594 12.0938 10.6875L10.2812 8.875L12.1016 7.04688C12.2812 6.875 12.3672 6.65625 12.3672 6.42188C12.3672 5.92188 11.9766 5.53125 11.4766 5.53125C11.2109 5.53125 11.0078 5.60938 10.8203 5.79688L9 7.60156L7.19531 5.79688C7.01562 5.625 6.8125 5.53906 6.53906 5.53906C6.03906 5.53906 5.64844 5.92188 5.64844 6.4375C5.64844 6.66406 5.74219 6.88281 5.91406 7.05469L7.73438 8.875L5.91406 10.6953C5.74219 10.8594 5.64844 11.0859 5.64844 11.3125C5.64844 11.8203 6.03906 12.2188 6.53906 12.2188Z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="DLP_HStack_8">
+                    <div class="DLP_Button_Style_2 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Settings_Back_1_Button_1_ID" style="outline: 2px solid rgba(0, 122, 255, 0.20); outline-offset: -2px; background: rgba(0, 122, 255, 0.10);">
+                        <svg width="9" height="16" viewBox="0 0 9 16" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M0.164062 7.85938C0.171875 7.46875 0.304688 7.14844 0.625 6.84375L6.53125 1.05469C6.77344 0.820312 7.05469 0.703125 7.39844 0.703125C8.08594 0.703125 8.65625 1.26562 8.65625 1.94531C8.65625 2.28906 8.50781 2.60938 8.25 2.85938L3.10156 7.85156L8.25 12.8516C8.50781 13.1094 8.65625 13.4219 8.65625 13.7734C8.65625 14.4609 8.08594 15.0156 7.39844 15.0156C7.05469 15.0156 6.77344 14.8984 6.53125 14.6641L0.625 8.875C0.304688 8.5625 0.164062 8.24219 0.164062 7.85938Z"/>
+                        </svg>
+                        <p class="DLP_Text_Style_1" style="color: #007AFF;">BACK</p>
+                    </div>
+                    <div id="DLP_Settings_Save_Button_1_ID" class="DLP_Button_Style_2 DLP_Magnetic_Hover_1 DLP_NoSelect" style="outline: 2px solid rgba(0, 0, 0, 0.20); outline-offset: -2px; background: #007AFF;">
+                        <p id="DLP_Inset_Text_1_ID" class="DLP_Text_Style_1" style="color: #FFF;">SAVE</p>
+                        <svg id="DLP_Inset_Icon_1_ID" width="17" height="18" viewBox="0 0 17 18" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8.64844 17.1094C4.09375 17.1094 0.398438 13.4141 0.398438 8.85938C0.398438 4.30469 4.09375 0.609375 8.64844 0.609375C13.2031 0.609375 16.8984 4.30469 16.8984 8.85938C16.8984 13.4141 13.2031 17.1094 8.64844 17.1094ZM7.78906 12.7812C8.125 12.7812 8.42969 12.6094 8.63281 12.3125L12.2578 6.76562C12.3984 6.5625 12.4766 6.35156 12.4766 6.15625C12.4766 5.67188 12.0469 5.32812 11.5781 5.32812C11.2734 5.32812 11.0156 5.49219 10.8125 5.82031L7.76562 10.6641L6.40625 8.98438C6.19531 8.73438 5.97656 8.625 5.69531 8.625C5.21875 8.625 4.82812 9.00781 4.82812 9.49219C4.82812 9.71875 4.89844 9.91406 5.07812 10.1328L6.91406 12.3203C7.16406 12.625 7.4375 12.7812 7.78906 12.7812Z"/>
+                        </svg>
+                        <svg id="DLP_Inset_Icon_3_ID" display="none" width="17" height="18" viewBox="0 0 17 18" fill="#34C759" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8.64844 17.1094C4.09375 17.1094 0.398438 13.4141 0.398438 8.85938C0.398438 4.30469 4.09375 0.609375 8.64844 0.609375C13.2031 0.609375 16.8984 4.30469 16.8984 8.85938C16.8984 13.4141 13.2031 17.1094 8.64844 17.1094ZM7.78906 12.7812C8.125 12.7812 8.42969 12.6094 8.63281 12.3125L12.2578 6.76562C12.3984 6.5625 12.4766 6.35156 12.4766 6.15625C12.4766 5.67188 12.0469 5.32812 11.5781 5.32812C11.2734 5.32812 11.0156 5.49219 10.8125 5.82031L7.76562 10.6641L6.40625 8.98438C6.19531 8.73438 5.97656 8.625 5.69531 8.625C5.21875 8.625 4.82812 9.00781 4.82812 9.49219C4.82812 9.71875 4.89844 9.91406 5.07812 10.1328L6.91406 12.3203C7.16406 12.625 7.4375 12.7812 7.78906 12.7812Z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div clas="DLP_Main_Box_Divider" id="DLP_Main_Box_Divider_8_ID" style="display: none;">
+            <div class="DLP_VStack_8">
+                <div class="DLP_HStack_Auto DLP_NoSelect">
+                    <div class="DLP_HStack_4" style="align-items: flex-start;">
+                        <p class="DLP_Text_Style_2" style="background: url(${serverURL}/static/3.0/assets/images/flow_1_light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Send Feedback</p>
+                    </div>
+                    <p class="DLP_Text_Style_1" style="font-size: 14px; background: url(${serverURL}/static/3.0/assets/images/flow_2_light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${versionName}</p>
+                </div>
+                <p class="DLP_Text_Style_1 DLP_NoSelect" style="opacity: 0.5;">Help us make Duolingo PRO 3.0 better. </p>
+                <textarea id="DLP_Feedback_Text_Input_1_ID" class="DLP_Large_Input_Box_Style_1" style="height: 128px;" placeholder="Write here as much as you can with as many details as possible."/></textarea>
+                <p class="DLP_Text_Style_1 DLP_NoSelect" style="opacity: 0.5; align-self: stretch;">Feedback Type </p>
+                <div class="DLP_HStack_8">
+                    <div id="DLP_Feedback_Type_Bug_Report_Button_1_ID" class="DLP_Button_Style_2 DLP_Magnetic_Hover_1 DLP_NoSelect DLP_Feedback_Type_Button_Style_1_OFF" style="transition: background 0.4s, outline 0.4s, filter 0.4s cubic-bezier(0.16, 1, 0.32, 1), transform 0.4s cubic-bezier(0.16, 1, 0.32, 1);">
+                        <p class="DLP_Text_Style_1" style="transition: 0.4s;">BUG REPORT</p>
+                    </div>
+                    <div id="DLP_Feedback_Type_Suggestion_Button_1_ID" class="DLP_Button_Style_2 DLP_Magnetic_Hover_1 DLP_NoSelect DLP_Feedback_Type_Button_Style_2_ON" style="transition: background 0.4s, outline 0.4s, filter 0.4s cubic-bezier(0.16, 1, 0.32, 1), transform 0.4s cubic-bezier(0.16, 1, 0.32, 1);">
+                        <p class="DLP_Text_Style_1" style="transition: 0.4s;">SUGGESTION</p>
+                    </div>
+                </div>
+                <p class="DLP_Text_Style_1 DLP_NoSelect" style="opacity: 0.5; align-self: stretch;">Add Attachment (Optional) </p>
+                <div class="DLP_HStack_8">
+                    <div id="DLP_Feedback_Attachment_Upload_Button_1_ID" class="DLP_Button_Style_2 DLP_Magnetic_Hover_1 DLP_NoSelect" style="outline: 2px solid rgba(0, 122, 255, 0.20); outline-offset: -2px; background: rgba(0, 122, 255, 0.10); transition: background 0.4s, outline 0.4s, filter 0.4s cubic-bezier(0.16, 1, 0.32, 1), transform 0.4s cubic-bezier(0.16, 1, 0.32, 1);">
+                        <p id="DLP_Inset_Text_1_ID" class="DLP_Text_Style_1" style="color: #007AFF; transition: 0.4s;">UPLOAD</p>
+                        <svg id="DLP_Inset_Icon_1_ID" width="14" height="14" viewBox="0 0 14 14" fill="#007AFF" xmlns="http://www.w3.org/2000/svg" style="transition: 0.4s;">
+                            <path d="M-0.0078125 6.85938C-0.0078125 6.21094 0.523438 5.67969 1.17969 5.67969H5.51562V1.34375C5.51562 0.695312 6.03906 0.15625 6.69531 0.15625C7.35156 0.15625 7.88281 0.695312 7.88281 1.34375V5.67969H12.2188C12.8672 5.67969 13.3984 6.21094 13.3984 6.85938C13.3984 7.51562 12.8672 8.04688 12.2188 8.04688H7.88281V12.3828C7.88281 13.0312 7.35156 13.5703 6.69531 13.5703C6.03906 13.5703 5.51562 13.0312 5.51562 12.3828V8.04688H1.17969C0.523438 8.04688 -0.0078125 7.51562 -0.0078125 6.85938Z"/>
+                        </svg>
+                    </div>
+                </div>
+                <input type="file" accept="image/png, image/jpeg, video/mp4" id="DLP_Feedback_Attachment_Input_Hidden_1_ID" style="display: none;"/>
+                <div class="DLP_HStack_8">
+                    <div id="DLP_Feedback_Cancel_1_Button_1_ID" class="DLP_Button_Style_2 DLP_Magnetic_Hover_1 DLP_NoSelect" style="outline: 2px solid rgba(0, 122, 255, 0.20); outline-offset: -2px; background: rgba(0, 122, 255, 0.10);">
+                        <svg width="9" height="16" viewBox="0 0 9 16" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M0.164062 7.85938C0.171875 7.46875 0.304688 7.14844 0.625 6.84375L6.53125 1.05469C6.77344 0.820312 7.05469 0.703125 7.39844 0.703125C8.08594 0.703125 8.65625 1.26562 8.65625 1.94531C8.65625 2.28906 8.50781 2.60938 8.25 2.85938L3.10156 7.85156L8.25 12.8516C8.50781 13.1094 8.65625 13.4219 8.65625 13.7734C8.65625 14.4609 8.08594 15.0156 7.39844 15.0156C7.05469 15.0156 6.77344 14.8984 6.53125 14.6641L0.625 8.875C0.304688 8.5625 0.164062 8.24219 0.164062 7.85938Z"/>
+                        </svg>
+                        <p class="DLP_Text_Style_1" style="color: #007AFF;">BACK</p>
+                    </div>
+                    <div id="DLP_Feedback_Send_Button_1_ID" class="DLP_Button_Style_2 DLP_Magnetic_Hover_1 DLP_NoSelect" style="outline: 2px solid rgba(0, 0, 0, 0.20); outline-offset: -2px; background: #007AFF;">
+                        <p id="DLP_Inset_Text_1_ID" class="DLP_Text_Style_1" style="color: #FFF;">SEND</p>
+                        <svg id="DLP_Inset_Icon_1_ID" display="" width="16" height="16" viewBox="0 0 16 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1.25 15.0156C0.554688 15.0156 -0.0078125 14.4609 -0.0078125 13.7734C-0.0078125 13.4297 0.140625 13.1094 0.390625 12.8516L5.54688 7.85156L0.390625 2.85938C0.132812 2.60156 -0.0078125 2.28125 -0.0078125 1.94531C-0.0078125 1.25781 0.554688 0.703125 1.25 0.703125C1.59375 0.703125 1.875 0.820312 2.10938 1.05469L8.02344 6.83594C8.33594 7.14062 8.48438 7.46875 8.48438 7.85938C8.48438 8.24219 8.34375 8.5625 8.02344 8.88281L2.10938 14.6641C1.86719 14.8984 1.58594 15.0156 1.25 15.0156ZM8.22656 15.0156C7.53125 15.0156 6.96875 14.4609 6.96875 13.7734C6.96875 13.4297 7.11719 13.1094 7.375 12.8516L12.5234 7.85156L7.375 2.85938C7.10938 2.60156 6.96875 2.28125 6.96875 1.94531C6.96875 1.25781 7.53125 0.703125 8.22656 0.703125C8.57031 0.703125 8.85156 0.820312 9.09375 1.05469L15 6.83594C15.3203 7.14062 15.4609 7.46875 15.4688 7.85938C15.4688 8.24219 15.3203 8.5625 15.0078 8.88281L9.09375 14.6641C8.85156 14.8984 8.57031 15.0156 8.22656 15.0156Z"/>
+                        </svg>
+                        <svg id="DLP_Inset_Icon_2_ID" display="none" width="17" height="18" viewBox="0 0 17 18" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8.64844 2.66406C8.03125 2.66406 7.4375 2.75 6.875 2.92188L6.07812 1.02344C6.89062 0.757812 7.75781 0.609375 8.64844 0.609375C9.53906 0.609375 10.3984 0.757812 11.2031 1.02344L10.4219 2.92188C9.85938 2.75781 9.26562 2.66406 8.64844 2.66406ZM14.1016 5.91406C13.5312 4.84375 12.6562 3.96875 11.5859 3.39844L12.375 1.50781C13.9297 2.30469 15.2031 3.57812 16 5.125L14.1016 5.91406ZM5.70312 3.39844C4.63281 3.97656 3.75781 4.85156 3.19531 5.92188L1.29688 5.125C2.09375 3.57812 3.36719 2.30469 4.91406 1.50781L5.70312 3.39844ZM14.8438 8.85938C14.8438 8.24219 14.7578 7.64844 14.5859 7.08594L16.4844 6.29688C16.7578 7.10156 16.8984 7.96875 16.8984 8.85938C16.8984 9.75 16.7578 10.6172 16.4844 11.4219L14.5938 10.6328C14.75 10.0703 14.8438 9.47656 14.8438 8.85938ZM2.46094 8.85938C2.46094 9.47656 2.54688 10.0703 2.71094 10.625L0.8125 11.4219C0.546875 10.6094 0.398438 9.75 0.398438 8.85938C0.398438 7.96875 0.546875 7.10938 0.8125 6.29688L2.71094 7.08594C2.54688 7.64844 2.46094 8.24219 2.46094 8.85938ZM11.5859 14.3125C12.6562 13.7422 13.5391 12.875 14.1094 11.8047L16 12.5938C15.2031 14.1406 13.9297 15.4141 12.375 16.2109L11.5859 14.3125ZM3.19531 11.8047C3.76562 12.8672 4.63281 13.7422 5.70312 14.3125L4.91406 16.2031C3.36719 15.4141 2.09375 14.1406 1.29688 12.5938L3.19531 11.8047ZM8.64844 15.0547C9.26562 15.0547 9.85938 14.9609 10.4141 14.7969L11.2109 16.6953C10.3984 16.9609 9.53906 17.1094 8.64844 17.1094C7.75781 17.1094 6.89062 16.9609 6.08594 16.6953L6.875 14.7969C7.4375 14.9609 8.03125 15.0547 8.64844 15.0547Z"/>
+                        </svg>
+                        <svg id="DLP_Inset_Icon_3_ID" display="none" width="17" height="18" viewBox="0 0 17 18" fill="#34C759" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8.64844 17.1094C4.09375 17.1094 0.398438 13.4141 0.398438 8.85938C0.398438 4.30469 4.09375 0.609375 8.64844 0.609375C13.2031 0.609375 16.8984 4.30469 16.8984 8.85938C16.8984 13.4141 13.2031 17.1094 8.64844 17.1094ZM7.78906 12.7812C8.125 12.7812 8.42969 12.6094 8.63281 12.3125L12.2578 6.76562C12.3984 6.5625 12.4766 6.35156 12.4766 6.15625C12.4766 5.67188 12.0469 5.32812 11.5781 5.32812C11.2734 5.32812 11.0156 5.49219 10.8125 5.82031L7.76562 10.6641L6.40625 8.98438C6.19531 8.73438 5.97656 8.625 5.69531 8.625C5.21875 8.625 4.82812 9.00781 4.82812 9.49219C4.82812 9.71875 4.89844 9.91406 5.07812 10.1328L6.91406 12.3203C7.16406 12.625 7.4375 12.7812 7.78906 12.7812Z"/>
+                        </svg>
+                        <svg id="DLP_Inset_Icon_4_ID" display="none" width="18" height="16" viewBox="0 0 18 16" fill="#FF2D55" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M2.96094 15.5469C1.53125 15.5469 0.59375 14.4688 0.59375 13.1797C0.59375 12.7812 0.695312 12.375 0.914062 11.9922L6.92969 1.47656C7.38281 0.695312 8.17188 0.289062 8.97656 0.289062C9.77344 0.289062 10.5547 0.6875 11.0156 1.47656L17.0312 11.9844C17.25 12.3672 17.3516 12.7812 17.3516 13.1797C17.3516 14.4688 16.4141 15.5469 14.9844 15.5469H2.96094ZM8.98438 9.96094C9.52344 9.96094 9.83594 9.65625 9.86719 9.09375L9.99219 5.72656C10.0234 5.14062 9.59375 4.73438 8.97656 4.73438C8.35156 4.73438 7.92969 5.13281 7.96094 5.72656L8.08594 9.10156C8.10938 9.65625 8.42969 9.96094 8.98438 9.96094ZM8.98438 12.7812C9.60156 12.7812 10.0859 12.3906 10.0859 11.7891C10.0859 11.2031 9.60938 10.8047 8.98438 10.8047C8.35938 10.8047 7.875 11.2031 7.875 11.7891C7.875 12.3906 8.35938 12.7812 8.98438 12.7812Z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="DLP_Main_Box_Divider" id="DLP_Main_Box_Divider_9_ID" style="display: none;">
+            <div class="DLP_VStack_8">
+                <div class="DLP_HStack_Auto DLP_NoSelect">
+                    <div class="DLP_HStack_4" style="align-items: flex-start;">
+                        <p class="DLP_Text_Style_2" style="background: url(${serverURL}/static/3.0/assets/images/flow_1_light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Release Notes</p>
+                    </div>
+                    <p class="DLP_Text_Style_1" style="font-size: 14px; background: url(${serverURL}/static/3.0/assets/images/flow_2_light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${versionName}</p>
+                </div>
+                <div class="DLP_VStack_8" id="DLP_Release_Notes_List_1_ID"></div>
+                <div class="DLP_HStack_8">
+                    <div class="DLP_Button_Style_2 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Release_Notes_Back_1_Button_1_ID" style="outline: 2px solid rgba(0, 122, 255, 0.20); outline-offset: -2px; background: rgba(0, 122, 255, 0.10);">
+                        <svg width="9" height="16" viewBox="0 0 9 16" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M0.164062 7.85938C0.171875 7.46875 0.304688 7.14844 0.625 6.84375L6.53125 1.05469C6.77344 0.820312 7.05469 0.703125 7.39844 0.703125C8.08594 0.703125 8.65625 1.26562 8.65625 1.94531C8.65625 2.28906 8.50781 2.60938 8.25 2.85938L3.10156 7.85156L8.25 12.8516C8.50781 13.1094 8.65625 13.4219 8.65625 13.7734C8.65625 14.4609 8.08594 15.0156 7.39844 15.0156C7.05469 15.0156 6.77344 14.8984 6.53125 14.6641L0.625 8.875C0.304688 8.5625 0.164062 8.24219 0.164062 7.85938Z"/>
+                        </svg>
+                        <p class="DLP_Text_Style_1" style="color: #007AFF;">BACK</p>
+                    </div>
+                    <div class="DLP_Button_Style_2 DLP_Magnetic_Hover_1 DLP_NoSelect" style="outline: 2px solid rgba(0, 0, 0, 0.20); outline-offset: -2px; background: #007AFF;">
+                        <p class="DLP_Text_Style_1" style="color: #FFF;">LEARN MORE</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="DLP_Main_Box_Divider" id="DLP_Main_Box_Divider_10_ID" style="display: none;">
+            <div class="DLP_VStack_8">
+                <div class="DLP_VStack_8" style="padding: 8px 0;">
+                    <div class="DLP_VStack_0">
+                        <p class="DLP_Text_Style_1" style="font-size: 14px; background: url(${serverURL}/static/3.0/assets/images/flow_2_light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Welcome to</p>
+                        <div class="DLP_HStack_4" style="align-self: auto;">
+                            <p class="DLP_Text_Style_2">Duolingo</p>
+                            <p class="DLP_Text_Style_2" style="background: url(${serverURL}/static/3.0/assets/images/flow_1_light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PRO 3.0</p>
+                        </div>
+                    </div>
+                    <p class="DLP_Text_Style_1 DLP_NoSelect" style="align-self: stretch; opacity: 0.5; text-align: center;">The next generation of Duolingo PRO is here, with Instant XP, Magnet UI, all powerful than ever.</p>
+                </div>
+                <div class="DLP_HStack_8">
+                    <div id="DLP_Onboarding_Start_Button_1_ID" class="DLP_Button_Style_2 DLP_Magnetic_Hover_1 DLP_NoSelect" style="outline: 2px solid rgba(0, 0, 0, 0.20); outline-offset: -2px; background: #007AFF;">
+                        <p class="DLP_Text_Style_1" style="color: #FFF;">START</p>
+                        <svg id="DLP_Inset_Icon_1_ID" display="" width="16" height="16" viewBox="0 0 16 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1.25 15.0156C0.554688 15.0156 -0.0078125 14.4609 -0.0078125 13.7734C-0.0078125 13.4297 0.140625 13.1094 0.390625 12.8516L5.54688 7.85156L0.390625 2.85938C0.132812 2.60156 -0.0078125 2.28125 -0.0078125 1.94531C-0.0078125 1.25781 0.554688 0.703125 1.25 0.703125C1.59375 0.703125 1.875 0.820312 2.10938 1.05469L8.02344 6.83594C8.33594 7.14062 8.48438 7.46875 8.48438 7.85938C8.48438 8.24219 8.34375 8.5625 8.02344 8.88281L2.10938 14.6641C1.86719 14.8984 1.58594 15.0156 1.25 15.0156ZM8.22656 15.0156C7.53125 15.0156 6.96875 14.4609 6.96875 13.7734C6.96875 13.4297 7.11719 13.1094 7.375 12.8516L12.5234 7.85156L7.375 2.85938C7.10938 2.60156 6.96875 2.28125 6.96875 1.94531C6.96875 1.25781 7.53125 0.703125 8.22656 0.703125C8.57031 0.703125 8.85156 0.820312 9.09375 1.05469L15 6.83594C15.3203 7.14062 15.4609 7.46875 15.4688 7.85938C15.4688 8.24219 15.3203 8.5625 15.0078 8.88281L9.09375 14.6641C8.85156 14.8984 8.57031 15.0156 8.22656 15.0156Z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+`;
+let CSS2 = `
+.DLP_NoSelect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+.DLP_Text_Style_1 {
+    font-family: "Duolingo Pro Rounded";
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+
+    margin: 0;
+}
+.DLP_Text_Style_2 {
+    font-family: "Duolingo Pro Rounded";
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+
+    margin: 0;
+}
+.DLP_Magnetic_Hover_1 {
+    transition: filter 0.4s cubic-bezier(0.16, 1, 0.32, 1), transform 0.4s cubic-bezier(0.16, 1, 0.32, 1);
+    cursor: pointer;
+}
+.DLP_Magnetic_Hover_1:hover {
+    filter: brightness(0.9);
+    transform: scale(1.05);
+}
+.DLP_Magnetic_Hover_1:active {
+    filter: brightness(0.9);
+    transform: scale(0.9);
+}
+.DLP_Main {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-end;
+    gap: 8px;
+
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 2;
+}
+.DLP_Main_Box {
+    display: flex;
+    width: 300px;
+    padding: 16px;
+    box-sizing: border-box;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    overflow: hidden;
+
+    border-radius: 16px;
+    border: 2px solid rgb(var(--color-eel), 0.10);
+    background: rgb(var(--color-snow), 0.90);
+    backdrop-filter: blur(16px);
+}
+.DLP_Main_Box_Divider {
+    display: flex;
+    box-sizing: border-box;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+
+    width: 100%;
+}
+svg {
+    flex-shrink: 0;
+}
+.DLP_HStack_Auto {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    align-self: stretch;
+}
+.DLP_HStack_8 {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    align-self: stretch;
+}
+.DLP_HStack_4 {
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+    align-self: stretch;
+}
+.DLP_HStack_0 {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    align-self: stretch;
+}
+.DLP_VStack_0 {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0;
+    align-self: stretch;
+}
+.DLP_VStack_8 {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    align-self: stretch;
+}
+.DLP_Button_Style_1 {
+    display: flex;
+    height: 40px;
+    padding: 10px 12px 10px 10px;
+    box-sizing: border-box;
+    align-items: center;
+    gap: 6px;
+    flex: 1 0 0;
+
+    border-radius: 8px;
+}
+.DLP_Input_Input_Style_1 {
+    border: none;
+    outline: none;
+    background: none;
+    text-align: right;
+
+    font-family: "Duolingo Pro Rounded";
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+    color: #007AFF;
+
+    width: 100%;
+}
+.DLP_Input_Input_Style_1::placeholder {
+    color: rgba(0, 122, 255, 0.50);
+}
+.DLP_Input_Style_1_Active {
+    display: flex;
+    height: 48px;
+    padding: 16px;
+    box-sizing: border-box;
+    align-items: center;
+    flex: 1 0 0;
+    gap: 6px;
+
+    border-radius: 8px;
+    outline: 2px solid rgba(0, 122, 255, 0.20);
+    outline-offset: -2px;
+    background: rgba(0, 122, 255, 0.10);
+}
+.DLP_Input_Button_Style_1_Active {
+    display: flex;
+    height: 48px;
+    padding: 12px 12px 12px 14px;
+    box-sizing: border-box;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+
+    border-radius: 8px;
+    outline: 2px solid rgba(0, 0, 0, 0.20);
+    outline-offset: -2px;
+    background: #007AFF;
+}
+@keyframes DLP_Rotate_360_Animation_1 {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+@keyframes DLP_Pulse_Opacity_Animation_1 {
+    0% {
+        opacity: 1;
+    }
+    16.66666666% {
+        opacity: 0.75;
+    }
+    33.33333333% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+.DLP_Scroll_Box_Style_1 {
+    display: flex;
+    height: 200px;
+    padding: 14px 16px;
+    box-sizing: border-box;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 8px;
+    align-self: stretch;
+
+    border-radius: 8px;
+    outline: 2px solid rgb(var(--color-eel), 0.10);
+    outline-offset: -2px;
+    background: rgb(var(--color-snow), 0.90);
+
+    position: relative;
+}
+.DLP_Scroll_Box_Text_Style_1 {
+    font-family: "Duolingo Pro Rounded";
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+    opacity: 0.5;
+    margin: 0;
+
+    overflow-y: scroll;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 16px;
+    left: 16px;
+    padding-top: 16px;
+    padding-bottom: 16px;
+}
+.DLP_Scroll_Box_Text_Style_1::-webkit-scrollbar {
+    transform: translateX(16px);
+}
+.DLP_Button_Style_2 {
+    display: flex;
+    height: 48px;
+    box-sizing: border-box;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    flex: 1 0 0;
+
+    border-radius: 8px;
+}
+.DLP_Toggle_Style_1 {
+    display: flex;
+    width: 48px;
+    height: 48px;
+    padding: 16px;
+    box-sizing: border-box;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+
+    border-radius: 8px;
+    transition: background 0.8s cubic-bezier(0.16, 1, 0.32, 1), filter 0.4s cubic-bezier(0.16, 1, 0.32, 1), transform 0.4s cubic-bezier(0.16, 1, 0.32, 1);
+}
+.DLP_Toggle_Style_1_ON {
+    outline: 2px solid rgba(0, 0, 0, 0.20);
+    outline-offset: -2px;
+    background: #34C759;
+}
+.DLP_Toggle_Style_1_OFF {
+    outline: 2px solid rgba(0, 0, 0, 0.20);
+    outline-offset: -2px;
+    background: #FF2D55;
+}
+.DLP_Large_Input_Box_Style_1 {
+    display: flex;
+    padding: 16px;
+    box-sizing: border-box;
+    justify-content: center;
+    align-items: flex-start;
+    align-self: stretch;
+
+    border-radius: 8px;
+    border: none;
+    outline: 2px solid rgb(var(--color-eel), 0.10);
+    outline-offset: -2px;
+    background: rgb(var(--color-snow), 0.90);
+
+    color: rgb(var(--color-eel), 0.50);
+    font-size: 16px;
+    font-weight: 700;
+    font-family: Duolingo Pro Rounded, 'din-round' !important;
+
+    resize: vertical;
+    transition: .2s;
+}
+.DLP_Large_Input_Box_Style_1::placeholder {
+    font-weight: 700;
+    color: rgb(var(--color-eel), 0.25);
+}
+.DLP_Large_Input_Box_Style_1:focus {
+    outline: 2px solid #007AFF;
+}
+.DLP_Feedback_Type_Button_Style_1_ON {
+    outline: 2px solid rgba(0, 0, 0, 0.20);
+    outline-offset: -2px;
+    background: #FF2D55;
+}
+.DLP_Feedback_Type_Button_Style_1_ON .DLP_Text_Style_1 {
+    color: #FFF;
+}
+.DLP_Feedback_Type_Button_Style_1_OFF {
+    outline: 2px solid rgba(255, 45, 85, 0.20);
+    outline-offset: -2px;
+    background: rgba(255, 45, 85, 0.10);
+}
+.DLP_Feedback_Type_Button_Style_1_OFF .DLP_Text_Style_1 {
+    color: #FF2D55;
+}
+.DLP_Feedback_Type_Button_Style_2_ON {
+    outline: 2px solid rgba(0, 0, 0, 0.20);
+    outline-offset: -2px;
+    background: #34C759;
+}
+.DLP_Feedback_Type_Button_Style_2_ON .DLP_Text_Style_1 {
+    color: #FFF;
+}
+.DLP_Feedback_Type_Button_Style_2_OFF {
+    outline: 2px solid rgba(52, 199, 89, 0.20);
+    outline-offset: -2px;
+    background: rgba(52, 199, 89, 0.10);
+}
+.DLP_Feedback_Type_Button_Style_2_OFF .DLP_Text_Style_1 {
+    color: #34C759;
+}
+
+.DLP_Notification_Main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    transition: 0.8s cubic-bezier(0.16, 1, 0.32, 1);
+    width: 100%;
+    position: fixed;
+    left: 16px;
+}
+.DLP_Notification_Box {
+    display: flex;
+    width: 300px;
+    padding: 16px;
+    box-sizing: border-box;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 4px;
+
+    border-radius: 16px;
+    border: 2px solid rgb(var(--color-eel), 0.10);
+    background: rgb(var(--color-snow), 0.90);
+    backdrop-filter: blur(16px);
+
+    transition: 0.8s cubic-bezier(0.16, 1, 0.32, 1);
+    filter: blur(16px);
+    opacity: 0;
+}
+`;
+
+let HTML3 = `
+<div class="DLP_Notification_Box" style="position: fixed;">
+    <div class="DLP_HStack_4" style="align-items: center;">
+        <svg id="DLP_Inset_Icon_1_ID" width="18" height="17" viewBox="0 0 18 17" fill="#34C759" xmlns="http://www.w3.org/2000/svg" display="none">
+            <path d="M9 16.6094C4.44531 16.6094 0.75 12.9141 0.75 8.35938C0.75 3.80469 4.44531 0.109375 9 0.109375C13.5547 0.109375 17.25 3.80469 17.25 8.35938C17.25 12.9141 13.5547 16.6094 9 16.6094ZM8.14062 12.2812C8.47656 12.2812 8.78125 12.1094 8.98438 11.8125L12.6094 6.26562C12.75 6.0625 12.8281 5.85156 12.8281 5.65625C12.8281 5.17188 12.3984 4.82812 11.9297 4.82812C11.625 4.82812 11.3672 4.99219 11.1641 5.32031L8.11719 10.1641L6.75781 8.48438C6.54688 8.23438 6.32812 8.125 6.04688 8.125C5.57031 8.125 5.17969 8.50781 5.17969 8.99219C5.17969 9.21875 5.25 9.41406 5.42969 9.63281L7.26562 11.8203C7.51562 12.125 7.78906 12.2812 8.14062 12.2812Z"/>
+        </svg>
+        <svg id="DLP_Inset_Icon_2_ID" width="18" height="17" viewBox="0 0 18 17" fill="#FFB000" xmlns="http://www.w3.org/2000/svg" display="none">
+            <path d="M9 16.6172C4.47656 16.6172 0.75 12.8906 0.75 8.35938C0.75 3.83594 4.46875 0.109375 9 0.109375C13.5234 0.109375 17.25 3.83594 17.25 8.35938C17.25 12.8906 13.5312 16.6172 9 16.6172ZM9.00781 9.53125C9.54688 9.53125 9.85938 9.22656 9.89062 8.66406L10.0156 5.29688C10.0469 4.71094 9.61719 4.30469 9 4.30469C8.375 4.30469 7.95312 4.70312 7.98438 5.29688L8.10938 8.67188C8.13281 9.22656 8.45312 9.53125 9.00781 9.53125ZM9.00781 12.3516C9.625 12.3516 10.1016 11.9609 10.1016 11.3594C10.1016 10.7734 9.63281 10.375 9.00781 10.375C8.38281 10.375 7.89844 10.7734 7.89844 11.3594C7.89844 11.9609 8.38281 12.3516 9.00781 12.3516Z"/>
+        </svg>
+        <svg id="DLP_Inset_Icon_3_ID" width="18" height="17" viewBox="0 0 18 17" fill="#FF2D55" xmlns="http://www.w3.org/2000/svg" display="none">
+            <path d="M2.98438 16.0469C1.55469 16.0469 0.617188 14.9688 0.617188 13.6797C0.617188 13.2812 0.71875 12.875 0.9375 12.4922L6.95312 1.97656C7.40625 1.19531 8.19531 0.789062 9 0.789062C9.79688 0.789062 10.5781 1.1875 11.0391 1.97656L17.0547 12.4844C17.2734 12.8672 17.375 13.2812 17.375 13.6797C17.375 14.9688 16.4375 16.0469 15.0078 16.0469H2.98438ZM9.00781 10.4609C9.54688 10.4609 9.85938 10.1562 9.89062 9.59375L10.0156 6.22656C10.0469 5.64062 9.61719 5.23438 9 5.23438C8.375 5.23438 7.95312 5.63281 7.98438 6.22656L8.10938 9.60156C8.13281 10.1562 8.45312 10.4609 9.00781 10.4609ZM9.00781 13.2812C9.625 13.2812 10.1094 12.8906 10.1094 12.2891C10.1094 11.7031 9.63281 11.3047 9.00781 11.3047C8.38281 11.3047 7.89844 11.7031 7.89844 12.2891C7.89844 12.8906 8.38281 13.2812 9.00781 13.2812Z"/>
+        </svg>
+
+        <p id="DLP_Inset_Text_1_ID" class="DLP_Text_Style_1" style="opacity: 0.5; flex: 1 0 0;"></p>
+        <svg id="DLP_Notification_Dismiss_Button_1_ID" width="15" height="14" viewBox="0 0 15 14" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1.32812 13.4922C0.875 13.0469 0.890625 12.2578 1.3125 11.8359L5.78125 7.36719L1.3125 2.91406C0.890625 2.48438 0.875 1.70312 1.32812 1.25C1.78125 0.789062 2.57031 0.804688 2.99219 1.23438L7.45312 5.69531L11.9141 1.23438C12.3516 0.796875 13.1172 0.796875 13.5703 1.25C14.0312 1.70312 14.0312 2.46875 13.5859 2.91406L9.13281 7.36719L13.5859 11.8281C14.0312 12.2734 14.0234 13.0312 13.5703 13.4922C13.125 13.9453 12.3516 13.9453 11.9141 13.5078L7.45312 9.04688L2.99219 13.5078C2.57031 13.9375 1.78906 13.9453 1.32812 13.4922Z"/>
+        </svg>
+    </div>
+    <p id="DLP_Inset_Text_2_ID" class="DLP_Text_Style_1" style="opacity: 0.25;"></p>
+</div>
+`;
+
+let HTML4 = `
+.solve-btn {
+    position: relative;
+    min-width: 150px;
+    font-size: 17px;
+    border: none;
+    border-bottom: 4px solid #2b70c9;
+    border-radius: 16px;
+    padding: 13px 16px;
+    transition: filter .0s;
+    font-weight: 700;
+    letter-spacing: .8px;
+    background: #1cb0f6;
+    color: rgb(var(--color-snow));
+    cursor: pointer;
+}
+.pause-btn {
+    position: relative;
+    min-width: 100px;
+    font-size: 17px;
+    border: none;
+    border-bottom: 4px solid #ff9600;
+    border-radius: 16px;
+    padding: 13px 16px;
+    transition: filter .0s;
+    font-weight: 700;
+    letter-spacing: .8px;
+    background: #ffc800;
+    color: rgb(var(--color-snow));
+    cursor: pointer;
+}
+.auto-solver-btn:hover {
+    filter: brightness(1.1);
+}
+.auto-solver-btn:active {
+    border-bottom: 0px;
+    margin-bottom: 4px;
+    top: 4px;
+}
+`;
+
+function One() {
+    document.head.appendChild(Object.assign(document.createElement('style'), { type: 'text/css', textContent: CSS1 }));
+
+    document.body.insertAdjacentHTML('beforeend', HTML2);
+    document.head.appendChild(Object.assign(document.createElement('style'), { type: 'text/css', textContent: CSS2 }));
+
+    setTimeout(() => {
+        if (!storageLocal.onboarding) {
+            if (currentPage !== 10) goToPage(currentPage, 10);
+        } else if (storageSession.legacy.page === 1) {
+            goToPage(currentPage, 3);
+        } else if (storageSession.legacy.page === 2) {
+            goToPage(currentPage, 4);
         }
-        duoproForeverTotalQuestions = duoproForeverTotalQuestions || 0;
-        duoproForeverTotalLessons = duoproForeverTotalLessons || 0;
-        duoproForeverXP = duoproForeverXP || 0;
-    } catch (error) { console.log(error); }
-
-    let ProBlockBannerOneVisible = false;
-    if (JSON.parse(localStorage.getItem('ProBlockBannerOneVisible')) === null) {
-        ProBlockBannerOneVisible = false;
-    } else {
-        ProBlockBannerOneVisible = JSON.parse(localStorage.getItem('ProBlockBannerOneVisible'));
-    }
-
-    // Control + Shift + Enter = Solve All.
-    document.addEventListener('keydown', function(event) {
-        if (event.ctrlKey && event.shiftKey && event.key === 'Enter') {
-            solveAllButton.click();
-        }
-    });
-
-    let autoSolverBoxPracticeOnlyMode = true;
-    let autoSolverBoxRepeatLessonMode = false;
-    let autoSolverBoxPathMode = false;
-    let autoSolverBoxListeningOnlyMode = false;
-    let autoSolverBoxAutomatedSolvingActive = false;
-    let autoSolverBoxVisibility = true;
-    function AmsaXtiWnczmqqlr() {
-        if (!sessionStorage.getItem('duopro.session.solvemode')) {
-            sessionStorage.setItem('duopro.session.solvemode', JSON.stringify({ practicemode: true, lessonmode: false, pathmode: false, listeningmode: false, automatedsolving: false, boxvisibility: true }));
-        } else {
-            let sv = JSON.parse(sessionStorage.getItem('duopro.session.solvemode'));
-            //[autoSolverBoxPracticeOnlyMode, autoSolverBoxRepeatLessonMode, autoSolverBoxPathMode, autoSolverBoxListeningOnlyMode, autoSolverBoxAutomatedSolvingActive, autoSolverBoxVisibility] = [sv.practicemode, sv.lessonmode, sv.pathmode, sv.listeningmode, sv.automatedsolving, sv.boxvisibility];
-            autoSolverBoxPracticeOnlyMode = sv.practicemode;
-            autoSolverBoxRepeatLessonMode = sv.lessonmode;
-            autoSolverBoxPathMode = sv.pathmode;
-            autoSolverBoxListeningOnlyMode = sv.listeningmode;
-            autoSolverBoxAutomatedSolvingActive = sv.automatedsolving;
-            autoSolverBoxVisibility = sv.boxvisibility;
-        }
-    };
-    AmsaXtiWnczmqqlr();
-    function updateMode(n, v) {
-        let sv = JSON.parse(sessionStorage.getItem('duopro.session.solvemode'));
-        sv[n] = v;
-        sessionStorage.setItem('duopro.session.solvemode', JSON.stringify(sv));
-        if (n === 'practicemode') autoSolverBoxPracticeOnlyMode = v;
-        else if (n === 'lessonmode') autoSolverBoxRepeatLessonMode = v;
-        else if (n === 'pathmode') autoSolverBoxPathMode = v;
-        else if (n === 'listeningmode') autoSolverBoxListeningOnlyMode = v;
-        else if (n === 'automatedsolving') autoSolverBoxAutomatedSolvingActive = v;
-        else if (n === 'boxvisibility') autoSolverBoxVisibility = v;
-    };
-
-
-    let DLPpromotionBubbleVisibility;
-    if (JSON.parse(localStorage.getItem('DLP4Uz53cm6wjnOG7tY')) === null) {
-        DLPpromotionBubbleVisibility = true;
-    } else {
-        DLPpromotionBubbleVisibility = JSON.parse(localStorage.getItem('DLP4Uz53cm6wjnOG7tY'));
-    }
-
-    let wasDuolingoProSettingsButtonOnePressed = false;
-
-    // Duolingo Pro Settings Variables Start
-
-    let AutoSolverSettingsShowPracticeOnlyModeForAutoSolverBox = true;
-    let AutoSolverSettingsShowRepeatLessonModeForAutoSolverBox = true;
-    let AutoSolverSettingsShowListeningOnlyModeForAutoSolverBox = true;
-
-    let isTabMuted;
-    if (JSON.parse(localStorage.getItem('DLPisTabMuted')) === null) isTabMuted = false;
-    else isTabMuted = JSON.parse(localStorage.getItem('DLPisTabMuted'));
-
-    let AutoSolverSettingsLowPerformanceMode = false;
-    if (JSON.parse(localStorage.getItem('AutoSolverSettingsLowPerformanceMode')) === null) {
-        AutoSolverSettingsLowPerformanceMode = false; // default
-    } else {
-        AutoSolverSettingsLowPerformanceMode = JSON.parse(localStorage.getItem('AutoSolverSettingsLowPerformanceMode'));
-    }
-
-    let DuolingoProSettingsProBlockMode = false;
-    if (JSON.parse(localStorage.getItem('DuolingoProSettingsProBlockMode')) === null) {
-        DuolingoProSettingsProBlockMode = false; // default
-    } else {
-        DuolingoProSettingsProBlockMode = JSON.parse(localStorage.getItem('DuolingoProSettingsProBlockMode'));
-        if (!DuolingoProSettingsProBlockMode) {
-            ProBlockBannerOneVisible = true;
-            localStorage.setItem('ProBlockBannerOneVisible', ProBlockBannerOneVisible);
-        }
-    }
-
-    let DuolingoProSettingsXPMode = false;
-    if (JSON.parse(localStorage.getItem('DuolingoProSettingsXPMode')) === null) {
-        DuolingoProSettingsXPMode = false;
-    } else {
-        DuolingoProSettingsXPMode = JSON.parse(localStorage.getItem('DuolingoProSettingsXPMode'));
-    }
-
-    let DuolingoProSettingsTurboSolveMode = false;
-    if (JSON.parse(localStorage.getItem('DuolingoProSettingsTurboSolveMode')) === null) {
-        DuolingoProSettingsTurboSolveMode = false;
-    } else {
-        DuolingoProSettingsTurboSolveMode = JSON.parse(localStorage.getItem('DuolingoProSettingsTurboSolveMode'));
-    }
-
-    let DuolingoProSettingsNeverEndMode = false;
-    if (JSON.parse(localStorage.getItem('DuolingoProSettingsNeverEndMode')) === null) {
-        DuolingoProSettingsNeverEndMode = false;
-    } else {
-        DuolingoProSettingsNeverEndMode = JSON.parse(localStorage.getItem('DuolingoProSettingsNeverEndMode'));
-    }
-
-    let DuolingoProShadeLessonsMode = false;
-    if (JSON.parse(localStorage.getItem('DuolingoProShadeLessonsMode')) === null) {
-        DuolingoProShadeLessonsMode = false;
-    } else {
-        DuolingoProShadeLessonsMode = JSON.parse(localStorage.getItem('DuolingoProShadeLessonsMode'));
-    }
-
-    let DuolingoProAntiStuckProtectionMode = true;
-    if (JSON.parse(localStorage.getItem('DuolingoProAntiStuckProtectionMode')) === null) {
-        DuolingoProAntiStuckProtectionMode = true;
-    } else {
-        DuolingoProAntiStuckProtectionMode = JSON.parse(localStorage.getItem('DuolingoProAntiStuckProtectionMode'));
-    }
-
-    let DuolingoProSettingsUpdateNotifications = true;
-    if (JSON.parse(localStorage.getItem('DuolingoProSettingsUpdateNotifications')) === null) {
-        DuolingoProSettingsUpdateNotifications = true;
-    } else {
-        DuolingoProSettingsUpdateNotifications = JSON.parse(localStorage.getItem('DuolingoProSettingsUpdateNotifications'));
-    }
-
-    let DuolingoProSettingsSolveIntervalValue = true;
-    if (JSON.parse(localStorage.getItem('DuolingoProSettingsSolveIntervalValue')) === null) {
-        DuolingoProSettingsSolveIntervalValue = true;
-    } else {
-        DuolingoProSettingsSolveIntervalValue = JSON.parse(localStorage.getItem('DuolingoProSettingsSolveIntervalValue'));
-    }
-    // Duolingo Pro Settings Variables End
-    let duolingoProPythonanywhere = "https://duolingoprodb.pythonanywhere.com";
-
-    function DuolingoProRounded() {
-        try {
-            let DuolingoProRoundedCSS = `
-    @font-face {
-        font-family: 'Duolingo Pro Rounded';
-        src: url(https://raw.githubusercontent.com/anonymoushackerIV/Duolingo-Pro-Assets/main/fonts/SF-Pro-Rounded-Bold.otf) format('opentype');
-    }
-    `;
-            let styleElement = document.createElement('style');
-            styleElement.type = 'text/css';
-            styleElement.appendChild(document.createTextNode(DuolingoProRoundedCSS));
-            document.head.appendChild(styleElement);
-        } catch (error) { console.log(error); }
-    }
-    DuolingoProRounded();
-
-    function createButton(id, text, styleClass, eventHandlers) {
-        const button = document.createElement('button');
-        button.id = id;
-        button.innerText = text;
-        button.className = styleClass;
-        Object.keys(eventHandlers).forEach(event => {
-            button.addEventListener(event, eventHandlers[event]);
+        document.getElementById("DLP_Main_Discord_Button_1_ID").addEventListener("click", function() {
+            window.open("https://duolingopro.net/discord", "_blank");
         });
-        return button;
-    }
+        document.getElementById("DLP_Main_GitHub_Button_1_ID").addEventListener("click", function() {
+            window.open("https://duolingopro.net/github", "_blank");
+        });
+        document.getElementById("DLP_Secondary_Discord_Button_1_ID").addEventListener("click", function() {
+            window.open("https://duolingopro.net/discord", "_blank");
+        });
+        document.getElementById("DLP_Secondary_GitHub_Button_1_ID").addEventListener("click", function() {
+            window.open("https://duolingopro.net/github", "_blank");
+        });
+        document.getElementById("DLP_Main_Donate_Button_1_ID").addEventListener("click", openDonateLink);
+        document.getElementById("DLP_Secondary_Donate_Button_1_ID").addEventListener("click", openSecondaryDonateLink);
+        document.querySelectorAll('.GEMS_UNAVAILABLE').forEach(item => {
+            item.addEventListener('click', () => {
+                showNotification("warning", "Gems Function is Unavailable", "The Gems function is currently unavailable. We plan to make it accessible to everyone soon.", 6);
+            });
+        });
+    }, 400);
 
-    let storyStartButton = document.querySelector('[data-test="story-start"]');
-    if (storyStartButton) {
-        storyStartButton.click();
+    function openDonateLink() {
+        window.open("https://patreon.com/anonymoushackerIV", "_blank");
+    }
+    function openSecondaryDonateLink() {
+        window.open("https://patreon.com/anonymoushackerIV", "_blank");
     }
 
     function addButtons() {
+        function createButton(id, text, styleClass, eventHandlers) {
+            const button = document.createElement('button');
+            button.id = id;
+            button.innerText = text;
+            button.className = styleClass;
+            Object.keys(eventHandlers).forEach(event => {
+                button.addEventListener(event, eventHandlers[event]);
+            });
+            return button;
+        }
         if (window.location.pathname === '/learn' && document.querySelector('a[data-test="global-practice"]')) {
             return;
         }
@@ -257,16 +1592,14 @@ function OMEGA() {
             return;
         }
 
-        let storyStartButton = document.querySelector('[data-test="story-start"]');
-        if (storyStartButton) {
-            storyStartButton.click();
-        }
-
         const nextButton = document.querySelector('[data-test="player-next"]');
         const storiesContinueButton = document.querySelector('[data-test="stories-player-continue"]');
         const storiesDoneButton = document.querySelector('[data-test="stories-player-done"]');
         const target = nextButton || storiesContinueButton || storiesDoneButton;
 
+        if (document.querySelector('[data-test="story-start"]') && storageSession.legacy.status) {
+            document.querySelector('[data-test="story-start"]').click();
+        }
         if (!target) {
             const startButton = document.querySelector('[data-test="start-button"]');
             if (!startButton) {
@@ -286,66 +1619,17 @@ function OMEGA() {
             });
             startButton.parentNode.appendChild(solveAllButton);
         } else {
-            if (document.querySelector('._10vOG, ._2L_r0') !== null) {
-                findReactMainElementClass = '_3FiYg';
-                document.querySelector('._10vOG, ._2L_r0').style.display = "flex";
-                document.querySelector('._10vOG, ._2L_r0').style.gap = "20px";
-            } else if (document.querySelector('._2sXnx') !== null) {
-                findReactMainElementClass = '_3js2_';
-                document.querySelector('._2sXnx').style.display = "flex";
-                document.querySelector('._2sXnx').style.gap = "20px";
-            } else if (document.querySelector('.MYehf') !== null) {
-                findReactMainElementClass = 'wqSzE';
+            if (document.querySelector('.MYehf') !== null) {
                 document.querySelector('.MYehf').style.display = "flex";
                 document.querySelector('.MYehf').style.gap = "20px";
-            } else if (document.querySelector(".FmlUF") !== null) {
-                // Story
+            } else if (document.querySelector(".FmlUF") !== null) { // Story
                 findReactMainElementClass = '_3TJzR';
                 document.querySelector('._3TJzR').style.display = "flex";
                 document.querySelector('._3TJzR').style.gap = "20px";
             }
 
             const buttonsCSS = document.createElement('style');
-            buttonsCSS.innerHTML = `
-        .solve-btn {
-            position: relative;
-            min-width: 150px;
-            font-size: 17px;
-            border: none;
-            border-bottom: 4px solid #2b70c9;
-            border-radius: 16px;
-            padding: 13px 16px;
-            transition: filter .0s;
-            font-weight: 700;
-            letter-spacing: .8px;
-            background: #1cb0f6;
-            color: rgb(var(--color-snow));
-            cursor: pointer;
-        }
-        .pause-btn {
-            position: relative;
-            min-width: 100px;
-            font-size: 17px;
-            border: none;
-            border-bottom: 4px solid #ff9600;
-            border-radius: 16px;
-            padding: 13px 16px;
-            transition: filter .0s;
-            font-weight: 700;
-            letter-spacing: .8px;
-            background: #ffc800;
-            color: rgb(var(--color-snow));
-            cursor: pointer;
-        }
-        .auto-solver-btn:hover {
-            filter: brightness(1.1);
-        }
-        .auto-solver-btn:active {
-            border-bottom: 0px;
-            margin-bottom: 4px;
-            top: 4px;
-        }
-        `;
+            buttonsCSS.innerHTML = HTML4;
             document.head.appendChild(buttonsCSS);
 
             const solveCopy = createButton('solveAllButton', solvingIntervalId ? 'PAUSE SOLVE' : 'SOLVE ALL', 'auto-solver-btn solve-btn', {
@@ -358,4777 +1642,1305 @@ function OMEGA() {
 
             target.parentElement.appendChild(pauseCopy);
             target.parentElement.appendChild(solveCopy);
+
+            if (storageSession.legacy.status) {
+                solving("start");
+            }
         }
     }
     setInterval(addButtons, 500);
 
-    const DLPuniversalCSS = `
-:root {
-    --DLP-red: #FF3B30;
-    --DLP-orange: #FF9500;
-    --DLP-yellow: #FFCC00;
-    --DLP-green: 52, 199, 89;
-    --DLP-cyan: #5AC8FA;
-    --DLP-blue: 0, 122, 255;
-    --DLP-indigo: #5856D6;
-    --DLP-purple: #AF52DE;
-    --DLP-pink: 255, 45, 85;
-}
 
-.noSelect {
-    user-select: none;
-    -moz-user-select: none;
-    -webkit-text-select: none;
-    -webkit-user-select: none;
-}
-
-.DPLBoxStyleT1 {
-    display: flex;
-    width: 512px;
-    max-height: 84%;
-    gap: 8px;
-    padding: 16px;
-    justify-content: center;
-    align-items: center;
-	flex-direction: column;
-
-    border-radius: 16px;
-    border: 2px solid rgb(var(--color-swan));
-    background: rgb(var(--color-snow));
-    box-shadow: 0px 0px 16px 0px rgba(0, 0, 0, 0.10);
-
-    transition: .2s;
-    <!-- transform: scale(0.8); -->
-
-}
-.DPLBoxShadowStyleT1 {
-    position: fixed;
-    display: flex;
-    width: 100%;
-    height: 100vh;
-    justify-content: center;
-    align-items: center;
-    flex-shrink: 0;
-
-    background: rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(8px);
-    opacity: 0;
-    transition: .2s;
-
-    z-index: 128;
-    top: 0px;
-    bottom: 0px;
-    right: 0px;
-    left: 0px;
-}
-
-.VStack {
-    display: flex;
-    flex-direction: column;
-}
-.HStack {
-    display: flex;
-    flex-direction: row;
-}
-
-.selfFill {
-    align-self: stretch;
-}
-
-.paragraphText {
-    font-family: Duolingo Pro Rounded, 'din-round' !important;
-    font-size: 16px;
-    font-weight: 700;
-    line-height: normal;
-
-    margin: 0;
-}
-.textFill {
-    flex: 1 0 0;
-}
-
-.DPLPrimaryButtonStyleT1 {
-    display: flex;
-    height: 54px;
-    padding: 16px;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    flex: 1 0 0;
-
-    border-radius: 8px;
-    border: 2px solid rgba(0, 0, 0, 0.20);
-    border-bottom: 4px solid rgba(0, 0, 0, 0.20);
-    background: rgb(var(--DLP-blue));
-
-    color: #fff;
-    font-weight: 700;
-    font-family: Duolingo Pro Rounded, 'din-round' !important;
-
-    transition: .1s;
-    cursor: pointer;
-}
-.DPLPrimaryButtonStyleT1:hover {
-    filter: brightness(0.95);
-}
-.DPLPrimaryButtonStyleT1:active {
-    filter: brightness(0.9);
-    height: 52px;
-    margin-top: 2px;
-    border-bottom: 2px solid rgba(0, 0, 0, 0.20);
-}
-.DPLPrimaryButtonDisabledStyleT1 {
-    display: flex;
-
-    height: 52px;
-    margin-top: 2px;
-
-    padding: 16px;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    flex: 1 0 0;
-
-    border-radius: 8px;
-    border: 2px solid rgba(0, 0, 0, 0.20);
-    opacity: 0.5;
-    background: rgb(var(--DLP-blue));
-
-    color: #fff;
-    font-weight: 700;
-    font-family: Duolingo Pro Rounded, 'din-round' !important;
-
-    transition: .1s;
-    cursor: pointer;
-}
-
-.DPLSecondaryButtonStyleT1 {
-    display: flex;
-    height: 54px;
-    padding: 16px;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-
-    border-radius: 8px;
-    border: 2px solid rgb(var(--DLP-blue), 0.1);
-    border-bottom: 4px solid rgb(var(--DLP-blue), 0.1);
-    background: rgb(var(--DLP-blue), 0.1);
-
-    color: rgb(var(--DLP-blue));
-    font-weight: 700;
-    font-family: Duolingo Pro Rounded, 'din-round' !important;
-
-    transition: .1s;
-    cursor: pointer;
-}
-.DPLSecondaryButtonStyleT1:hover {
-    filter: brightness(0.95);
-}
-.DPLSecondaryButtonStyleT1:active {
-    filter: brightness(0.9);
-    height: 52px;
-    margin-top: 2px;
-    border-bottom: 2px solid rgb(var(--DLP-blue), 0.1);
-}
-
-
-.DLPSettingsToggleT1 {
-    display: inline-flex;
-    height: 48px;
-    width: 64px;
-    justify-content: flex-end;
-    align-items: center;
-    flex-shrink: 0;
-
-    border-radius: 16px;
-
-    cursor: pointer;
-}
-
-.DLPSettingsToggleT1B1 {
-    display: flex;
-    height: 32px;
-    width: 32px;
-    justify-content: center;
-    align-items: center;
-
-    border-radius: 8px;
-
-    transition: .2s;
-}
-
-.DLPSettingsToggleT1:hover .DLPSettingsToggleT1B1 {
-    filter: brightness(0.9);
-    transform: scale(1.05);
-}
-
-.DLPSettingsToggleT1:active .DLPSettingsToggleT1B1 {
-    filter: brightness(0.9);
-    transform: scale(0.9);
-}
-
-.DLPSettingsToggleT1ON {
-    border: 2px solid rgba(52, 199, 89, 0.1);
-    background: rgba(var(--DLP-green), 0.1);
-}
-
-.DLPSettingsToggleT1ONB1 {
-    border: 2px solid rgba(0, 0, 0, 0.1);
-    background: rgba(var(--DLP-green));
-    margin-right: 6px;
-}
-
-.DLPSettingsToggleT1OFF {
-    border: 2px solid rgba(255, 45, 85, 0.1);
-    background: rgba(var(--DLP-pink), 0.1);
-}
-
-.DLPSettingsToggleT1OFFB1 {
-    border: 2px solid rgba(0, 0, 0, 0.1);
-    background: rgba(var(--DLP-pink));
-    margin-right: 22px;
-}
-
-.DLPSettingsToggleT2 {
-    display: flex;
-    width: 96px;
-    height: 48px;
-    align-items: center;
-    flex-shrink: 0;
-
-    border-radius: 16px;
-    border: 2px solid rgba(0, 122, 255, 0.1);
-    background: rgba(var(--DLP-blue), 0.1);
-
-    cursor: pointer;
-}
-
-.DLPSettingsToggleT2B1 {
-    display: flex;
-    height: 32px;
-    width: 32px;
-    margin-left: 6px;
-    justify-content: center;
-    align-items: center;
-
-    border-radius: 8px;
-    border: 2px solid rgba(0, 0, 0, 0.1);
-    background: rgba(var(--DLP-blue));
-
-    transition: .2s;
-}
-
-.DLPSettingsToggleT2:hover .DLPSettingsToggleT2B1 {
-    filter: brightness(0.9);
-    transform: scale(1.05);
-}
-
-.DLPSettingsToggleT2:active .DLPSettingsToggleT2B1 {
-    filter: brightness(0.9);
-    transform: scale(0.9);
-}
-
-.DLPSettingsToggleT2B1T1 {
-    color: #FFF;
-    text-align: center;
-    font-size: 16px;
-    font-weight: 700;
-    font-family: Duolingo Pro Rounded, 'din-round' !important;
-}
-
-.DLPSettingsToggleT3 {
-    display: flex;
-    width: 48px;
-    height: 48px;
-    align-items: center;
-    flex-shrink: 0;
-
-    border-radius: 16px;
-    border: 2px solid rgba(0, 122, 255, 0.1);
-    background: rgba(var(--DLP-blue), 0.1);
-
-    cursor: pointer;
-}
-
-.DLPSettingsToggleT3B1 {
-    display: flex;
-    height: 32px;
-    width: 32px;
-    margin-left: 6px;
-    justify-content: center;
-    align-items: center;
-
-    border-radius: 8px;
-    border: 2px solid rgba(0, 0, 0, 0.1);
-    background: rgba(var(--DLP-blue));
-
-    transition: .2s;
-}
-
-.DLPSettingsToggleT3:hover .DLPSettingsToggleT3B1 {
-    filter: brightness(0.9);
-    transform: scale(1.05);
-}
-
-.DLPSettingsToggleT3:active .DLPSettingsToggleT3B1 {
-    filter: brightness(0.9);
-    transform: scale(0.9);
-}
-
-.DLPFeedbackTextFieldT1 {
-    display: flex;
-    width: 100%;
-    padding: 16px;
-    justify-content: center;
-    align-items: flex-start;
-    align-self: stretch;
-
-    border-radius: 8px;
-    border: 2px solid rgb(var(--color-eel), 0.1);
-    background: rgba(var(--color-swan), 0.5);
-
-    color: rgb(var(--color-eel));
-    font-size: 16px;
-    font-weight: 700;
-    font-family: Duolingo Pro Rounded, 'din-round' !important;
-
-    transition: .2s;
-}
-.DLPFeedbackTextFieldT1::placeholder {
-    font-weight: 700;
-    color: rgb(var(--color-eel), 0.5);
-}
-.DLPFeedbackTextFieldT1:focus {
-    border: 2px solid rgba(var(--DLP-blue));
-}
-`;
-
-    let injectedDLPuniversalCSS = null;
-    function DLPuniversalCSSfunc() {
-        try {
-            if (!injectedDLPuniversalCSS) {
-                injectedDLPuniversalCSS = document.createElement('style');
-                injectedDLPuniversalCSS.type = 'text/css';
-                injectedDLPuniversalCSS.innerHTML = DLPuniversalCSS;
-                document.head.appendChild(injectedDLPuniversalCSS);
-            } else {
-            }
-        } catch (error) { console.log(error); }
-    }
-    DLPuniversalCSSfunc();
-
-    const htmlContent = `
-<div class="AutoSolverBoxFirst">
-    <div id="HideAutoSolverBoxButtonOneID" class="AutoSolverBoxAlertOneBox" style="backdrop-filter: blur(32px); border: 2px solid rgba(0, 0, 0, 0.10); background: rgba(0, 122, 255, 0.60); padding: 8px; border-radius: 8px; align-self: end;">
-        <svg id="HideAutoSolverBoxButtonOneIconOneID" width="23" height="15" viewBox="0 0 23 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M11.4297 14.1562C5.05469 14.1562 0.75 8.95312 0.75 7.375C0.75 5.78906 5.05469 0.59375 11.4297 0.59375C17.8984 0.59375 22.1172 5.78906 22.1172 7.375C22.1172 8.95312 17.9062 14.1562 11.4297 14.1562ZM11.4375 11.5078C13.7266 11.5078 15.5938 9.61719 15.5938 7.375C15.5938 5.07812 13.7266 3.24219 11.4375 3.24219C9.13281 3.24219 7.27344 5.07031 7.27344 7.375C7.28125 9.61719 9.13281 11.5078 11.4375 11.5078ZM11.4297 9C10.5312 9 9.80469 8.26562 9.80469 7.38281C9.80469 6.49219 10.5312 5.75 11.4297 5.75C12.3281 5.75 13.0625 6.49219 13.0625 7.38281C13.0625 8.26562 12.3281 9 11.4297 9Z" fill="rgba(255, 255, 255, 0.80)"/>
-        </svg>
-        <svg id="HideAutoSolverBoxButtonOneIconTwoID" width="23" height="16" viewBox="0 0 23 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M17.7266 15.4922L4.1875 1.97656C3.9375 1.72656 3.9375 1.29688 4.1875 1.04688C4.44531 0.789062 4.875 0.789062 5.125 1.04688L18.6562 14.5625C18.9141 14.8203 18.9219 15.2188 18.6562 15.4922C18.3984 15.7578 17.9844 15.75 17.7266 15.4922ZM18.4609 12.9062L15.3281 9.75781C15.5 9.32812 15.5938 8.85938 15.5938 8.375C15.5938 6.07812 13.7266 4.24219 11.4375 4.24219C10.9531 4.24219 10.4922 4.33594 10.0547 4.49219L7.75 2.17969C8.875 1.8125 10.1016 1.59375 11.4297 1.59375C17.8984 1.59375 22.1172 6.78906 22.1172 8.375C22.1172 9.28125 20.7344 11.3438 18.4609 12.9062ZM11.4297 15.1562C5.05469 15.1562 0.75 9.95312 0.75 8.375C0.75 7.46094 2.16406 5.35938 4.54688 3.77344L7.59375 6.82812C7.39062 7.29688 7.27344 7.82812 7.27344 8.375C7.28125 10.6172 9.13281 12.5078 11.4375 12.5078C11.9766 12.5078 12.4922 12.3906 12.9609 12.1875L15.2812 14.5078C14.125 14.9141 12.8281 15.1562 11.4297 15.1562ZM13.9609 8.21094C13.9609 8.27344 13.9609 8.32812 13.9531 8.38281L11.3203 5.75781C11.375 5.75 11.4375 5.75 11.4922 5.75C12.8594 5.75 13.9609 6.85156 13.9609 8.21094ZM8.88281 8.32031C8.88281 8.25781 8.88281 8.1875 8.89062 8.125L11.5391 10.7734C11.4766 10.7812 11.4219 10.7891 11.3594 10.7891C10 10.7891 8.88281 9.67969 8.88281 8.32031Z" fill="white" fill-opacity="0.8"/>
-        </svg>
-        <p id="HideAutoSolverBoxButtonOneTextOneID" class="paragraphText noSelect" style="color: rgba(255, 255, 255, 0.80);">Hide</p>
-        <!--<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 15" width="9" height="15" fill="#007AFF">
-            <path d="M8.57031 7.35938C8.57031 7.74219 8.4375 8.0625 8.10938 8.375L2.20312 14.1641C1.96875 14.3984 1.67969 14.5156 1.33594 14.5156C0.648438 14.5156 0.0859375 13.9609 0.0859375 13.2734C0.0859375 12.9219 0.226562 12.6094 0.484375 12.3516L5.63281 7.35156L0.484375 2.35938C0.226562 2.10938 0.0859375 1.78906 0.0859375 1.44531C0.0859375 0.765625 0.648438 0.203125 1.33594 0.203125C1.67969 0.203125 1.96875 0.320312 2.20312 0.554688L8.10938 6.34375C8.42969 6.64844 8.57031 6.96875 8.57031 7.35938Z"/>
-        </svg>-->
-    </div>
-    <div class="AutoSolverBoxBackground">
-        <div class="AutoSolverBoxLayers">
-            <div class="AutoSolverBoxAlertSectionOne">
-                <div class="AutoSolverBoxAlertSectionOneSystemSection">
-
-                    <div id="SendFeedbackButtonOne" class="AutoSolverBoxAlertOneBox" style="border: 2px solid rgba(0, 122, 255, 0.10); flex: 1 0 0; background: rgba(0, 122, 255, 0.10);">
-                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M5.22656 17.3125C4.70312 17.3125 4.39062 16.9531 4.39062 16.3906V14.1641H3.6875C1.52344 14.1641 -0.0078125 12.7109 -0.0078125 10.3438V4.14844C-0.0078125 1.77344 1.42969 0.320312 3.82031 0.320312H14.1641C16.5547 0.320312 17.9922 1.77344 17.9922 4.14844V10.3438C17.9922 12.7109 16.5547 14.1641 14.1641 14.1641H9.22656L6.29688 16.7734C5.86719 17.1562 5.57812 17.3125 5.22656 17.3125Z" fill="#007AFF"/>
-                        </svg>
-                        <p class="paragraphText noSelect textFill" style="color: #007AFF;">Feedback</p>
-                        <!--<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 15" width="9" height="15" fill="#007AFF">
-                            <path d="M8.57031 7.35938C8.57031 7.74219 8.4375 8.0625 8.10938 8.375L2.20312 14.1641C1.96875 14.3984 1.67969 14.5156 1.33594 14.5156C0.648438 14.5156 0.0859375 13.9609 0.0859375 13.2734C0.0859375 12.9219 0.226562 12.6094 0.484375 12.3516L5.63281 7.35156L0.484375 2.35938C0.226562 2.10938 0.0859375 1.78906 0.0859375 1.44531C0.0859375 0.765625 0.648438 0.203125 1.33594 0.203125C1.67969 0.203125 1.96875 0.320312 2.20312 0.554688L8.10938 6.34375C8.42969 6.64844 8.57031 6.96875 8.57031 7.35938Z"/>
-                        </svg>-->
-                    </div>
-
-                    <div id="DuolingoProSettingsButtonOne" class="AutoSolverBoxAlertOneBox" style="border: 2px solid rgba(0, 122, 255, 0.10); flex: 1 0 0; background: rgba(0, 122, 255, 0.10);">
-                        <svg width="19" height="19" viewBox="0 0 19 19" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M9.46094 17.1875C9.28906 17.1875 9.13281 17.1797 8.96875 17.1719L8.55469 17.9453C8.42969 18.1875 8.17188 18.3281 7.89062 18.2891C7.60156 18.2344 7.40625 18.0156 7.36719 17.7344L7.24219 16.8672C6.92188 16.7812 6.61719 16.6641 6.32031 16.5469L5.67969 17.1172C5.47656 17.3047 5.17969 17.3516 4.92188 17.2109C4.67188 17.0547 4.57031 16.7891 4.625 16.5156L4.80469 15.6562C4.54688 15.4688 4.28906 15.2578 4.05469 15.0312L3.25781 15.3672C2.98438 15.4844 2.71094 15.4062 2.50781 15.1797C2.34375 14.9688 2.3125 14.6719 2.46094 14.4375L2.92188 13.6875C2.75 13.4219 2.59375 13.1406 2.4375 12.8438L1.57031 12.8828C1.28906 12.8984 1.03125 12.7344 0.945312 12.4531C0.851562 12.1953 0.9375 11.9062 1.15625 11.7344L1.84375 11.1953C1.76562 10.8828 1.70312 10.5625 1.67188 10.2344L0.84375 9.96094C0.5625 9.875 0.398438 9.64844 0.398438 9.35938C0.398438 9.07031 0.5625 8.84375 0.84375 8.75L1.67188 8.48438C1.70312 8.15625 1.76562 7.84375 1.84375 7.52344L1.15625 6.97656C0.9375 6.8125 0.851562 6.53125 0.945312 6.27344C1.03125 5.99219 1.28906 5.83594 1.57031 5.84375L2.4375 5.875C2.59375 5.57812 2.75 5.30469 2.92188 5.02344L2.46094 4.28125C2.3125 4.05469 2.34375 3.75781 2.50781 3.54688C2.71094 3.32031 2.98438 3.24219 3.25 3.35938L4.05469 3.67969C4.28906 3.46875 4.54688 3.25781 4.80469 3.0625L4.625 2.21875C4.5625 1.92188 4.67969 1.65625 4.91406 1.51562C5.1875 1.375 5.47656 1.41406 5.6875 1.60938L6.32031 2.17969C6.61719 2.05469 6.92969 1.94531 7.24219 1.85156L7.36719 0.992188C7.40625 0.710938 7.60156 0.492188 7.88281 0.445312C8.17188 0.398438 8.42969 0.53125 8.55469 0.765625L8.96875 1.54688C9.13281 1.53906 9.28906 1.53125 9.46094 1.53125C9.61719 1.53125 9.78125 1.53906 9.94531 1.54688L10.3594 0.765625C10.4766 0.539062 10.7344 0.398438 11.0234 0.4375C11.3047 0.492188 11.5078 0.710938 11.5469 0.992188L11.6719 1.85156C11.9844 1.94531 12.2891 2.05469 12.5859 2.17969L13.2266 1.60938C13.4375 1.41406 13.7266 1.375 13.9922 1.51562C14.2344 1.65625 14.3516 1.92188 14.2891 2.21094L14.1094 3.0625C14.3594 3.25781 14.6172 3.46875 14.8516 3.67969L15.6562 3.35938C15.9297 3.24219 16.2031 3.32031 16.4062 3.54688C16.5703 3.75781 16.5938 4.05469 16.4453 4.28125L15.9844 5.02344C16.1641 5.30469 16.3203 5.57812 16.4688 5.875L17.3438 5.84375C17.6172 5.83594 17.8828 5.99219 17.9688 6.27344C18.0625 6.53125 17.9609 6.80469 17.75 6.97656L17.0703 7.51562C17.1484 7.84375 17.2109 8.15625 17.2422 8.48438L18.0625 8.75C18.3438 8.85156 18.5234 9.07031 18.5234 9.35938C18.5234 9.64062 18.3438 9.86719 18.0625 9.96094L17.2422 10.2344C17.2109 10.5625 17.1484 10.8828 17.0703 11.1953L17.7578 11.7344C17.9688 11.9062 18.0625 12.1953 17.9688 12.4531C17.8828 12.7344 17.6172 12.8984 17.3438 12.8828L16.4688 12.8438C16.3203 13.1406 16.1641 13.4219 15.9844 13.6875L16.4453 14.4297C16.6016 14.6797 16.5703 14.9688 16.4062 15.1797C16.2031 15.4062 15.9219 15.4844 15.6562 15.3672L14.8594 15.0312C14.6172 15.2578 14.3594 15.4688 14.1094 15.6562L14.2891 16.5078C14.3516 16.7891 14.2344 17.0547 14 17.2031C13.7266 17.3516 13.4375 17.2969 13.2266 17.1172L12.5859 16.5469C12.2891 16.6641 11.9844 16.7812 11.6719 16.8672L11.5469 17.7344C11.5078 18.0156 11.3047 18.2344 11.0312 18.2812C10.7344 18.3281 10.4688 18.1953 10.3516 17.9453L9.94531 17.1719C9.78125 17.1797 9.61719 17.1875 9.46094 17.1875ZM9.44531 6.95312C10.4844 6.95312 11.375 7.60938 11.7109 8.53125H15.3281C14.9375 5.61719 12.4922 3.39062 9.46094 3.39062C8.64062 3.39062 7.86719 3.55469 7.16406 3.84375L8.99219 7C9.14062 6.96875 9.28906 6.95312 9.44531 6.95312ZM3.53906 9.35938C3.53906 11.2422 4.38281 12.9141 5.71875 14.0078L7.60156 10.9141C7.25 10.4922 7.03906 9.95312 7.03906 9.36719C7.03906 8.77344 7.25781 8.22656 7.60938 7.80469L5.78125 4.66406C4.40625 5.75 3.53906 7.44531 3.53906 9.35938ZM9.44531 10.2656C9.96094 10.2656 10.3516 9.875 10.3516 9.36719C10.3516 8.85938 9.96094 8.46094 9.44531 8.46094C8.94531 8.46094 8.54688 8.85938 8.54688 9.36719C8.54688 9.875 8.94531 10.2656 9.44531 10.2656ZM9.46094 15.3281C12.5078 15.3281 14.9609 13.0859 15.3359 10.1562H11.7266C11.4062 11.1016 10.5078 11.7734 9.44531 11.7734C9.28906 11.7734 9.125 11.7578 8.97656 11.7266L7.08594 14.8359C7.8125 15.1484 8.60938 15.3281 9.46094 15.3281Z" fill="#007AFF"/>
-                        </svg>
-                        <p class="paragraphText noSelect textFill" style="color: #007AFF;">Settings</p>
-                        <!--<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 15" width="9" height="15" fill="#007AFF">
-                            <path d="M8.57031 7.35938C8.57031 7.74219 8.4375 8.0625 8.10938 8.375L2.20312 14.1641C1.96875 14.3984 1.67969 14.5156 1.33594 14.5156C0.648438 14.5156 0.0859375 13.9609 0.0859375 13.2734C0.0859375 12.9219 0.226562 12.6094 0.484375 12.3516L5.63281 7.35156L0.484375 2.35938C0.226562 2.10938 0.0859375 1.78906 0.0859375 1.44531C0.0859375 0.765625 0.648438 0.203125 1.33594 0.203125C1.67969 0.203125 1.96875 0.320312 2.20312 0.554688L8.10938 6.34375C8.42969 6.64844 8.57031 6.96875 8.57031 7.35938Z"/>
-                        </svg>-->
-                    </div>
-
-                </div>
-
-                <div class="AutoSolverBoxAlertSectionOneSystemSection">
-                    <div class="AutoSolverBoxAlertOneBox" id="DPSeeAllCurrentIssuesButtonABButtonID" style="flex: 1 0 0; border: 2px solid rgba(255, 59, 48, 0.10); background: rgba(255, 59, 48, 0.10);">
-                        <svg width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M2.75 15.3359C0.96875 15.3359 -0.0078125 14.3672 -0.0078125 12.5938V3.14062C-0.0078125 1.36719 0.96875 0.398438 2.75 0.398438H13.6328C15.4219 0.398438 16.3906 1.36719 16.3906 3.14062V12.5938C16.3906 14.3672 15.4219 15.3359 13.6328 15.3359H2.75ZM2.89844 13.3203H13.4844C14.0625 13.3203 14.375 13.0391 14.375 12.4219V5.47656C14.375 4.85938 14.0625 4.57812 13.4844 4.57812H2.89844C2.3125 4.57812 2.00781 4.85938 2.00781 5.47656V12.4219C2.00781 13.0391 2.3125 13.3203 2.89844 13.3203ZM4.22656 7.23438C3.91406 7.23438 3.69531 7 3.69531 6.71094C3.69531 6.42188 3.91406 6.19531 4.22656 6.19531H12.1797C12.4766 6.19531 12.7031 6.42188 12.7031 6.71094C12.7031 7 12.4766 7.23438 12.1797 7.23438H4.22656ZM4.22656 9.46875C3.91406 9.46875 3.69531 9.25 3.69531 8.96094C3.69531 8.66406 3.91406 8.42969 4.22656 8.42969H12.1797C12.4766 8.42969 12.7031 8.66406 12.7031 8.96094C12.7031 9.25 12.4766 9.46875 12.1797 9.46875H4.22656ZM4.22656 11.7031C3.91406 11.7031 3.69531 11.4766 3.69531 11.1953C3.69531 10.8984 3.91406 10.6641 4.22656 10.6641H9.1875C9.48438 10.6641 9.71094 10.8984 9.71094 11.1953C9.71094 11.4766 9.48438 11.7031 9.1875 11.7031H4.22656Z" fill="#FF2D55"/>
-                        </svg>
-                        <p class="paragraphText noSelect textFill" style="color: #FF4B4B; width: 100%;">Release Notes</p>
-                    </div>
-
-                    <div class="AutoSolverBoxAlertOneBox activatorThingDPHDJ" id="DPMainMenuJoinDiscordButtonID" style="width: 48px; justify-content: center; border: 2px solid rgba(0, 0, 0, 0.20); background: #5865F2;" aria-label="Duolingo Pro Discord Server">
-                        <svg width="22" height="16" viewBox="0 0 22 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M18.289 1.34C16.9296 0.714 15.4761 0.259052 13.9565 0C13.7699 0.332095 13.5519 0.77877 13.4016 1.1341C11.7862 0.894993 10.1857 0.894993 8.60001 1.1341C8.44972 0.77877 8.22674 0.332095 8.03844 0C6.51721 0.259052 5.06204 0.715671 3.70267 1.34331C0.960812 5.42136 0.21754 9.39811 0.589177 13.3184C2.40772 14.655 4.17011 15.467 5.90275 15.9984C6.33055 15.4189 6.71209 14.8028 7.04078 14.1536C6.41478 13.9195 5.81521 13.6306 5.24869 13.2952C5.39898 13.1856 5.546 13.071 5.68803 12.9531C9.14342 14.5438 12.8978 14.5438 16.3119 12.9531C16.4556 13.071 16.6026 13.1856 16.7512 13.2952C16.183 13.6322 15.5818 13.9211 14.9558 14.1553C15.2845 14.8028 15.6644 15.4205 16.0939 16C17.8282 15.4687 19.5922 14.6567 21.4107 13.3184C21.8468 8.77378 20.6658 4.83355 18.289 1.34ZM7.51153 10.9075C6.47426 10.9075 5.62361 9.95435 5.62361 8.7937C5.62361 7.63305 6.45609 6.67831 7.51153 6.67831C8.56699 6.67831 9.41761 7.63138 9.39945 8.7937C9.40109 9.95435 8.56699 10.9075 7.51153 10.9075ZM14.4884 10.9075C13.4511 10.9075 12.6005 9.95435 12.6005 8.7937C12.6005 7.63305 13.4329 6.67831 14.4884 6.67831C15.5438 6.67831 16.3945 7.63138 16.3763 8.7937C16.3763 9.95435 15.5438 10.9075 14.4884 10.9075Z" fill="white"/>
-                        </svg>
-                    </div>
-                </div>
-
-            </div>
-            <div class="AutoSolverBoxTitleSectionOne">
-                <p class="paragraphText noSelect" style="font-size: 24px;">Duolingo Pro</p>
-                <div class="AutoSolverBoxTitleSectionOneBETATagOne">
-                    <p class="paragraphText noSelect" style="color: #FFF;">${duolingoProCurrentVersion}</p>
-                </div>
-            </div>
-            <p class="paragraphText noSelect" id="someTextIdk" style="color: rgb(var(--color-wolf));">How many lessons would you like to AutoSolve?</p>
-            <div class="AutoSolverBoxSectionThreeBox">
-                <div class="AutoSolverBoxSectionThreeBoxSectionOne">
-                    <button class="AutoSolverBoxRepeatAmountButton activatorThingDPHDJ" id="DPASBadB1" aria-label="Subtract">-</button>
-                    <div class="AutoSolverBoxRepeatNumberDisplay paragraphText noSelect" id="AutoSolverBoxNumberDisplayID">0</div>
-                    <button class="AutoSolverBoxRepeatAmountButton activatorThingDPHDJ" id="DPASBauB1" aria-label="Add">+</button>
-                    <button class="AutoSolverBoxRepeatAmountButton activatorThingDPHDJ" id="DPASBfmB1" aria-label="Toggle Infinity Mode" style="font-size: 20px;">∞</button>
-                    <button class="AutoSolverBoxRepeatAmountButton activatorThingDPHDJ" id="DLPIDxpMB1ID1" aria-label="Toggle XP Mode">XP</button>
-                </div>
-                <div class="AutoSolverBoxSectionThreeBoxSectionTwo" id="AutoSolverBoxSectionThreeBoxSectionTwoIDOne">
-                    <div class="paragraphText noSelect textFill">Practice Only Mode</div>
-                    <div id="AutoSolverBoxToggleT1ID1" class="DLPSettingsToggleT1 DLPSettingsToggleT1ON">
-                        <div class="DLPSettingsToggleT1B1 DLPSettingsToggleT1ONB1">
-                            <svg class="DLPSettingsToggleT1B1I1" style="display: ;" "16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M6.41406 13.9453C5.91406 13.9453 5.53906 13.7656 5.20312 13.3672L1.17188 8.48438C0.890625 8.16406 0.789062 7.875 0.789062 7.54688C0.789062 6.8125 1.33594 6.27344 2.09375 6.27344C2.53125 6.27344 2.84375 6.42969 3.13281 6.77344L6.375 10.7969L12.7656 0.71875C13.0781 0.226562 13.3984 0.0390625 13.9141 0.0390625C14.6641 0.0390625 15.2109 0.570312 15.2109 1.30469C15.2109 1.57812 15.125 1.86719 14.9219 2.17969L7.64062 13.3125C7.35938 13.7422 6.94531 13.9453 6.41406 13.9453Z" fill="white"/>
-                            </svg>
-                            <svg class="DLPSettingsToggleT1B1I2" style="display: none; transform: scale(0);" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M0.867188 12.9922C0.414062 12.5469 0.429688 11.7578 0.851562 11.3359L5.32031 6.86719L0.851562 2.41406C0.429688 1.98438 0.414062 1.20312 0.867188 0.75C1.32031 0.289062 2.10938 0.304688 2.53125 0.734375L6.99219 5.19531L11.4531 0.734375C11.8906 0.296875 12.6562 0.296875 13.1094 0.75C13.5703 1.20312 13.5703 1.96875 13.125 2.41406L8.67188 6.86719L13.125 11.3281C13.5703 11.7734 13.5625 12.5312 13.1094 12.9922C12.6641 13.4453 11.8906 13.4453 11.4531 13.0078L6.99219 8.54688L2.53125 13.0078C2.10938 13.4375 1.32812 13.4453 0.867188 12.9922Z" fill="white"/>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-                <div class="AutoSolverBoxSectionThreeBoxSectionTwo" id="AutoSolverBoxSectionThreeBoxSectionTwoIDTwo">
-                    <div class="paragraphText noSelect textFill">Repeat Lesson Mode</div>
-                    <div id="AutoSolverBoxToggleT1ID2" class="DLPSettingsToggleT1 DLPSettingsToggleT1ON">
-                        <div class="DLPSettingsToggleT1B1 DLPSettingsToggleT1ONB1">
-                            <svg class="DLPSettingsToggleT1B1I1" style="display: ;" "16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M6.41406 13.9453C5.91406 13.9453 5.53906 13.7656 5.20312 13.3672L1.17188 8.48438C0.890625 8.16406 0.789062 7.875 0.789062 7.54688C0.789062 6.8125 1.33594 6.27344 2.09375 6.27344C2.53125 6.27344 2.84375 6.42969 3.13281 6.77344L6.375 10.7969L12.7656 0.71875C13.0781 0.226562 13.3984 0.0390625 13.9141 0.0390625C14.6641 0.0390625 15.2109 0.570312 15.2109 1.30469C15.2109 1.57812 15.125 1.86719 14.9219 2.17969L7.64062 13.3125C7.35938 13.7422 6.94531 13.9453 6.41406 13.9453Z" fill="white"/>
-                            </svg>
-                            <svg class="DLPSettingsToggleT1B1I2" style="display: none; transform: scale(0);" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M0.867188 12.9922C0.414062 12.5469 0.429688 11.7578 0.851562 11.3359L5.32031 6.86719L0.851562 2.41406C0.429688 1.98438 0.414062 1.20312 0.867188 0.75C1.32031 0.289062 2.10938 0.304688 2.53125 0.734375L6.99219 5.19531L11.4531 0.734375C11.8906 0.296875 12.6562 0.296875 13.1094 0.75C13.5703 1.20312 13.5703 1.96875 13.125 2.41406L8.67188 6.86719L13.125 11.3281C13.5703 11.7734 13.5625 12.5312 13.1094 12.9922C12.6641 13.4453 11.8906 13.4453 11.4531 13.0078L6.99219 8.54688L2.53125 13.0078C2.10938 13.4375 1.32812 13.4453 0.867188 12.9922Z" fill="white"/>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-                <div class="AutoSolverBoxSectionThreeBoxSectionTwo" id="AutoSolverBoxSectionThreeBoxSectionTwoIDThree">
-                    <div class="paragraphText noSelect textFill">Listening Only Mode (Super)</div>
-                    <div id="AutoSolverBoxToggleT1ID3" class="DLPSettingsToggleT1 DLPSettingsToggleT1ON">
-                        <div class="DLPSettingsToggleT1B1 DLPSettingsToggleT1ONB1">
-                            <svg class="DLPSettingsToggleT1B1I1" style="display: ;" "16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M6.41406 13.9453C5.91406 13.9453 5.53906 13.7656 5.20312 13.3672L1.17188 8.48438C0.890625 8.16406 0.789062 7.875 0.789062 7.54688C0.789062 6.8125 1.33594 6.27344 2.09375 6.27344C2.53125 6.27344 2.84375 6.42969 3.13281 6.77344L6.375 10.7969L12.7656 0.71875C13.0781 0.226562 13.3984 0.0390625 13.9141 0.0390625C14.6641 0.0390625 15.2109 0.570312 15.2109 1.30469C15.2109 1.57812 15.125 1.86719 14.9219 2.17969L7.64062 13.3125C7.35938 13.7422 6.94531 13.9453 6.41406 13.9453Z" fill="white"/>
-                            </svg>
-                            <svg class="DLPSettingsToggleT1B1I2" style="display: none; transform: scale(0);" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M0.867188 12.9922C0.414062 12.5469 0.429688 11.7578 0.851562 11.3359L5.32031 6.86719L0.851562 2.41406C0.429688 1.98438 0.414062 1.20312 0.867188 0.75C1.32031 0.289062 2.10938 0.304688 2.53125 0.734375L6.99219 5.19531L11.4531 0.734375C11.8906 0.296875 12.6562 0.296875 13.1094 0.75C13.5703 1.20312 13.5703 1.96875 13.125 2.41406L8.67188 6.86719L13.125 11.3281C13.5703 11.7734 13.5625 12.5312 13.1094 12.9922C12.6641 13.4453 11.8906 13.4453 11.4531 13.0078L6.99219 8.54688L2.53125 13.0078C2.10938 13.4375 1.32812 13.4453 0.867188 12.9922Z" fill="white"/>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-                <p class="paragraphText noSelect" style="margin-top: 4px; margin-bottom: 8px; color: rgb(var(--color-hare));">Turn off all to use Path Mode</p>
-
-                <button class="AutoSolverBoxRepeatAmountButton" id="DPASBsB1" style="width: 100%;">START</button>
-            </div>
-        </div>
-    </div>
-</div>
-`;
-
-    const cssContent = `
-.AutoSolverBoxFirst {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 8px;
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    z-index: 2;
-}
-
-.AutoSolverBoxBackground {
-    display: flex;
-    padding: 16px;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-
-    border-radius: 16px;
-    border: 2px solid rgb(var(--color-swan));
-    background: rgb(var(--color-snow), 0.84);
-    backdrop-filter: blur(32px);
-
-    width: 320px;
-
-    opacity: 0;
-    transition: .5s;
-    overflow: hidden;
-}
-
-.AutoSolverBoxLayers {
-    display: flex;
-    width: 100%;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-
-    transition: .5s;
-}
-
-.AutoSolverBoxAlertSectionOne {
-    display: flex;
-    width: 100%;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-}
-
-.AutoSolverBoxAlertSectionOneSystemSection {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    align-self: stretch;
-}
-
-.AutoSolverBoxAlertOneBox {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    align-self: stretch;
-    padding: 8px;
-    border-radius: 8px;
-    height: 40px;
-
-    cursor: pointer;
-    transition: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.AutoSolverBoxAlertOneBox:hover {
-    filter: brightness(0.9);
-    transform: scale(1.05);
-}
-.AutoSolverBoxAlertOneBox:active {
-    filter: brightness(0.8);
-    transform: scale(0.9);
-}
-
-.AutoSolverBoxAlertOneBoxTextOne {
-    font-weight: 700;
-    font-size: 16px;
-    flex: 1 0 0;
-
-    margin: 0px;
-
-    user-select: none;
-    -moz-user-select: none;
-    -webkit-text-select: none;
-    -webkit-user-select: none;
-}
-
-.AutoSolverBoxSectionThreeBox {
-    display: flex;
-
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-
-    height: 100%;
-    width: 100%;
-}
-
-.AutoSolverBoxTitleSectionOne {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    align-self: stretch;
-    padding-bottom: 8px;
-    padding: 0px;
-}
-
-.AutoSolverBoxTitleSectionOneBETATagOne {
-    display: flex;
-    height: 36px;
-    padding-right: 8px;
-    padding-left: 8px;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    border-radius: 8px;
-    background: #FF2D55;
-    border: 2px solid rgba(0, 0, 0, 0.20);
-}
-
-.AutoSolverBoxTitleSectionOneBETATagOneTextOne {
-    color: #FFF;
-    font-style: normal;
-    font-weight: 700;
-    line-height: normal;
-    margin-top: 0px;
-    margin-bottom: 0px;
-    font-size: 16px;
-
-    cursor: default;
-}
-
-.AutoSolverBoxSectionThreeBoxSectionOne {
-    height: 100%;
-    width: 100%;
-    display: flex;
-
-    justify-content: center;
-    align-items: center;
-    gap: 8px
-}
-
-.AutoSolverBoxRepeatAmountButton {
-    position: relative;
-    display: flex;
-    width: 48px;
-    height: 48px;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
-
-    border-radius: 8px;
-
-    cursor: pointer;
-    transition: all .1s, opacity .2s;
-
-    text-align: center;
-    font-size: 16px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: normal;
-}
-.AutoSolverBoxRepeatAmountButton:hover {
-    filter: brightness(0.95);
-}
-.AutoSolverBoxRepeatAmountButton:active {
-    margin-top: 2px;
-    height: 46px;
-    filter: brightness(0.9);
-}
-
-.AutoSolverBoxRepeatAmountButtonActive {
-    border: 2px solid rgba(0, 0, 0, 0.20);
-    border-bottom: 4px solid rgba(0, 0, 0, 0.20);
-    background: #007AFF;
-
-    color: #FFF;
-}
-.AutoSolverBoxRepeatAmountButtonActive:hover {
-}
-.AutoSolverBoxRepeatAmountButtonActive:active {
-    border-bottom: 2px solid rgba(0, 0, 0, 0.20);
-}
-
-.AutoSolverBoxRepeatAmountButtonDeactive {
-    height: 46px;
-    margin-top: 2px;
-
-    border: 2px solid rgba(0, 0, 0, 0.20);
-    background: #007AFF;
-
-    opacity: 0.5;
-
-    cursor: not-allowed;
-
-    color: #FFF;
-}
-.AutoSolverBoxRepeatAmountButtonDeactive:hover {
-}
-.AutoSolverBoxRepeatAmountButtonDeactive:active {
-}
-
-.AutoSolverBoxRepeatAmountButtonOff {
-    border: 2px solid rgb(var(--color-swan));
-    border-bottom: 4px solid rgb(var(--color-swan));
-    background: rgb(var(--color-snow));
-
-    color: rgb(var(--color-eel));
-}
-.AutoSolverBoxRepeatAmountButtonOff:hover {
-}
-.AutoSolverBoxRepeatAmountButtonOff:active {
-    border-bottom: 2px solid rgb(var(--color-swan));
-}
-
-.AutoSolverBoxRepeatAmountButtonOffDeactive {
-    height: 46px;
-    margin-top: 2px;
-
-    border: 2px solid rgb(var(--color-swan));
-    background: rgb(var(--color-snow));
-
-    opacity: 0.5;
-
-    cursor: not-allowed;
-
-    color: rgb(var(--color-eel));
-}
-.AutoSolverBoxRepeatAmountButtonOffDeactive:hover {
-}
-.AutoSolverBoxRepeatAmountButtonOffDeactive:active {
-}
-
-
-.AutoSolverBoxRepeatNumberDisplay {
-    position: relative;
-    text-align: center;
-
-    display: inline-flex;
-    height: 48px;
-    width: 100%;
-    padding: 16px 0;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-
-    border-radius: 8px;
-    border: 2px solid rgb(var(--color-eel), 0.2);
-    background: rgb(var(--color-swan), 0.8);
-
-    text-align: center;
-
-    transition: all .2s, font-size .0s;
-    z-index: 2;
-}
-
-.AutoSolverBoxSectionThreeBoxSectionTwo {
-    height: 100%;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-}
-`;
-
-    let DVfkMxsABjstoaGw = `
-<div class="AutoSolverBoxLayers" id="talZiehK" style="padding: 16px;">
-    <svg width="34" height="34" viewBox="0 0 34 34" fill="#FF2D55" xmlns="http://www.w3.org/2000/svg">
-        <path d="M30.7812 25.7188L27.8125 22.7344C28.8125 20.9688 29.3906 18.9219 29.3906 16.7188C29.3906 9.85938 23.8594 4.32812 16.9844 4.32812C14.7969 4.32812 12.75 4.90625 10.9844 5.90625L8 2.9375C10.5938 1.21875 13.6875 0.21875 17 0.21875C26.0469 0.21875 33.5 7.67188 33.5 16.7188C33.5 20.0312 32.5 23.125 30.7812 25.7188ZM30.8281 32.4219L1.29688 2.89062C0.796875 2.40625 0.796875 1.53125 1.29688 1.04688C1.8125 0.515625 2.65625 0.53125 3.17188 1.04688L32.6875 30.5469C33.2031 31.0625 33.1875 31.8906 32.6875 32.4062C32.1875 32.9219 31.3438 32.9219 30.8281 32.4219ZM23 27.5469L25.9844 30.5312C23.3906 32.2344 20.3125 33.2344 17 33.2344C7.95312 33.2344 0.5 25.7812 0.5 16.7188C0.5 13.4062 1.5 10.3125 3.21875 7.71875L6.20312 10.7031C5.1875 12.4688 4.60938 14.5312 4.60938 16.7188C4.60938 23.5938 10.125 29.125 17 29.125C19.1875 29.125 21.2344 28.5469 23 27.5469Z"/>
-    </svg>
-    <p class="paragraphText" style="align-self: stretch; color: rgb(var(--color-eel)); text-align: center; font-size: 24px;">You've Been Banned</p>
-    <p class="paragraphText" style="align-self: stretch; color: rgb(var(--color-wolf)); text-align: center;">You’ve been banned from Duolingo Pro because: </p>
-    <p class="paragraphText" id="MHUXHhvVrJjRMuOe" style="align-self: stretch; color: #FF2D55; text-align: center;"></p>
-
-    <div id="ACuvpqwPRPwTYTHRID" class="AutoSolverBoxAlertOneBox" style="margin-top: 8px; align-self: auto; border: 2px solid rgba(0, 122, 255, 0.10); flex: 1 0 0; background: rgba(0, 122, 255, 0.10);">
-        <p class="paragraphText noSelect" style="color: #007AFF;">Get Unbanned</p>
-    </div>
-</div>
-`;
-    let VBvArqbjKNjukomQ = null;
-    function szdfgvhbjnk() {
-        let VRFATlhSBsIqitsa = false;
-        if (JSON.parse(localStorage.getItem('PkvEOSJlElvFWWOGmNxshSsPShkkZwmM')) === null) {
-            VRFATlhSBsIqitsa = false;
-        } else {
-            VRFATlhSBsIqitsa = JSON.parse(localStorage.getItem('PkvEOSJlElvFWWOGmNxshSsPShkkZwmM'));
-            localStorage.setItem('PkvEOSJlElvFWWOGmNxshSsPShkkZwmM', VRFATlhSBsIqitsa);
-        }
-        if (VRFATlhSBsIqitsa) {
-            try {
-                document.querySelector('.AutoSolverBoxLayers').remove();
-                VBvArqbjKNjukomQ = document.createElement('div');
-                VBvArqbjKNjukomQ.innerHTML = DVfkMxsABjstoaGw;
-                document.querySelector('.AutoSolverBoxBackground').appendChild(VBvArqbjKNjukomQ);
-            } catch (error) {}
-        }
-        async function updateWarningsFromURL(url, currentVersion) {
-            try {
-                const response = await fetch(url);
-                if (!response.ok) {
-                    //throw new Error('Network response was not ok');
-                }
-                const data = await response.json();
-                const versionData = data[currentVersion];
-                if (versionData) {
-                    try {
-                        document.querySelector('.AutoSolverBoxLayers').remove();
-                        VBvArqbjKNjukomQ = document.createElement('div');
-                        VBvArqbjKNjukomQ.innerHTML = DVfkMxsABjstoaGw;
-                        document.querySelector('.AutoSolverBoxBackground').appendChild(VBvArqbjKNjukomQ);
-                    } catch (error) {}
-                    autoSolverBoxRepeatAmount = 0;
-                    VRFATlhSBsIqitsa = true;
-                    localStorage.setItem('PkvEOSJlElvFWWOGmNxshSsPShkkZwmM', VRFATlhSBsIqitsa);
-                    for (const warningKey in versionData) {
-                        if (warningKey === 'expiration') {
-                            if (warningKey === 'never' || warningKey === 'forever' || warningKey === '') {
-                            }
-                        } else if (warningKey === 'reason') {
-                            document.querySelector('#MHUXHhvVrJjRMuOe').textContent = versionData[warningKey];
-                        } else if (warningKey === 'rebuttal') {
-                            document.querySelector('#ACuvpqwPRPwTYTHRID').addEventListener('click', () => {
-                                window.open(versionData[warningKey], '_blank');
-                            });
-                        }
-                    }
-                } else {
-                    VRFATlhSBsIqitsa = false;
-                    localStorage.setItem('PkvEOSJlElvFWWOGmNxshSsPShkkZwmM', VRFATlhSBsIqitsa);
-                    document.querySelector('#talZiehK').remove();
-                }
-            } catch (error) {
-                console.log(`Error getting data #1: ${error.message}`);
-            }
-        }
-        updateWarningsFromURL('https://raw.githubusercontent.com/anonymoushackerIV/Duolingo-Pro-Assets/main/resources/security-1.json', String(randomValue));
-    }
-
-    let injectedContainer = null;
-    let injectedStyleElement = null;
-
-    function injectContent() {
-        if (window.location.pathname === '/learn' || window.location.pathname === '/practice-hub') {
-            if (!injectedContainer) {
-                injectedContainer = document.createElement('div');
-                injectedContainer.innerHTML = htmlContent;
-                document.body.appendChild(injectedContainer);
-
-                injectedStyleElement = document.createElement('style');
-                injectedStyleElement.type = 'text/css';
-                injectedStyleElement.innerHTML = cssContent;
-                document.head.appendChild(injectedStyleElement);
-
-                initializeDuolingoProSystemButtons();
-                checkForUpdatesVersion();
-
-                try {
-                    let AutoSolverBoxSectionThreeBoxSectionTwoIDOneForHiding = document.querySelector('#AutoSolverBoxSectionThreeBoxSectionTwoIDOne');
-                    let AutoSolverBoxSectionThreeBoxSectionTwoIDTwoForHiding = document.querySelector('#AutoSolverBoxSectionThreeBoxSectionTwoIDTwo');
-                    let AutoSolverBoxSectionThreeBoxSectionTwoIDThreeForHiding = document.querySelector('#AutoSolverBoxSectionThreeBoxSectionTwoIDThree');
-                    const AutoSolverBoxBackgroundForHiding = document.querySelector('.AutoSolverBoxBackground');
-
-                    if (autoSolverBoxVisibility) {
-                        initializeAutoSolverBoxButtonInteractiveness();
-                        something();
-                        if (!AutoSolverSettingsShowPracticeOnlyModeForAutoSolverBox) {
-                            AutoSolverBoxSectionThreeBoxSectionTwoIDOneForHiding.remove();
-                        }
-                        if (!AutoSolverSettingsShowRepeatLessonModeForAutoSolverBox) {
-                            AutoSolverBoxSectionThreeBoxSectionTwoIDTwoForHiding.remove();
-                        }
-                        if (!AutoSolverSettingsShowListeningOnlyModeForAutoSolverBox) {
-                            AutoSolverBoxSectionThreeBoxSectionTwoIDThreeForHiding.remove();
-                        }
-                    } else {
-                        console.log('error 5');
-                    }
-                } catch(error) {
-                }
-
-                document.getElementById("DPMainMenuJoinDiscordButtonID").addEventListener("click", function() {
-                    var url = "https://discord.gg/r8xQ7K59Mt";
-                    window.open(url, "_blank");
-                });
-            }
-        } else {
-            if (injectedContainer) {
-                document.body.removeChild(injectedContainer);
-                document.head.removeChild(injectedStyleElement);
-                injectedContainer = null;
-                injectedStyleElement = null;
-            }
-        }
-    }
-    setInterval(injectContent, 100);
-
-    function initializeDuolingoProSystemButtons() {
-        const DuolingoProSettingsButtonOne = document.querySelector('#DuolingoProSettingsButtonOne');
-        DuolingoProSettingsButtonOne.addEventListener('click', () => {
-            wasDuolingoProSettingsButtonOnePressed = true;
-        });
-
-        const SendFeedbackButton = document.querySelector('#SendFeedbackButtonOne');
-        SendFeedbackButton.addEventListener('click', () => {
-            if (isLatestVersion) {
-                SendFeedBackBox(true);
-            } else {
-                notificationCall("Update Duolingo Pro to Send Feedback", "The problem you're having might have been fixed with a newer version of Duolingo Pro. Try updating first.");
-            }
-        });
-
-        const SeeCurrentIssuesButton = document.querySelector('#DPSeeAllCurrentIssuesButtonABButtonID');
-        SeeCurrentIssuesButton.addEventListener('click', () => {
-            CurrentIssuesPopUpFunction(true);
-        });
-
-        let _32a = false;
-        let fornow1a;
-        const HideAutoSolverBoxButtonOne = document.querySelector('#HideAutoSolverBoxButtonOneID');
-        const AutoSolverBoxBackground = document.querySelector('.AutoSolverBoxBackground');
-        if (autoSolverBoxVisibility) {
-            AutoSolverBoxBackground.style.opacity = '1';
-            document.querySelector('#HideAutoSolverBoxButtonOneTextOneID').textContent = 'Hide';
-            document.querySelector('#HideAutoSolverBoxButtonOneIconOneID').style.display = 'none';
-            document.querySelector('#HideAutoSolverBoxButtonOneIconTwoID').style.display = '';
-        } else if (!autoSolverBoxVisibility) {
-            fornow1a = document.querySelector('.AutoSolverBoxBackground').offsetHeight;
-
-            document.querySelector('#HideAutoSolverBoxButtonOneTextOneID').textContent = 'Show';
-            document.querySelector('#HideAutoSolverBoxButtonOneIconOneID').style.display = '';
-            document.querySelector('#HideAutoSolverBoxButtonOneIconTwoID').style.display = 'none';
-
-            AutoSolverBoxBackground.style.opacity = '0';
-            fornow1a = document.querySelector('.AutoSolverBoxBackground').offsetHeight;
-            AutoSolverBoxBackground.style.height = '0px';
-
-            _32a = true;
-        }
-        HideAutoSolverBoxButtonOne.addEventListener('click', () => {
-            if (autoSolverBoxVisibility) {
-                document.querySelector('#HideAutoSolverBoxButtonOneTextOneID').textContent = 'Show';
-                HideAutoSolverBoxButtonOne.style.marginBottom = '0px';
-                document.querySelector('#HideAutoSolverBoxButtonOneIconOneID').style.display = '';
-                document.querySelector('#HideAutoSolverBoxButtonOneIconTwoID').style.display = 'none';
-                autoSolverBoxVisibility = false;
-                updateMode('boxvisibility', autoSolverBoxVisibility);
-
-                document.querySelector('.AutoSolverBoxLayers').style.transform = 'scaleY(1.0)';
-                AutoSolverBoxBackground.style.filter = 'blur(0)';
-
-                fornow1a = document.querySelector('.AutoSolverBoxBackground').offsetHeight;
-                AutoSolverBoxBackground.style.height = `${fornow1a}px`;
-                setTimeout(function() {
-                    AutoSolverBoxBackground.style.height = '0px';
-                    AutoSolverBoxBackground.style.opacity = '0';
-
-                    document.querySelector('.AutoSolverBoxLayers').style.transform = 'scaleY(0)';
-                    AutoSolverBoxBackground.style.filter = 'blur(16px)';
-                    setTimeout(function() {
-                    }, 500);
-                }, 50);
-            } else if (!autoSolverBoxVisibility) {
-                document.querySelector('#HideAutoSolverBoxButtonOneTextOneID').textContent = 'Hide';
-                HideAutoSolverBoxButtonOne.style.marginBottom = '';
-                document.querySelector('#HideAutoSolverBoxButtonOneIconOneID').style.display = 'none';
-                document.querySelector('#HideAutoSolverBoxButtonOneIconTwoID').style.display = '';
-                autoSolverBoxVisibility = true;
-                updateMode('boxvisibility', autoSolverBoxVisibility);
-
-                document.querySelector('.AutoSolverBoxLayers').style.transform = 'scaleY(0)';
-                AutoSolverBoxBackground.style.filter = 'blur(16px)';
-
-                setTimeout(function() {
-                    AutoSolverBoxBackground.style.height = `${fornow1a}px`;
-                    AutoSolverBoxBackground.style.opacity = '1';
-
-                    document.querySelector('.AutoSolverBoxLayers').style.transform = 'scaleY(1.0)';
-                    AutoSolverBoxBackground.style.filter = 'blur(0)';
-                    setTimeout(function() {
-                        AutoSolverBoxBackground.style.height = '';
-                    }, 500);
-                }, 10);
-
-                if (_32a) {
-                    something();
-                    initializeAutoSolverBoxButtonInteractiveness();
-                    _32a = false;
-                }
-            }
-        });
-
-    }
-
-    function somethingElse() {
-        let thing = document.getElementById("someTextIdk");
-        if(DuolingoProSettingsXPMode) {
-            thing.textContent = "How much XP would you like to collect?";
-        } else {
-            thing.textContent = "How many lessons would you like to AutoSolve?";
-        }
-    }
-
-    function something() {
-        let AutoSolverBoxRepeatStartButton = document.querySelector('#DPASBsB1');
-        if (autoSolverBoxRepeatAmount > 0 || DuolingoProSettingsNeverEndMode) {
-            AutoSolverBoxRepeatStartButton.classList.add('AutoSolverBoxRepeatAmountButtonActive');
-            try {
-                AutoSolverBoxRepeatStartButton.classList.remove('AutoSolverBoxRepeatAmountButtonDeactive');
-            } catch (error) {}
-        } else {
-            AutoSolverBoxRepeatStartButton.classList.add('AutoSolverBoxRepeatAmountButtonDeactive');
-            try {
-                AutoSolverBoxRepeatStartButton.classList.remove('AutoSolverBoxRepeatAmountButtonActive');
-            } catch (error) {}
-        }
-    }
-
-    let PkJiQETebALNWeLt = 0;
-    function initializeAutoSolverBoxButtonInteractiveness() {
-        const AutoSolverBoxNumberDisplayID = document.querySelector('#AutoSolverBoxNumberDisplayID');
-        const AutoSolverBoxRepeatNumberDownButton = document.querySelector('#DPASBadB1');
-        const AutoSolverBoxRepeatNumberUpButton = document.querySelector('#DPASBauB1');
-        const AutoSolverBoxForeverModeButton = document.querySelector('#DPASBfmB1');
-        const AutoSolverBoxXPModeButton = document.querySelector('#DLPIDxpMB1ID1');
-
-        const AutoSolverBoxRepeatStartButton = document.querySelector('#DPASBsB1');
-
-        DPABaBsFunc1();
-
-        AutoSolverBoxNumberDisplayID.textContent = autoSolverBoxRepeatAmount;
-        AutoSolverBoxForeverModeButtonUpdateFunc();
-        AutoSolverBoxXPModeButtonUpdateFunc();
-
-        somethingElse();
-        something();
-
-        function DPABaBsFunc1() {
-            const AutoSolverBoxRepeatNumberDownButton = document.querySelector('#DPASBadB1');
-            const AutoSolverBoxRepeatNumberUpButton = document.querySelector('#DPASBauB1');
-
-            if (autoSolverBoxRepeatAmount === 0 || autoSolverBoxRepeatAmount < 0) {
-                AutoSolverBoxRepeatNumberDownButton.classList.add('AutoSolverBoxRepeatAmountButtonDeactive');
-                try {
-                    AutoSolverBoxRepeatNumberDownButton.classList.remove('AutoSolverBoxRepeatAmountButtonActive');
-                } catch (error) {}
-            } else {
-                AutoSolverBoxRepeatNumberDownButton.classList.add('AutoSolverBoxRepeatAmountButtonActive');
-                try {
-                    AutoSolverBoxRepeatNumberDownButton.classList.remove('AutoSolverBoxRepeatAmountButtonDeactive');
-                } catch (error) {}
-            }
-            if (autoSolverBoxRepeatAmount === 99999 || autoSolverBoxRepeatAmount > 99999) {
-                AutoSolverBoxRepeatNumberUpButton.classList.add('AutoSolverBoxRepeatAmountButtonDeactive');
-                try {
-                    AutoSolverBoxRepeatNumberUpButton.classList.remove('AutoSolverBoxRepeatAmountButtonActive');
-                } catch (error) {}
-            } else {
-                AutoSolverBoxRepeatNumberUpButton.classList.add('AutoSolverBoxRepeatAmountButtonActive');
-                try {
-                    AutoSolverBoxRepeatNumberUpButton.classList.remove('AutoSolverBoxRepeatAmountButtonDeactive');
-                } catch (error) {}
-            }
-        }
-        function AutoSolverBoxXPModeButtonUpdateFunc() {
-            if (DuolingoProSettingsXPMode) {
-                AutoSolverBoxXPModeButton.classList.add('AutoSolverBoxRepeatAmountButtonActive');
-                try {
-                    AutoSolverBoxXPModeButton.classList.remove('AutoSolverBoxRepeatAmountButtonOff');
-                } catch (error) {}
-            } else {
-                AutoSolverBoxXPModeButton.classList.add('AutoSolverBoxRepeatAmountButtonOff');
-                try {
-                    AutoSolverBoxXPModeButton.classList.remove('AutoSolverBoxRepeatAmountButtonActive');
-                } catch (error) {}
-            }
-        }
-
-        function AutoSolverBoxForeverModeButtonUpdateFunc() {
-            if (DuolingoProSettingsNeverEndMode) {
-                AutoSolverBoxXPModeButton.classList.add('AutoSolverBoxRepeatAmountButtonOffDeactive');
-
-                AutoSolverBoxForeverModeButton.classList.add('AutoSolverBoxRepeatAmountButtonActive');
-                try {
-                    AutoSolverBoxForeverModeButton.classList.remove('AutoSolverBoxRepeatAmountButtonOff');
-                } catch (error) {}
-
-                AutoSolverBoxNumberDisplayID.style.marginLeft = '-56px';
-                AutoSolverBoxNumberDisplayID.style.marginRight = '-56px';
-                AutoSolverBoxRepeatNumberDownButton.style.opacity = '0';
-                //AutoSolverBoxRepeatNumberDownButton.style.filter = 'blur(4px)';
-                AutoSolverBoxRepeatNumberUpButton.style.opacity = '0';
-                //AutoSolverBoxRepeatNumberUpButton.style.filter = 'blur(4px)';
-                AutoSolverBoxNumberDisplayID.textContent = "∞";
-                AutoSolverBoxNumberDisplayID.style.fontSize = '20px';
-            } else {
-                try {
-                    AutoSolverBoxXPModeButton.classList.remove('AutoSolverBoxRepeatAmountButtonOffDeactive');
-                } catch (error) {}
-
-                AutoSolverBoxForeverModeButton.classList.add('AutoSolverBoxRepeatAmountButtonOff');
-                try {
-                    AutoSolverBoxForeverModeButton.classList.remove('AutoSolverBoxRepeatAmountButtonActive');
-                } catch (error) {}
-
-                AutoSolverBoxNumberDisplayID.style.marginLeft = '';
-                AutoSolverBoxNumberDisplayID.style.marginRight = '';
-                AutoSolverBoxRepeatNumberDownButton.style.opacity = '';
-                //AutoSolverBoxRepeatNumberDownButton.style.filter = '';
-                AutoSolverBoxRepeatNumberUpButton.style.opacity = '';
-                //AutoSolverBoxRepeatNumberUpButton.style.filter = '';
-                AutoSolverBoxNumberDisplayID.textContent = autoSolverBoxRepeatAmount;
-                AutoSolverBoxNumberDisplayID.style.fontSize = '';
-            }
-        }
-        if (DuolingoProSettingsNeverEndMode) {
-            AutoSolverBoxNumberDisplayID.textContent = "∞";
-            AutoSolverBoxNumberDisplayID.style.fontSize = '20px';
-        }
-        AutoSolverBoxForeverModeButton.addEventListener('click', () => {
-            DuolingoProSettingsNeverEndMode = !DuolingoProSettingsNeverEndMode;
-            localStorage.setItem('DuolingoProSettingsNeverEndMode', DuolingoProSettingsNeverEndMode);
-            AutoSolverBoxForeverModeButtonUpdateFunc();
-            something();
-        });
-
-
-        AutoSolverBoxXPModeButton.addEventListener('click', () => {
-            if (!DuolingoProSettingsNeverEndMode) {
-                DuolingoProSettingsXPMode = !DuolingoProSettingsXPMode;
-                somethingElse();
-
-                localStorage.setItem('DuolingoProSettingsXPMode', DuolingoProSettingsXPMode);
-                AutoSolverBoxXPModeButtonUpdateFunc();
-                something();
-            }
-        });
-
-        AutoSolverBoxRepeatNumberDownButton.addEventListener('click', () => {
-            if (!DuolingoProSettingsNeverEndMode) {
-                if (autoSolverBoxRepeatAmount > 0) {
-                    if(DuolingoProSettingsXPMode) {
-                        autoSolverBoxRepeatAmount -= 10;
-                        autoSolverBoxRepeatAmount = Math.max(autoSolverBoxRepeatAmount, 0);
-                    } else {
-                        autoSolverBoxRepeatAmount--;
-                    }
-                } else if (autoSolverBoxRepeatAmount <= 0) {
-                    autoSolverBoxRepeatAmount = 0;
-                }
-                AutoSolverBoxNumberDisplayID.textContent = autoSolverBoxRepeatAmount;
-                sessionStorage.setItem('autoSolverBoxRepeatAmount', autoSolverBoxRepeatAmount);
-                DPABaBsFunc1();
-            } else {
-            }
-            something();
-        });
-
-        AutoSolverBoxRepeatNumberUpButton.addEventListener('click', () => {
-            if (!DuolingoProSettingsNeverEndMode) {
-                if (autoSolverBoxRepeatAmount !== 99999) {
-                    if(DuolingoProSettingsXPMode) {
-                        autoSolverBoxRepeatAmount += 10;
-                        autoSolverBoxRepeatAmount = Math.min(autoSolverBoxRepeatAmount, 99999);
-                    } else {
-                        autoSolverBoxRepeatAmount++;
-                    }
-                } else if (autoSolverBoxRepeatAmount >= 99999) {
-                    autoSolverBoxRepeatAmount = 99999;
-                }
-                AutoSolverBoxNumberDisplayID.textContent = autoSolverBoxRepeatAmount;
-                sessionStorage.setItem('autoSolverBoxRepeatAmount', autoSolverBoxRepeatAmount);
-                DPABaBsFunc1();
-            } else {
-            }
-            something();
-        });
-
-
-        if (autoSolverBoxRepeatAmount === 0 && !DuolingoProSettingsNeverEndMode) {
-            autoSolverBoxAutomatedSolvingActive = false;
-            updateMode('automatedsolving', autoSolverBoxAutomatedSolvingActive);
-            AutoSolverBoxRepeatStartButton.textContent = 'START';
-        }
-
-        if (autoSolverBoxAutomatedSolvingActive === true) {
-            AutoSolverBoxRepeatStartButton.textContent = 'STOP';
-            AutoSolverBoxRepeatStartButtonActions();
-        }
-
-        try {
-            AutoSolverBoxRepeatStartButton.addEventListener('click', () => {
-                if (autoSolverBoxRepeatAmount > 0 || DuolingoProSettingsNeverEndMode) {
-                    AutoSolverBoxRepeatStartButton.textContent = AutoSolverBoxRepeatStartButton.textContent === 'START' ? 'STOP' : 'START';
-                    autoSolverBoxAutomatedSolvingActive = !autoSolverBoxAutomatedSolvingActive;
-                    updateMode('automatedsolving', autoSolverBoxAutomatedSolvingActive);
-                }
-                AutoSolverBoxRepeatStartButtonActions();
+    let notificationCount = 0;
+    let currentNotification = [];
+    function showNotification(icon, head, body, time) {
+        notificationCount++;
+        let notificationID = notificationCount;
+        currentNotification.push(notificationID);
+
+        let notificationMain = document.querySelector('.DLP_Notification_Main');
+        let element = new DOMParser().parseFromString(HTML3, 'text/html').body.firstChild;
+        element.id = 'DLP_Notification_Box_' + notificationID + '_ID';
+        notificationMain.appendChild(element);
+        if (icon === "") element.querySelector('#DLP_Inset_Icon_1_ID').remove();
+        else if (icon === "checkmark") element.querySelector('#DLP_Inset_Icon_1_ID').style.display = 'block';
+        else if (icon === "warning") element.querySelector('#DLP_Inset_Icon_2_ID').style.display = 'block';
+        else if (icon === "error") element.querySelector('#DLP_Inset_Icon_3_ID').style.display = 'block';
+        element.querySelector('#DLP_Inset_Text_1_ID').innerHTML = head;
+        element.querySelector('#DLP_Inset_Text_2_ID').innerHTML = body;
+
+        //document.head.appendChild(Object.assign(document.createElement('style'), { type: 'text/css', textContent: CSS4 }));
+
+        let notification = document.querySelector('#DLP_Notification_Box_' + notificationID + '_ID');
+        let notificationHeight = notification.offsetHeight;
+        notification.style.bottom = '-' + notificationHeight + 'px';
+
+        setTimeout(() => {
+            requestAnimationFrame(() => {
+                notification.style.bottom = "16px";
+                notification.style.filter = "blur(0px)";
+                notification.style.opacity = "1";
             });
-        } catch(error) {
+        }, "50");
+
+        let isBusyDisappearing = false;
+
+        function repeat() {
+            if (document.body.offsetWidth <= 963) {
+                requestAnimationFrame(() => {
+                    notificationMain.style.width = "300px";
+                    notificationMain.style.position = "fixed";
+                    notificationMain.style.left = "16px";
+                });
+            } else {
+                requestAnimationFrame(() => {
+                    notificationMain.style.width = "";
+                    notificationMain.style.position = "";
+                    notificationMain.style.left = "";
+                });
+            }
+            if (isBusyDisappearing) return;
+            if (currentNotification[currentNotification.length - 1] !== notificationID) {
+                notification.style.height = notificationHeight + 'px';
+                requestAnimationFrame(() => {
+                    //console.log('#DLP_Notification_Box_' + String(currentNotification.pop()) + '_ID');
+                    //console.log(notificationID, currentNotification[currentNotification.length - 1], currentNotification);
+                    notification.style.height = document.querySelector('#DLP_Notification_Box_' + String(currentNotification[currentNotification.length - 1]) + '_ID').offsetHeight + 'px';
+                    notification.style.width = "284px";
+                    notification.style.transform = "translateY(-8px)";
+                });
+            } else {
+                requestAnimationFrame(() => {
+                    notification.style.height = notificationHeight + "px";
+                    notification.style.width = "";
+                    notification.style.transform = "";
+                });
+            }
         }
+        let repeatInterval = setInterval(repeat, 100);
 
-        try {
-            const AutoSolverBoxToggleT1ID1 = document.querySelector('#AutoSolverBoxToggleT1ID1');
-            const AutoSolverBoxToggleT1ID2 = document.querySelector('#AutoSolverBoxToggleT1ID2');
-            const AutoSolverBoxToggleT1ID3 = document.querySelector('#AutoSolverBoxToggleT1ID3');
-
-            AutoSolverBoxToggleT1ID1.addEventListener('click', () => {
-                if (autoSolverBoxPracticeOnlyMode) {
-                    autoSolverBoxPracticeOnlyMode = !autoSolverBoxPracticeOnlyMode;
-                    updateMode('practicemode', autoSolverBoxPracticeOnlyMode);
-                    updateAutoSolverToggles(AutoSolverBoxToggleT1ID1, autoSolverBoxPracticeOnlyMode);
-                } else if (!autoSolverBoxPracticeOnlyMode) {
-                    autoSolverBoxPracticeOnlyMode = !autoSolverBoxPracticeOnlyMode;
-                    autoSolverBoxRepeatLessonMode = !autoSolverBoxPracticeOnlyMode;
-                    autoSolverBoxListeningOnlyMode = !autoSolverBoxPracticeOnlyMode;
-                    updateMode('practicemode', autoSolverBoxPracticeOnlyMode);
-                    updateMode('lessonmode', autoSolverBoxRepeatLessonMode);
-                    updateMode('listeningmode', autoSolverBoxListeningOnlyMode);
-                    updateAutoSolverToggles(AutoSolverBoxToggleT1ID1, autoSolverBoxPracticeOnlyMode);
-                    updateAutoSolverToggles(AutoSolverBoxToggleT1ID2, autoSolverBoxRepeatLessonMode);
-                    updateAutoSolverToggles(AutoSolverBoxToggleT1ID3, autoSolverBoxListeningOnlyMode);
-                }
-            });
-
-            AutoSolverBoxToggleT1ID2.addEventListener('click', () => {
-                if (autoSolverBoxRepeatLessonMode) {
-                    autoSolverBoxRepeatLessonMode = !autoSolverBoxRepeatLessonMode;
-                    updateMode('lessonmode', autoSolverBoxRepeatLessonMode);
-                    updateAutoSolverToggles(AutoSolverBoxToggleT1ID2, autoSolverBoxRepeatLessonMode);
-                } else if (!autoSolverBoxRepeatLessonMode) {
-                    autoSolverBoxRepeatLessonMode = !autoSolverBoxRepeatLessonMode;
-                    autoSolverBoxPracticeOnlyMode = !autoSolverBoxRepeatLessonMode;
-                    autoSolverBoxListeningOnlyMode = !autoSolverBoxRepeatLessonMode;
-                    updateMode('practicemode', autoSolverBoxPracticeOnlyMode);
-                    updateMode('lessonmode', autoSolverBoxRepeatLessonMode);
-                    updateMode('listeningmode', autoSolverBoxListeningOnlyMode);
-                    updateAutoSolverToggles(AutoSolverBoxToggleT1ID1, autoSolverBoxPracticeOnlyMode);
-                    updateAutoSolverToggles(AutoSolverBoxToggleT1ID2, autoSolverBoxRepeatLessonMode);
-                    updateAutoSolverToggles(AutoSolverBoxToggleT1ID3, autoSolverBoxListeningOnlyMode);
-                }
-            });
-
-            AutoSolverBoxToggleT1ID3.addEventListener('click', () => {
-                if (autoSolverBoxListeningOnlyMode) {
-                    autoSolverBoxListeningOnlyMode = !autoSolverBoxListeningOnlyMode;
-                    updateMode('listeningmode', autoSolverBoxListeningOnlyMode);
-                    updateAutoSolverToggles(AutoSolverBoxToggleT1ID3, autoSolverBoxListeningOnlyMode);
-                } else {
-                    autoSolverBoxListeningOnlyMode = !autoSolverBoxListeningOnlyMode;
-                    autoSolverBoxPracticeOnlyMode = !autoSolverBoxListeningOnlyMode;
-                    autoSolverBoxRepeatLessonMode = !autoSolverBoxListeningOnlyMode;
-                    updateMode('practicemode', autoSolverBoxPracticeOnlyMode);
-                    updateMode('lessonmode', autoSolverBoxRepeatLessonMode);
-                    updateMode('listeningmode', autoSolverBoxListeningOnlyMode);
-                    updateAutoSolverToggles(AutoSolverBoxToggleT1ID1, autoSolverBoxPracticeOnlyMode);
-                    updateAutoSolverToggles(AutoSolverBoxToggleT1ID2, autoSolverBoxRepeatLessonMode);
-                    updateAutoSolverToggles(AutoSolverBoxToggleT1ID3, autoSolverBoxListeningOnlyMode);
-                }
-            });
-
-            updateAutoSolverToggles(AutoSolverBoxToggleT1ID1, autoSolverBoxPracticeOnlyMode);
-            updateAutoSolverToggles(AutoSolverBoxToggleT1ID2, autoSolverBoxRepeatLessonMode);
-            updateAutoSolverToggles(AutoSolverBoxToggleT1ID3, autoSolverBoxListeningOnlyMode);
-
-        } catch(error) {
+        function disappear() {
+            if (isBusyDisappearing) return;
+            isBusyDisappearing = true;
+            if (currentNotification[currentNotification.length - 1] === notificationID) {
+                currentNotification.splice(currentNotification.indexOf(notificationID), 1);
+                requestAnimationFrame(() => {
+                    notification.style.bottom = "-" + notificationHeight + "px";
+                    notification.style.filter = "blur(16px)";
+                    notification.style.opacity = "0";
+                });
+                clearInterval(repeatInterval);
+                setTimeout(() => {
+                    notification.remove();
+                }, "800");
+            } else if (currentNotification[currentNotification.length - 2] === notificationID) {
+                currentNotification.splice(currentNotification.indexOf(notificationID), 1);
+                requestAnimationFrame(() => {
+                    notification.style.transform = "";
+                    notification.style.filter = "blur(16px)";
+                    notification.style.opacity = "0";
+                });
+                clearInterval(repeatInterval);
+                setTimeout(() => {
+                    notification.remove();
+                }, "800");
+            } else {
+                currentNotification.splice(currentNotification.indexOf(notificationID), 1);
+                notification.remove();
+                clearInterval(repeatInterval);
+            }
         }
-
-        function updateAutoSolverToggles(element, variable) {
-            let smthElement = element;
-            let smthElementB = smthElement.querySelector(".DLPSettingsToggleT1B1");
-            let smthElementBI1 = smthElement.querySelector(".DLPSettingsToggleT1B1I1");
-            let smthElementBI2 = smthElement.querySelector(".DLPSettingsToggleT1B1I2");
-            function idk() {
-                if (variable === false) {
-                    smthElement.classList.add("DLPSettingsToggleT1OFF");
-                    smthElement.classList.remove("DLPSettingsToggleT1ON");
-                    smthElementB.classList.add("DLPSettingsToggleT1OFFB1");
-                    smthElementB.classList.remove("DLPSettingsToggleT1ONB1");
-                    smthElementBI1.style.transform = 'scale(0)';
-                    setTimeout(function() {
-                        smthElementBI1.style.display = "none";
-                        smthElementBI2.style.display = "";
-                        smthElementBI2.style.transform = 'scale(1)';
-                    }, 100);
-                } else if (variable === true) {
-                    smthElement.classList.add("DLPSettingsToggleT1ON");
-                    smthElement.classList.remove("DLPSettingsToggleT1OFF");
-                    smthElementB.classList.add("DLPSettingsToggleT1ONB1");
-                    smthElementB.classList.remove("DLPSettingsToggleT1OFFB1");
-                    smthElementBI2.style.transform = 'scale(0)';
-                    setTimeout(function() {
-                        smthElementBI2.style.display = "none";
-                        smthElementBI1.style.display = "";
-                        smthElementBI1.style.transform = 'scale(1)';
-                    }, 100);
-                } else {
-                    console.log("error #1");
-                }
-            };
-            idk();
-
-        }
+        notification.querySelector('#DLP_Notification_Dismiss_Button_1_ID').addEventListener("click", disappear);
+        if (time !== 0) setTimeout(disappear, time * 1000);
     }
 
-    function AutoSolverBoxRepeatStartButtonActions() {
-        if (autoSolverBoxRepeatAmount > 0 || DuolingoProSettingsNeverEndMode) {
-            pKVKQrfVcqrLWnpH();
-        }
+
+    let isBusySwitchingPages = false;
+    let pages = {
+        "DLP_Onboarding_Start_Button_1_ID": [10, 1],
+        "DLP_Switch_Legacy_Button_1_ID": [1, 3],
+
+        "DLP_Main_See_More_1_Button_1_ID": [1, 2],
+        "DLP_Main_2_Back_1_Button_1_ID": [2, 1],
+        "DLP_Main_2_Terms_1_Button_1_ID": [2, 5],
+        "DLP_Main_Terms_1_Button_1_ID": [1, 5],
+
+        "DLP_Secondary_Feedback_1_Button_1_ID": [3, 8],
+        "DLP_Secondary_Settings_1_Button_1_ID": [1, 7],
+        "DLP_Secondary_Release_Notes_1_Button_1_ID": [1, 9],
+        "DLP_Secondary_Terms_1_Button_1_ID": [3, 5],
+        "DLP_Secondary_See_More_1_Button_1_ID": [3, 4],
+
+        "DLP_Secondary_2_Back_1_Button_1_ID": [4, 3],
+        "DLP_Secondary_2_Terms_1_Button_1_ID": [4, 5],
+
+        "DLP_Terms_Back_Button_1_ID": [5, 1],
+        "DLP_Terms_Accept_Button_1_ID": [5, 1],
+        "DLP_Terms_Decline_Button_1_ID": [5, 6],
+        "DLP_Terms_Declined_Back_Button_1_ID": [6, 5],
+        "DLP_Main_Feedback_1_Button_1_ID": [1, 8],
+        "DLP_Feedback_Cancel_1_Button_1_ID": [8, 1],
+        "DLP_Main_Settings_1_Button_1_ID": [1, 7],
+        "DLP_Settings_Back_1_Button_1_ID": [7, 1],
+        "DLP_Main_Release_Notes_1_Button_1_ID": [1, 9],
+        "DLP_Release_Notes_Back_1_Button_1_ID": [9, 1]
     };
-    function pKVKQrfVcqrLWnpH() {
-        if (PkJiQETebALNWeLt <= 20) {
-            try {
-                if (document.readyState === 'complete') {
-                    setTimeout(function() {
-                        PjYdVpmxDsskMlRs();
-                    }, 2000);
-                } else {
-                    setTimeout(function() {
-                        pKVKQrfVcqrLWnpH();
-                        PkJiQETebALNWeLt++;
-                    }, 100);
-                }
-            } catch (error) {
-                setTimeout(function() {
-                    PjYdVpmxDsskMlRs();
-                }, 2000);
-            }
-        } else {
-            PjYdVpmxDsskMlRs();
-        }
-    };
-    function PjYdVpmxDsskMlRs() {
-        try {
-            const imageUrl = 'https://d35aaqx5ub95lt.cloudfront.net/images/path/09f977a3e299d1418fde0fd053de0beb.svg';
-            const images = document.querySelectorAll('.TI9Is');
-            if (!images.length) {
-                XyEOALuaeQicpGHW();
+    function goToPage(from, to, buttonID) {
+        isBusySwitchingPages = true;
+        let mainBox = document.querySelector(`.DLP_Main_Box`);
+        let fromNumber = from;
+        let toNumber = to;
+        let fromPage = document.querySelector(`#DLP_Main_Box_Divider_${fromNumber}_ID`);
+        let toPage = document.querySelector(`#DLP_Main_Box_Divider_${toNumber}_ID`);
+
+        if (buttonID === 'DLP_Main_Terms_1_Button_1_ID' || buttonID === 'DLP_Main_2_Terms_1_Button_1_ID' || buttonID === 'DLP_Secondary_Terms_1_Button_1_ID' || buttonID === 'DLP_Secondary_2_Terms_1_Button_1_ID') {
+            document.querySelector(`#DLP_Terms_1_Text_1_ID`).style.display = 'none';
+            document.querySelector(`#DLP_Terms_1_Button_1_ID`).style.display = 'none';
+            document.querySelector(`#DLP_Terms_1_Text_2_ID`).style.display = 'block';
+            document.querySelector(`#DLP_Terms_1_Button_2_ID`).style.display = 'block';
+        } else if (buttonID === 'DLP_Terms_Back_Button_1_ID') {
+            toPage = document.querySelector(`#DLP_Main_Box_Divider_${lastPage}_ID`);
+            setTimeout(() => {
+                document.querySelector(`#DLP_Terms_1_Text_1_ID`).style.display = 'block';
+                document.querySelector(`#DLP_Terms_1_Button_1_ID`).style.display = 'block';
+                document.querySelector(`#DLP_Terms_1_Text_2_ID`).style.display = 'none';
+                document.querySelector(`#DLP_Terms_1_Button_2_ID`).style.display = 'none';
+            }, "400");
+        } else if (buttonID === 'DLP_Switch_Legacy_Button_1_ID') {
+            let button = document.querySelector('#DLP_Switch_Legacy_Button_1_ID');
+            if (legacyMode) {
+                fromPage = document.querySelector(`#DLP_Main_Box_Divider_${currentPage}_ID`);
+                toPage = document.querySelector(`#DLP_Main_Box_Divider_${fromNumber}_ID`);
+                toNumber = fromNumber;
+                setButtonState(button, 'Switch to Legacy', button.querySelector('#DLP_Inset_Icon_1_ID'), button.querySelector('#DLP_Inset_Icon_2_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20', '#007AFF', 400);
             } else {
-                let imagesProcessed = 0;
-                let chestFound = false;
-                images.forEach(image => {
-                    if (image.src === imageUrl) {
-                        image.click();
-                        chestFound = true;
-                        setTimeout(function() {
-                            XyEOALuaeQicpGHW();
-                        }, 2000);
-                    }
-                    imagesProcessed++;
-                    if (imagesProcessed >= images.length && !chestFound) {
-                        XyEOALuaeQicpGHW();
-                    }
-                });
+                fromPage = document.querySelector(`#DLP_Main_Box_Divider_${currentPage}_ID`);
+                setButtonState(button, 'Switch to 3.0', button.querySelector('#DLP_Inset_Icon_2_ID'), button.querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20', '#007AFF', 400);
             }
-        } catch (error) {
-            XyEOALuaeQicpGHW();
+            legacyMode = !legacyMode;
+        } else if (buttonID === 'DLP_Terms_Accept_Button_1_ID') {
+            storageLocal.terms = newTermID;
+            saveStorageLocal();
+        } else if (buttonID === 'DLP_Onboarding_Start_Button_1_ID') {
+            storageLocal.onboarding = true;
+            saveStorageLocal();
+            goToPage(10, 1);
         }
-    };
-    function XyEOALuaeQicpGHW() {
-        if ((DuolingoProSettingsNeverEndMode || autoSolverBoxRepeatAmount > 0) && autoSolverBoxAutomatedSolvingActive) {
-            if (autoSolverBoxPracticeOnlyMode) {
-                window.location.href = "https://duolingo.com/practice";
-            } else if (autoSolverBoxRepeatLessonMode) {
-                window.location.href = "https://duolingo.com/lesson/unit/1/level/1";
-            } else if (autoSolverBoxListeningOnlyMode) {
-                window.location.href = "https://duolingo.com/practice-hub/listening-practice";
-            } else {
-                window.location.href = "https://duolingo.com/lesson";
-            }
-        }
-    };
+        //if (to === 1 || to === 3) {
+        //    if (buttonID === 'DLP_Terms_Back_Button_1_ID') {
+        //        if (lastPage === 1 || lastPage === 3) legacyButtonVisibility(true);
+        //    } else legacyButtonVisibility(true);
+        //} else if (from === 1 || from === 3) legacyButtonVisibility(false);
+        if (to === 1 || to === 2 || to === 3 || to === 4) {
+            legacyButtonVisibility(true);
+        } else legacyButtonVisibility(false);
 
+        let mainBoxOldHeight = mainBox.offsetHeight;
+        fromPage.style.display = "none";
+        toPage.style.display = "block";
+        let mainBoxNewHeight = mainBox.offsetHeight;
+        fromPage.style.display = "block";
+        toPage.style.display = "none";
+        mainBox.style.height = `${mainBoxOldHeight}px`;
+        mainBox.offsetHeight;
 
-    function checkURLForAutoSolverBox() {
-        if (window.location.pathname === '/practice-hub/listening-practice' || window.location.pathname.includes('/lesson') || window.location.pathname === '/practice') {
-            let jfgsdodhgsf = document.querySelector('#solveAllButton');
-            if (jfgsdodhgsf) {
-                if (autoSolverBoxAutomatedSolvingActive === true) {
-                    solving();
-                }
-            } else {
-                setTimeout(function() {
-                    checkURLForAutoSolverBox();
-                }, 100);
-            }
-        } else {
-        }
+        mainBox.style.transition = "0.8s cubic-bezier(0.16, 1, 0.32, 1)";
+        mainBox.offsetHeight;
+        mainBox.style.height = `${mainBoxNewHeight}px`;
+
+        fromPage.style.transition = "0.4s cubic-bezier(0.16, 1, 0.32, 1)";
+        fromPage.style.opacity = "0";
+        fromPage.style.filter = "blur(4px)";
+
+        toPage.style.opacity = "0";
+        toPage.style.filter = "blur(4px)";
+
+        setTimeout(() => {
+            fromPage.style.display = "none";
+            toPage.style.display = "block";
+
+            toPage.style.transition = "0.4s cubic-bezier(0.16, 1, 0.32, 1)";
+            toPage.offsetHeight;
+            toPage.style.opacity = "1";
+            toPage.style.filter = "blur(0px)";
+            setTimeout(() => {
+                toPage.style.opacity = "";
+                toPage.style.filter = "";
+                toPage.style.transition = "";
+
+                fromPage.style.transition = "";
+                toPage.style.opacity = "";
+                toPage.style.filter = "";
+
+                mainBox.style.height = "";
+
+                lastPage = currentPage;
+                currentPage = toNumber;
+                isBusySwitchingPages = false;
+            }, "400");
+        }, "400");
     }
-    checkURLForAutoSolverBox();
-
-
-    injectContent();
-
-
-    let DuolingoSiderbarPaddingThingFunctionRepeatTimes = 20;
-    let DuolingoProBoxHeightForSidebarPadding;
-
-    function DuolingoHomeSidebarAddPaddingFunction() {
-        if (window.location.pathname === '/learn' || window.location.pathname === '/practice-hub') {
-            DuolingoProBoxHeightForSidebarPadding = document.querySelector('.AutoSolverBoxFirst');
-            try {
-                const DuolingoSiderbarPaddingThing = document.querySelector('.Fc0NK');
-                DuolingoSiderbarPaddingThing.style.paddingBottom = String(String(DuolingoProBoxHeightForSidebarPadding.offsetHeight += 8) + 'px'); // or 574px if an 8px gap preferred
-            } catch(error) {
-            }
-        }
-    }
-
-    setInterval(DuolingoHomeSidebarAddPaddingFunction, 100);
-
-
-    function DuolingoRemoveLearnAds() {
-        try {
-            const DuolingoRemoveLearnAdsElementOne = document.querySelector('._3bfsh');
-            DuolingoRemoveLearnAdsElementOne.remove();
-        } catch(error) {
-        }
-    }
-
-    const RemovedByDuolingoProOneHTML = `
-<div class="BlockedByDuolingoProBoxBackground">
-    <div class="BlockedByDuolingoProBoxSectionOne">
-        <p class="BlockedByDuolingoProBoxSectionOneTextOne">Ads Blocked by Duolingo Pro</p>
-        <p class="BlockedByDuolingoProBoxSectionOneTextTwo">HIDE</p>
-    </div>
-    <p class="BlockedByDuolingoProBoxSectionTwoTextOne">These ads were removed with ProBlock by Duolingo Pro.</p>
-</div>
-`;
-
-    const RemovedByDuolingoProOneCSS = `
-.BlockedByDuolingoProBoxBackground {
-    display: flex;
-    width: 100%;
-    padding: 16px;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 4px;
-    flex-shrink: 0;
-
-    border-radius: 16px;
-    border: 2px solid rgb(var(--color-swan));
-    background: rgb(var(--color-snow));
-}
-
-.BlockedByDuolingoProBoxSectionOne {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    align-self: stretch;
-}
-
-.BlockedByDuolingoProBoxSectionOneTextOne {
-    flex: 1 0 0;
-
-    color: rgb(var(--color-eel));
-    font-size: 18px;
-    font-weight: 700;
-
-    margin: 0px;
-    cursor: default;
-}
-
-.BlockedByDuolingoProBoxSectionOneTextTwo {
-    color: var(--web-ui_button-color,rgb(var(--color-macaw)));
-    font-size: 16px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: normal;
-
-    margin: 0px;
-    cursor: pointer;
-    transition: .1s;
-
-    user-select: none;
-    -moz-user-select: none;
-    -webkit-text-select: none;
-    -webkit-user-select: none;
-}
-
-.BlockedByDuolingoProBoxSectionOneTextTwo:hover {
-    filter: brightness(1.1);
-}
-
-.BlockedByDuolingoProBoxSectionOneTextTwo:active {
-    filter: brightness(1.2);
-}
-
-.BlockedByDuolingoProBoxSectionTwoTextOne {
-    align-self: stretch;
-
-    color: rgb(var(--color-hare));
-    font-size: 16px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: normal;
-
-    margin: 0px;
-    cursor: default;
-}
-`;
-
-    let injectedRemovedByDuolingoProOneElement = null;
-    let injectedRemovedByDuolingoProOneStyle = null;
-
-    function iforgot() {
-        try {
-            let targetDiv = document.querySelector('.Fc0NK');
-            if (targetDiv) {
-                if (ProBlockBannerOneVisible) {
-                    if (!injectedRemovedByDuolingoProOneElement) {
-                        injectedRemovedByDuolingoProOneStyle = document.createElement('style');
-                        injectedRemovedByDuolingoProOneStyle.type = 'text/css';
-                        injectedRemovedByDuolingoProOneStyle.innerHTML = RemovedByDuolingoProOneCSS;
-                        document.head.appendChild(injectedRemovedByDuolingoProOneStyle);
-
-                        injectedRemovedByDuolingoProOneElement = document.createElement('div');
-                        injectedRemovedByDuolingoProOneElement.innerHTML = RemovedByDuolingoProOneHTML;
-                        targetDiv.appendChild(injectedRemovedByDuolingoProOneElement);
-                    } else {
-                        let BlockedByDuolingoProBoxSectionOneTextTwoElement = document.querySelector('.BlockedByDuolingoProBoxSectionOneTextTwo');
-                        let BlockedByDuolingoProBoxBackgroundElement = document.querySelector('.BlockedByDuolingoProBoxBackground');
-
-                        BlockedByDuolingoProBoxSectionOneTextTwoElement.addEventListener('click', () => {
-                            ProBlockBannerOneVisible = false;
-                            localStorage.setItem("ProBlockBannerOneVisible", ProBlockBannerOneVisible);
-                            BlockedByDuolingoProBoxBackgroundElement.remove();
-                        });
-
-                        if (document.querySelector('.BlockedByDuolingoProBoxBackground')) {
-                        } else {
-                            injectedRemovedByDuolingoProOneElement = null;
-                            injectedRemovedByDuolingoProOneStyle = null;
-                        }
-                    }
-                }
-            } else {
-                console.error("Target div with class 'Fc0NK' not found.");
-            }
-        } catch(error) {}
-    }
-
-    //if (DuolingoProSettingsProBlockMode) {
-    //    setInterval(iforgot, 100);
-    //    setInterval(DuolingoRemoveLearnAds, 100);
-    //}
-
-
-    const SendFeedbackBoxHTML = `
-<div class="DPLBoxShadowStyleT1" id="SendFeebackBoxShadow">
-    <div class="DPLBoxStyleT1" id="SendFeebackBoxBackground">
-        <div class="SendFeebackBoxLayers">
-
-            <p class="selfFill paragraphText noSelect" style="font-size: 24px; line-height: 32px;">Send Feedback for Duolingo Pro</p>
-
-            <div style="display: flex; padding: 16px; flex-direction: column; justify-content: center; align-items: flex-start; gap: 8px; align-self: stretch; border-radius: 8px; border: 2px solid rgba(88, 101, 242, 0.1); background: rgba(88, 101, 242, 0.1);">
-                <div style="display: flex; align-items: center; gap: 8px; align-self: stretch;">
-                    <svg width="21" height="17" viewBox="0 0 21 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M17.5088 1.84C16.1708 1.214 14.7402 0.759052 13.2446 0.5C13.0609 0.832095 12.8463 1.27877 12.6983 1.6341C11.1084 1.39499 9.53312 1.39499 7.97243 1.6341C7.8245 1.27877 7.60503 0.832095 7.4197 0.5C5.92243 0.759052 4.49018 1.21567 3.15222 1.84331C0.453554 5.92136 -0.278011 9.89811 0.0877725 13.8184C1.87767 15.155 3.6123 15.967 5.31766 16.4984C5.73872 15.9189 6.11425 15.3028 6.43776 14.6536C5.82162 14.4195 5.23149 14.1306 4.67389 13.7952C4.82182 13.6856 4.96652 13.571 5.10632 13.4531C8.50728 15.0438 12.2025 15.0438 15.5628 13.4531C15.7043 13.571 15.849 13.6856 15.9953 13.7952C15.436 14.1322 14.8443 14.4211 14.2281 14.6553C14.5517 15.3028 14.9256 15.9205 15.3482 16.5C17.0552 15.9687 18.7915 15.1567 20.5814 13.8184C21.0106 9.27378 19.8482 5.33355 17.5088 1.84ZM6.90109 11.4075C5.88016 11.4075 5.04291 10.4543 5.04291 9.2937C5.04291 8.13305 5.86228 7.17831 6.90109 7.17831C7.93993 7.17831 8.77715 8.13138 8.75928 9.2937C8.76089 10.4543 7.93993 11.4075 6.90109 11.4075ZM13.7681 11.4075C12.7471 11.4075 11.9099 10.4543 11.9099 9.2937C11.9099 8.13305 12.7292 7.17831 13.7681 7.17831C14.8069 7.17831 15.6441 8.13138 15.6263 9.2937C15.6263 10.4543 14.8069 11.4075 13.7681 11.4075Z" fill="#5865F2"/>
-                    </svg>
-                    <p class="paragraphText noSelect" style="flex: 1 0 0; color: #5865F2;">Join our new Discord community, give feedback faster</p>
-                </div>
-                <p class="paragraphText noSelect" style="align-self: stretch; color: rgba(88, 101, 242, 0.50);">Our new Discord server is a great place to give feedback, as well as get up-to-date with the newest updates. <a href="https://discord.gg/r8xQ7K59Mt" target="_blank" rel="noopener noreferrer" class="DuolingoProFeedbackBoxPromotionLinkPurple paragraphText">Join Here</a></p>
-            </div>
-
-            <textarea class="DLPFeedbackTextFieldT1" id="SendFeebackBoxSectionTwoID" style="resize: vertical; height: 128px;" placeholder="Write here as much as you can with as many details as possible."/></textarea>
-
-            <p class="selfFill paragraphText noSelect" style="line-height: 32px;">Choose Feedback Type</p>
-            <div class="HStack selfFill" style="gap: 8px;">
-                <div class="SendFeebackBoxSectionFourButtonOneBackground" id="SendFeebackTypeButtonOne">
-                    <div class="SendFeebackBoxSectionFourButtonOneIconOne"/></div>
-                    <p class="paragraphText noSelect textFill" id="SendFeebackBoxSectionFourButtonOneTextOne">Bug Report</p>
-                </div>
-                <div class="SendFeebackBoxSectionFourButtonOneBackground" id="SendFeebackTypeButtonTwo">
-                    <div class="SendFeebackBoxSectionFourButtonOneIconOne"/></div>
-                    <p class="paragraphText noSelect textFill" id="SendFeebackBoxSectionFourButtonOneTextOne">Suggestion</p>
-                </div>
-            </div>
-
-            <p class="selfFill paragraphText noSelect" style="line-height: 32px;">Upload Photo/Video <a class="paragraphText" style="color: rgb(var(--color-eel), 0.5)">- Optional</a></p>
-            <input type="file" accept="image/png, image/jpeg, video/mp4" class="loldonttouchthisbit" id="SendFeedbackFileUploadButtonIDOne" onchange="showFileName()"/>
-
-            <p class="selfFill paragraphText noSelect" style="line-height: 32px;">Email <a class="paragraphText" style="color: rgb(var(--color-eel), 0.5)">- Optional, can help us reach back</a></p>
-            <input class="DLPFeedbackTextFieldT1" id="DLPFeedbackTextField2" type="email" style="resize: none; height: 54px;" placeholder="Email address">
-
-            <div class="SendFeedbackBoxSectionEight">
-                <button class="DPLSecondaryButtonStyleT1" id="SendFeebackBoxSectionOneCancelBoxBackground">CANCEL</button>
-                <button class="DPLPrimaryButtonStyleT1" id="SendFeebackBoxSectionEightSendButton">SEND</button>
-            </div>
-
-        </div>
-    </div>
-</div>
-`;
-
-    const SendFeedbackBoxCSS = `
-.DuolingoProFeedbackBoxPromotionLinkPurple {
-    color: rgba(88, 101, 242, 0.50);
-    text-decoration-line: underline;
-    transition: .1s;
-}
-.DuolingoProFeedbackBoxPromotionLinkPurple:hover {
-    color: #5865F2;
-}
-
-.loldonttouchthisbit {
-    display: flex;
-    height: 54px;
-    width: 100%;
-    align-items: center;
-    /*flex: 1 0 0;*/
-
-    border-radius: 8px;
-
-    padding: 14px;
-
-    cursor: pointer;
-    transition: .1s;
-
-    font-size: 16px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: normal;
-
-    overflow: hidden;
-}
-
-#SendFeedbackFileUploadButtonIDOne {
-    border: 2px solid rgb(var(--color-swan));
-    border-bottom: 4px solid rgb(var(--color-swan));
-    background: rgb(var(--color-snow));
-
-    color: rgb(var(--color-eel));
-}
-
-#SendFeedbackFileUploadButtonIDOne:hover {
-    filter: brightness(0.95);
-}
-
-#SendFeedbackFileUploadButtonIDOne:active {
-    height: 52px;
-
-    border-bottom: 2px solid rgb(var(--color-swan));
-
-    filter: brightness(0.9);
-    margin-top: 2px;
-}
-
-#SendFeedbackFileUploadButtonIDOne::file-selector-button {
-    display: none;
-}
-
-#SendFeedbackFileUploadButtonIDTwo {
-    border: 2px solid rgba(0, 0, 0, 0.20);
-    border-bottom: 4px solid rgba(0, 0, 0, 0.20);
-    background: #007AFF;
-
-    color: rgb(241, 247, 251);
-}
-
-#SendFeedbackFileUploadButtonIDTwo:hover {
-    filter: brightness(0.95);
-}
-
-#SendFeedbackFileUploadButtonIDTwo:active {
-    height: 52px;
-
-    border-bottom: 2px solid rgba(0, 0, 0, 0.20);
-
-    filter: brightness(0.9);
-    margin-top: 2px;
-}
-
-#SendFeedbackFileUploadButtonIDTwo::file-selector-button {
-    display: none;
-}
-
-.SendFeebackBoxLayers {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-
-    width: 100%;
-}
-
-.SendFeebackBoxSectionOneTextOne {
-    color: rgb(var(--color-eel));
-    font-size: 24px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: normal;
-
-    margin-top: 0px;
-    margin-bottom: 0px;
-
-    height: 32px;
-
-    cursor: default;
-}
-
-.SendFeebackBoxSectionThree {
-    display: flex;
-    width: 100%;
-    flex-direction: column;
-    justify-content: center;
-
-    color: rgb(var(--color-eel));
-    font-size: 16px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: normal;
-
-    cursor: default;
-
-    margin-top: 0px;
-    margin-bottom: 0px;
-
-    height: 32px;
-}
-
-.SendFeebackBoxSectionFourButtonOneBackground {
-    display: flex;
-    height: 54px;
-    align-items: center;
-    flex: 1 0 0;
-
-    border-radius: 8px;
-    border: 2px solid rgb(var(--color-swan));
-    border-bottom: 4px solid rgb(var(--color-swan));
-    background: rgb(var(--color-snow));
-
-    cursor: pointer;
-    transition: .1s;
-}
-
-.SendFeebackBoxSectionFourButtonOneBackground:hover {
-    filter: brightness(0.95);
-}
-
-.SendFeebackBoxSectionFourButtonOneBackground:active {
-    height: 52px;
-
-    border-bottom: 2px solid rgb(var(--color-swan));
-
-    filter: brightness(0.9);
-    margin-top: 2px;
-}
-
-.SendFeebackBoxSectionFourButtonOneIconOneBox {
-    display: flex;
-    width: 48px;
-    height: 48px;
-    justify-content: center;
-    align-items: center;
-}
-
-.SendFeebackBoxSectionFourButtonOneIconOne {
-    appearance: none;
-    width: 20px;
-    height: 20px;
-    flex-shrink: 0;
-    margin-right: 16px;
-    margin-left: 16px;
-
-    border-radius: 20px;
-    border: 4px solid rgb(var(--color-swan), 0.4);
-    background: rgb(var(--color-swan), 0.2);
-    opacity: 100% !important;
-
-    cursor: pointer;
-}
-
-.SendFeebackBoxSectionFourButtonOneIconTwoBox {
-    display: flex;
-    width: 48px;
-    height: 48px;
-    justify-content: center;
-    align-items: center;
-}
-
-.SendFeebackBoxSectionFourButtonOneIconTwo {
-    display: flex;
-    width: 16px;
-    height: 16px;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-
-    color: rgba(255, 45, 85, 0.00);
-    text-align: center;
-    font-size: 15px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: normal;
-    fill: #FF2D55;
-}
-
-
-.SendFeebackBoxSectionSix {
-    display: flex;
-    height: 54px;
-    align-items: center;
-    align-self: stretch;
-    flex: 1 0 0;
-
-    border-radius: 8px;
-    border: 2px solid rgba(0, 0, 0, 0.20);
-    border-bottom: 4px solid rgba(0, 0, 0, 0.20);
-    background: #007AFF;
-
-    cursor: pointer;
-    transition: .1s;
-}
-
-.SendFeebackBoxSectionSix:hover {
-    filter: brightness(0.95);
-}
-
-.SendFeebackBoxSectionSix:active {
-    height: 52px;
-
-    border-bottom: 2px solid rgba(0, 0, 0, 0.20);
-
-    filter: brightness(0.9);
-    margin-top: 2px;
-}
-
-.SendFeebackBoxSectionSixIconOneBox {
-    display: flex;
-    width: 48px;
-    height: 48px;
-    justify-content: center;
-    align-items: center;
-}
-
-.SendFeebackBoxSectionSixIconOne {
-    width: 20px;
-    height: 20px;
-    flex-shrink: 0;
-
-    border-radius: 20px;
-    border: 4px solid rgb(241, 247, 251, 0.40);
-    background: rgb(241, 247, 251, 0.40);
-}
-
-.SendFeebackBoxSectionSixTextOne {
-    flex: 1 0 0;
-
-    color: rgb(241, 247, 251);
-    font-size: 16px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: normal;
-
-    user-select: none;
-    -moz-user-select: none;
-    -webkit-text-select: none;
-    -webkit-user-select: none;
-}
-
-.SendFeebackBoxSectionSixIconTwoBox {
-    display: flex;
-    width: 48px;
-    height: 48px;
-    justify-content: center;
-    align-items: center;
-}
-
-.SendFeebackBoxSectionSixIconTwo {
-    display: flex;
-    width: 16px;
-    height: 16px;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-
-    fill: rgb(241, 247, 251);
-    text-align: center;
-    line-height: normal;
-}
-
-.SendFeebackBoxSectionSeven {
-    //  height: 48px;
-    height: 56px;
-    align-self: stretch;
-
-    border-radius: 8px;
-
-    position: relative;
-
-    cursor: not-allowed !important;
-}
-
-.SendFeebackBoxSectionSevenBoxOne {
-    flex-shrink: 0;
-    display: flex;
-    gap: 32px;
-    align-items: center;
-
-    height: 54px;
-    /* set the height */
-    overflow: hidden;
-    /* clip any overflowing content */
-    border-radius: 8px;
-
-    pointer-events: none;
-}
-
-.SendFeebackBoxSectionSevenBoxOneBoxOne {
-    width: 16px;
-    height: 100px;
-    transform: rotate(45deg);
-    flex-shrink: 0;
-
-    background: rgb(var(--color-eel), 0.1);
-}
-
-.SendFeebackBoxSectionSevenBoxTwo {
-    display: flex;
-    height: 54px;
-    align-items: center;
-    align-self: stretch;
-    flex: 1 0 0;
-
-    position: absolute;
-    width: 100%;
-
-    border-radius: 8px;
-    border: 2px solid rgb(var(--color-swan));
-    border-bottom: 4px solid rgb(var(--color-swan));
-    background: rgb(var(--color-snow));
-    //  cursor: pointer;
-    transition: .1s;
-}
-
-.SendFeebackBoxSectionSevenBoxTwo:hover {
-    filter: brightness(0.95);
-}
-
-.SendFeebackBoxSectionSevenBoxTwo:active {
-    border-bottom: 4px solid rgb(var(--color-swan));
-    filter: brightness(0.95);
-}
-
-.SendFeebackBoxSectionSevenBoxTwoIconOneBox {
-    display: flex;
-    width: 48px;
-    height: 48px;
-    justify-content: center;
-    align-items: center;
-}
-
-.SendFeebackBoxSectionSevenBoxTwoIconOne {
-    width: 20px;
-    height: 20px;
-    flex-shrink: 0;
-
-    border-radius: 20px;
-    border: 4px solid rgb(var(--color-swan), 0.4);
-    background: rgb(var(--color-swan), 0.2);
-}
-
-.SendFeebackBoxSectionSevenBoxTwoTextOne {
-    flex: 1 0 0;
-
-    color: rgb(var(--color-swan));
-    font-size: 16px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: normal;
-
-    margin-top: 0px;
-    margin-bottom: 0px;
-
-    user-select: none;
-    -moz-user-select: none;
-    -webkit-text-select: none;
-    -webkit-user-select: none;
-}
-
-.SendFeebackBoxSectionSevenBoxTwoIconTwoBox {
-    display: flex;
-    width: 48px;
-    height: 48px;
-    justify-content: center;
-    align-items: center;
-}
-
-.SendFeebackBoxSectionSevenBoxTwoIconTwo {
-    display: flex;
-    width: 16px;
-    height: 16px;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    line-height: normal;
-
-    fill: rgb(var(--color-swan));
-}
-
-.SendFeedbackBoxSectionEight {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    align-self: stretch;
-}
-
-.SendFeebackBoxSectionEightTextOne {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    flex: 1 0 0;
-    align-self: stretch;
-
-    color: #FFF;
-    text-align: center;
-    font-size: 16px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: normal;
-
-    user-select: none;
-    -moz-user-select: none;
-    -webkit-text-select: none;
-    -webkit-user-select: none;
-}
-`;
-
-    let randomValue;
-    let randomValueInText;
-
-    function setRandomValue() {
-        if (Boolean(localStorage.getItem("RandomValue")) === false) {
-            randomValue = Math.floor(Math.random() * 10000000000000000);
-
-            randomValueInText = String(randomValue);
-
-            while (randomValueInText.length < 16) {
-                randomValueInText = "0" + randomValueInText;
-            }
-
-            localStorage.setItem("RandomValue", randomValueInText);
-            console.log("Generated ID: ", randomValue);
-        } else {
-            randomValue = localStorage.getItem("RandomValue");
-            szdfgvhbjnk();
-        }
-    }
-
-    setRandomValue();
-
-    let fileInput;
-
-    let injectedSendFeedBackBoxElement = null;
-    let injectedSendFeedBackBoxStyle = null;
-
-    let isSendFeebackBoxSectionEightSendButtonEnabled = false;
-
-    let SendFeedbackTextAreaValue;
-    let emailContactValue;
-    let idktype = 'Bug Report';
-    let sendFeedbackStatus = 'none';
-
-    function SendFeedBackBox(visibility) {
-        if (visibility === true) {
-            if (!injectedSendFeedBackBoxElement) {
-                // Creating a container for the overlay
-                injectedSendFeedBackBoxElement = document.createElement('div');
-                injectedSendFeedBackBoxElement.innerHTML = SendFeedbackBoxHTML;
-                document.body.appendChild(injectedSendFeedBackBoxElement);
-
-                // Creating a style tag for CSS
-                injectedSendFeedBackBoxStyle = document.createElement('style');
-                injectedSendFeedBackBoxStyle.type = 'text/css';
-                injectedSendFeedBackBoxStyle.innerHTML = SendFeedbackBoxCSS;
-                document.head.appendChild(injectedSendFeedBackBoxStyle);
-
-                let poijhugjfhd = setInterval(SendFeedbackTextAreaStuff, 100);
-
-                let SendFeedbackWholeDiv = document.querySelector('#SendFeebackBoxShadow');
-                let SendFeedbackBoxDiv = document.querySelector('#SendFeebackBoxBackground');
-
-                setTimeout(function() {
-                    SendFeedbackWholeDiv.style.opacity = '1';
-                    //SendFeedbackBoxDiv.style.transform = 'scale(1)';
-                }, 50);
-
-
-                fileInput = document.querySelector('.loldonttouchthisbit');
-                fileInput.addEventListener('change', function() {
-                    if (fileInput.files.length > 0) {
-                        fileInput.setAttribute('id', 'SendFeedbackFileUploadButtonIDTwo');
-                    } else {
-                        fileInput.setAttribute('id', 'SendFeedbackFileUploadButtonIDOne');
-                    }
-                });
-
-
-                const SendFeedbackCloseButton = document.querySelector('#SendFeebackBoxSectionOneCancelBoxBackground');
-                SendFeedbackCloseButton.addEventListener('click', () => {
-                    SendFeedBackBox(false);
-                    clearInterval(poijhugjfhd);
-                });
-
-                const TextAreaOneOne = document.getElementById('SendFeebackBoxSectionTwoID');
-                const TextAreaTwoOne = document.getElementById('DLPFeedbackTextField2');
-
-                const bugRadio = document.getElementById('SendFeebackTypeButtonOne');
-                const suggestionRadio = document.getElementById('SendFeebackTypeButtonTwo');
-
-                bugRadio.addEventListener('mousedown', () => {
-                    if (idktype === 'Bug Report') {
-                        bugRadio.style.border = '2px solid rgba(0, 0, 0, 0.20)';
-                        bugRadio.style.borderBottom = '2px solid rgba(0, 0, 0, 0.20)';
-                    } else {
-                        bugRadio.style.border = '2px solid rgb(var(--color-swan))';
-                        bugRadio.style.borderBottom = '2px solid rgb(var(--color-swan))';
-                    }
-                });
-
-                bugRadio.addEventListener('mouseup', () => {
-                    idktype = 'Bug Report';
-                    updateDuolingoProSendFeedbackButtons(bugRadio, idktype);
-                });
-
-                suggestionRadio.addEventListener('mousedown', () => {
-                    if (idktype === 'Suggestion') {
-                        suggestionRadio.style.border = '2px solid rgba(0, 0, 0, 0.20)';
-                        suggestionRadio.style.borderBottom = '2px solid rgba(0, 0, 0, 0.20)';
-                    } else {
-                        suggestionRadio.style.border = '2px solid rgb(var(--color-swan))';
-                        suggestionRadio.style.borderBottom = '2px solid rgb(var(--color-swan))';
-                    }
-                });
-
-                suggestionRadio.addEventListener('mouseup', () => {
-                    idktype = 'Suggestion';
-                    updateDuolingoProSendFeedbackButtonsTwo(bugRadio, idktype);
-                });
-
-                addEventListener('mouseup', () => {
-                    updateDuolingoProSendFeedbackButtons(bugRadio, idktype);
-                    updateDuolingoProSendFeedbackButtonsTwo(suggestionRadio, idktype);
-                });
-
-                updateDuolingoProSendFeedbackButtons(bugRadio, idktype);
-                updateDuolingoProSendFeedbackButtonsTwo(suggestionRadio, idktype);
-
-
-                const SendFeebackBoxSectionTwo = document.querySelector('.SendFeebackBoxSectionTwo');
-
-                let _283b = false;
-                const SendFeebackBoxSectionEightSendButton = document.querySelector('#SendFeebackBoxSectionEightSendButton');
-                SendFeebackBoxSectionEightSendButton.addEventListener('click', () => {
-                    if (isSendFeebackBoxSectionEightSendButtonEnabled && !_283b) {
-                        _283b = true;
-                        SendFeedbackTextAreaValue = TextAreaOneOne.value;
-                        emailContactValue = TextAreaTwoOne.value;
-                        sendFeedbackServer(SendFeedbackTextAreaValue, idktype, emailContactValue);
-
-                        sendFeedbackStatus = 'trying';
-
-                        function checkFlag() {
-                            if (sendFeedbackStatus === 'trying') {
-                                SendFeebackBoxSectionEightSendButton.textContent = 'SENDING';
-                                setTimeout(function() {
-                                    checkFlag();
-                                }, 100);
-                            } else if (sendFeedbackStatus === 'true') {
-                                SendFeebackBoxSectionEightSendButton.textContent = 'SUCCESSFULLY SENT';
-                                setTimeout(function() {
-                                    location.reload();
-                                }, 2000);
-                            } else if (sendFeedbackStatus === 'error') {
-                                SendFeebackBoxSectionEightSendButton.textContent = 'ERROR SENDING';
-                                SendFeebackBoxSectionEightSendButton.style.background = '#FF2D55';
-                                SendFeebackBoxSectionEightSendButton.style.border = '2px solid rgba(0, 0, 0, 0.20)';
-                                SendFeebackBoxSectionEightSendButton.style.borderBottom = '4px solid rgba(0, 0, 0, 0.20)';
-
-                                setTimeout(function() {
-                                    SendFeebackBoxSectionEightSendButton.textContent = 'TRY AGAIN';
-                                }, 2000);
-
-                                setTimeout(function() {
-                                    SendFeebackBoxSectionEightSendButton.textContent = 'SEND';
-                                    SendFeebackBoxSectionEightSendButton.style.background = '';
-                                    SendFeebackBoxSectionEightSendButton.style.border = '';
-                                    SendFeebackBoxSectionEightSendButton.style.borderBottom = '';
-                                    _283b = false;
-                                }, 4000);
-
-                                sendFeedbackStatus = 'empty';
-                            } else if (sendFeedbackStatus === 'empty') {
-                                setTimeout(function() {
-                                    checkFlag();
-                                    _283b = false;
-                                }, 100);
-                            }
-                        }
-                        checkFlag();
-                    }
-                });
-
-
-                function updateDuolingoProSendFeedbackButtons(element, value) {
-                    let textElement = element.querySelector('#SendFeebackBoxSectionFourButtonOneTextOne');
-                    let iconElement = element.querySelector('.SendFeebackBoxSectionFourButtonOneIconOne');
-
-                    if (value === 'Bug Report') {
-                        element.style.background = '#FF2D55';
-                        element.style.border = '2px solid rgba(0, 0, 0, 0.20)';
-                        element.style.borderBottom = '4px solid rgba(0, 0, 0, 0.20)';
-                        textElement.style.color = 'rgb(241, 247, 251)';
-                        iconElement.style.border = '4px solid rgb(241, 247, 251, 0.40)';
-                        iconElement.style.background = 'rgb(241, 247, 251, 0.40)';
-                    } else {
-                        element.style.background = 'rgb(var(--color-snow))';
-                        element.style.border = '2px solid rgb(var(--color-swan))';
-                        element.style.borderBottom = '4px solid rgb(var(--color-swan))';
-                        textElement.style.color = 'rgb(var(--color-eel), 0.4)';
-                        iconElement.style.border = '4px solid rgb(var(--color-swan))';
-                        iconElement.style.background = 'rgb(var(--color-swan), 0.4)';
-                    }
-
-                }
-
-                function updateDuolingoProSendFeedbackButtonsTwo(element, value) {
-                    let textElement = element.querySelector('#SendFeebackBoxSectionFourButtonOneTextOne');
-                    let iconElement = element.querySelector('.SendFeebackBoxSectionFourButtonOneIconOne');
-
-                    if (value === 'Suggestion') {
-                        element.style.background = '#34C759';
-                        element.style.border = '2px solid rgba(0, 0, 0, 0.20)';
-                        element.style.borderBottom = '4px solid rgba(0, 0, 0, 0.20)';
-                        textElement.style.color = 'rgb(241, 247, 251)';
-                        iconElement.style.border = '4px solid rgb(241, 247, 251, 0.40)';
-                        iconElement.style.background = 'rgb(241, 247, 251, 0.40)';
-                    } else {
-                        element.style.background = 'rgb(var(--color-snow))';
-                        element.style.border = '2px solid rgb(var(--color-swan))';
-                        element.style.borderBottom = '4px solid rgb(var(--color-swan))';
-                        textElement.style.color = 'rgb(var(--color-eel), 0.4)';
-                        iconElement.style.border = '4px solid rgb(var(--color-swan))';
-                        iconElement.style.background = 'rgb(var(--color-swan), 0.4)';
-                    }
-
-                }
-
-            }
-        } else if (visibility === false) {
-            if (injectedSendFeedBackBoxElement) {
-                let SendFeedbackWholeDiv = document.querySelector('#SendFeebackBoxShadow');
-                let SendFeedbackBoxDiv = document.querySelector('#SendFeebackBoxBackground');
-
-                setTimeout(function() {
-                    SendFeedbackWholeDiv.style.opacity = '0';
-                    //SendFeedbackBoxDiv.style.transform = 'scale(0.8)';
-                }, 50);
-
-                setTimeout(function() {
-                    document.body.removeChild(injectedSendFeedBackBoxElement);
-                    document.head.removeChild(injectedSendFeedBackBoxStyle);
-                    injectedSendFeedBackBoxElement = null;
-                    injectedSendFeedBackBoxStyle = null;
-                }, 500);
-            }
-        }
-    }
-
-    function SendFeedbackTextAreaStuff() {
-        try {
-            const SendFeebackBoxSectionEightSendButton = document.querySelector('#SendFeebackBoxSectionEightSendButton');
-
-            const SendFeebackBoxSectionTwo = document.querySelector('#SendFeebackBoxSectionTwoID');
-
-            function disableHoverOne() {
-                SendFeebackBoxSectionEightSendButton.style.marginTop = '';
-                SendFeebackBoxSectionEightSendButton.style.height = '';
-
-                SendFeebackBoxSectionEightSendButton.style.border = '';
-                SendFeebackBoxSectionEightSendButton.style.borderBottom = '';
-            }
-
-            function enableHoverOne() {
-                SendFeebackBoxSectionEightSendButton.style.marginTop = '2px';
-                SendFeebackBoxSectionEightSendButton.style.height = '52px';
-
-                SendFeebackBoxSectionEightSendButton.style.border = '2px solid rgb(var(--color-eel), 0.2)';
-                SendFeebackBoxSectionEightSendButton.style.borderBottom = '2px solid rgb(var(--color-eel), 0.2)';
-            }
-
-            if (SendFeebackBoxSectionTwo.value.trim().length > 16) {
-                SendFeebackBoxSectionEightSendButton.style.opacity = '100%';
-                SendFeebackBoxSectionEightSendButton.style.cursor = 'pointer';
-
-                isSendFeebackBoxSectionEightSendButtonEnabled = true;
-            } else {
-                SendFeebackBoxSectionEightSendButton.style.opacity = '0.5';
-                SendFeebackBoxSectionEightSendButton.style.cursor = 'not-allowed';
-
-                isSendFeebackBoxSectionEightSendButtonEnabled = false;
-            }
-
-            if (isSendFeebackBoxSectionEightSendButtonEnabled) {
-                //disableHoverOne();
-            } else {
-                //enableHoverOne();
-            }
-        } catch (error) {
-        }
-    }
-
-
-    const DuolingoProSettingsBoxHTML = `
-<div class="DPLBoxShadowStyleT1" id="DuolingoProSettingsBoxShadow">
-    <div class="DPLBoxStyleT1" id="DuolingoProSettingsBoxBackground" style="overflow-y: visible; overflow: hidden; padding: 0; padding-right: 16px; padding-left: 16px;">
-        <div class="DuolingoProSettingsBoxLayers">
-            <div class="DuolingoProSettingsBoxSectionOne">
-                <p class="paragraphText noSelect textFill" style="font-size: 24px; line-height: 32px;">Settings</p>
-                <div class="DuolingoProSettingsBoxSectionOneBoxOne">
-                    <p class="DuolingoProSettingsBoxSectionOneBoxOneTextOne paragraphText">${duolingoProCurrentVersion}</p>
-                </div>
-            </div>
-            <div class="DuolingoProSettingsBoxSectionTwo">
-                <div class="DuolingoProSettingsBoxSectionTwoBoxOne">
-                    <div class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOne">
-                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextThree paragraphText" style="color: #FF2D55;">BETA</p>
-                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextOne paragraphText">Shade</p>
-                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextTwo paragraphText">Duolingo Pro adds a view on top of your lesson to hide what AutoSolver is doing behind.</p>
-                    </div>
-                    <div id="DuolingoProSettingsBoxToggleT1ID1" class="DLPSettingsToggleT1 DLPSettingsToggleT1ON DLPSettingsToggleRmElement">
-                        <div class="DLPSettingsToggleT1B1 DLPSettingsToggleT1ONB1 DLPSettingsToggleRmElement">
-                            <svg class="DLPSettingsToggleT1B1I1 DLPSettingsToggleRmElement" style="display: ;" "16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M6.41406 13.9453C5.91406 13.9453 5.53906 13.7656 5.20312 13.3672L1.17188 8.48438C0.890625 8.16406 0.789062 7.875 0.789062 7.54688C0.789062 6.8125 1.33594 6.27344 2.09375 6.27344C2.53125 6.27344 2.84375 6.42969 3.13281 6.77344L6.375 10.7969L12.7656 0.71875C13.0781 0.226562 13.3984 0.0390625 13.9141 0.0390625C14.6641 0.0390625 15.2109 0.570312 15.2109 1.30469C15.2109 1.57812 15.125 1.86719 14.9219 2.17969L7.64062 13.3125C7.35938 13.7422 6.94531 13.9453 6.41406 13.9453Z" fill="white"/>
-                            </svg>
-                            <svg class="DLPSettingsToggleT1B1I2 DLPSettingsToggleRmElement" style="display: none; transform: scale(0);" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M0.867188 12.9922C0.414062 12.5469 0.429688 11.7578 0.851562 11.3359L5.32031 6.86719L0.851562 2.41406C0.429688 1.98438 0.414062 1.20312 0.867188 0.75C1.32031 0.289062 2.10938 0.304688 2.53125 0.734375L6.99219 5.19531L11.4531 0.734375C11.8906 0.296875 12.6562 0.296875 13.1094 0.75C13.5703 1.20312 13.5703 1.96875 13.125 2.41406L8.67188 6.86719L13.125 11.3281C13.5703 11.7734 13.5625 12.5312 13.1094 12.9922C12.6641 13.4453 11.8906 13.4453 11.4531 13.0078L6.99219 8.54688L2.53125 13.0078C2.10938 13.4375 1.32812 13.4453 0.867188 12.9922Z" fill="white"/>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="DuolingoProSettingsBoxSectionTwoBoxOne">
-                    <div class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOne">
-                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextThree paragraphText" style="color: #FF2D55;">BETA</p>
-                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextOne paragraphText">Question Solve Delay</p>
-                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextTwo paragraphText">Adjust how many seconds it takes for each question to get solved. A lower number will solve faster, and a higher number will solve slower. Use a higher number if your computer is slow or AutoSolver answers incorrectly. Continue clicking on the toggle to enter custom timing.</p>
-                    </div>
-                    <div id="DuolingoProSettingsBoxToggleT2ID2" class="DLPSettingsToggleT2 DLPSettingsToggleRmElement">
-                        <div class="DLPSettingsToggleT2B1 DLPSettingsToggleRmElement">
-                            <p class="DLPSettingsToggleT2B1T1 DLPSettingsToggleRmElement noSelect" style="margin: 0;">0.6</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="DuolingoProSettingsBoxSectionTwoBoxOne">
-                    <div class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOne">
-                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextThree paragraphText" style="color: #FF2D55;">BETA</p>
-                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextOn paragraphText">AntiStuck</p>
-                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextTwo paragraphText">In a case where Duolingo Pro fails to answer a question, AntiStuck will send an anomosus fail report, which can be used by our developers to fix AutoSolve for that type of question, and also reload the lesson, in hopes of not encountering the same question in the next lesson.</p>
-                    </div>
-                    <div id="DuolingoProSettingsBoxToggleT1ID2" class="DLPSettingsToggleT1 DLPSettingsToggleT1ON DLPSettingsToggleRmElement">
-                        <div class="DLPSettingsToggleT1B1 DLPSettingsToggleT1ONB1 DLPSettingsToggleRmElement">
-                            <svg class="DLPSettingsToggleT1B1I1 DLPSettingsToggleRmElement" style="display: ;" "16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M6.41406 13.9453C5.91406 13.9453 5.53906 13.7656 5.20312 13.3672L1.17188 8.48438C0.890625 8.16406 0.789062 7.875 0.789062 7.54688C0.789062 6.8125 1.33594 6.27344 2.09375 6.27344C2.53125 6.27344 2.84375 6.42969 3.13281 6.77344L6.375 10.7969L12.7656 0.71875C13.0781 0.226562 13.3984 0.0390625 13.9141 0.0390625C14.6641 0.0390625 15.2109 0.570312 15.2109 1.30469C15.2109 1.57812 15.125 1.86719 14.9219 2.17969L7.64062 13.3125C7.35938 13.7422 6.94531 13.9453 6.41406 13.9453Z" fill="white"/>
-                            </svg>
-                            <svg class="DLPSettingsToggleT1B1I2 DLPSettingsToggleRmElement" style="display: none; transform: scale(0);" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M0.867188 12.9922C0.414062 12.5469 0.429688 11.7578 0.851562 11.3359L5.32031 6.86719L0.851562 2.41406C0.429688 1.98438 0.414062 1.20312 0.867188 0.75C1.32031 0.289062 2.10938 0.304688 2.53125 0.734375L6.99219 5.19531L11.4531 0.734375C11.8906 0.296875 12.6562 0.296875 13.1094 0.75C13.5703 1.20312 13.5703 1.96875 13.125 2.41406L8.67188 6.86719L13.125 11.3281C13.5703 11.7734 13.5625 12.5312 13.1094 12.9922C12.6641 13.4453 11.8906 13.4453 11.4531 13.0078L6.99219 8.54688L2.53125 13.0078C2.10938 13.4375 1.32812 13.4453 0.867188 12.9922Z" fill="white"/>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="DuolingoProSettingsBoxSectionTwoBoxOne">
-                    <div class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOne">
-                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextThree paragraphText" style="color: #FF2D55;">RECOMMENDED ONLY IF YOU HAVE LESS THAN 8GB OF RAM</p>
-                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextOne paragraphText">Memory Saver</p>
-                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextTwo paragraphText">Memory Saver gradually loads Duolingo Pro onto Duolingo, helping with memory management. If you're encountering lag or crashes with Duolingo Pro, try turning this mode ON. Please note, using an incompatible browser or having a very slow internet connection may result further complications. </p>
-                    </div>
-                    <div id="DuolingoProSettingsBoxToggleT1ID3" class="DLPSettingsToggleT1 DLPSettingsToggleT1ON DLPSettingsToggleRmElement">
-                        <div class="DLPSettingsToggleT1B1 DLPSettingsToggleT1ONB1 DLPSettingsToggleRmElement">
-                            <svg class="DLPSettingsToggleT1B1I1 DLPSettingsToggleRmElement" style="display: ;" "16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M6.41406 13.9453C5.91406 13.9453 5.53906 13.7656 5.20312 13.3672L1.17188 8.48438C0.890625 8.16406 0.789062 7.875 0.789062 7.54688C0.789062 6.8125 1.33594 6.27344 2.09375 6.27344C2.53125 6.27344 2.84375 6.42969 3.13281 6.77344L6.375 10.7969L12.7656 0.71875C13.0781 0.226562 13.3984 0.0390625 13.9141 0.0390625C14.6641 0.0390625 15.2109 0.570312 15.2109 1.30469C15.2109 1.57812 15.125 1.86719 14.9219 2.17969L7.64062 13.3125C7.35938 13.7422 6.94531 13.9453 6.41406 13.9453Z" fill="white"/>
-                            </svg>
-                            <svg class="DLPSettingsToggleT1B1I2 DLPSettingsToggleRmElement" style="display: none; transform: scale(0);" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M0.867188 12.9922C0.414062 12.5469 0.429688 11.7578 0.851562 11.3359L5.32031 6.86719L0.851562 2.41406C0.429688 1.98438 0.414062 1.20312 0.867188 0.75C1.32031 0.289062 2.10938 0.304688 2.53125 0.734375L6.99219 5.19531L11.4531 0.734375C11.8906 0.296875 12.6562 0.296875 13.1094 0.75C13.5703 1.20312 13.5703 1.96875 13.125 2.41406L8.67188 6.86719L13.125 11.3281C13.5703 11.7734 13.5625 12.5312 13.1094 12.9922C12.6641 13.4453 11.8906 13.4453 11.4531 13.0078L6.99219 8.54688L2.53125 13.0078C2.10938 13.4375 1.32812 13.4453 0.867188 12.9922Z" fill="white"/>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="DuolingoProSettingsBoxSectionTwoBoxOne">
-                    <div class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOne">
-                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextThree paragraphText" style="color: #007AFF;">CURRENTLY DISABLED</p>
-                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextOne paragraphText">Manually Check for an Update</p>
-                        <p class="DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextTwo paragraphText">Duolingo Pro automatically performs periodic checks for updates. Alternatively, you can manually check for updates too.</p>
-                    </div>
-                    <div id="DLPSettingsToggleT3ID3" class="DLPSettingsToggleT3">
-                        <div class="DLPSettingsToggleT3B1">
-                            <svg class="DLPSettingsToggleT3B1I1" width="16" height="18" viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M0.890625 10.3984C0.890625 6.45312 4.01562 3.32031 7.9375 3.32031C8.21094 3.32031 8.49219 3.35156 8.72656 3.39062L7.17188 1.86719C7.00781 1.6875 6.89844 1.48438 6.89844 1.21094C6.89844 0.65625 7.32812 0.210938 7.875 0.210938C8.14844 0.210938 8.375 0.3125 8.55469 0.5L11.7422 3.75C11.9453 3.94531 12.0547 4.20312 12.0547 4.47656C12.0547 4.75781 11.9531 4.99219 11.7422 5.20312L8.55469 8.4375C8.375 8.60938 8.14844 8.70312 7.875 8.70312C7.32812 8.70312 6.89844 8.27344 6.89844 7.72656C6.89844 7.45312 7.00781 7.25 7.17969 7.07812L8.9375 5.33594C8.64062 5.28125 8.30469 5.25781 7.9375 5.25781C5.11719 5.25781 2.90625 7.51562 2.90625 10.3984C2.90625 13.2188 5.17188 15.5 8 15.5C10.8281 15.5 13.1094 13.2188 13.1094 10.3984C13.1094 9.78906 13.5078 9.36719 14.0938 9.36719C14.6875 9.36719 15.1094 9.78906 15.1094 10.3984C15.1094 14.3359 11.9375 17.5156 8 17.5156C4.07031 17.5156 0.890625 14.3359 0.890625 10.3984Z" fill="white"/>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                <div style="display: flex; padding: 16px; flex-direction: column; justify-content: center; align-items: flex-start; gap: 8px; align-self: stretch; border-radius: 8px; border: 2px solid rgba(0, 122, 255, 0.10); background: rgba(0, 122, 255, 0.10);">
-                    <div style="display: flex; align-items: center; gap: 8px; align-self: stretch;">
-                        <svg width="18" height="17" viewBox="0 0 18 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M9 16.9766C8.57812 16.9766 8.24219 16.6719 8.15625 16.2188C7.35156 11.0156 6.70312 10.3984 1.66406 9.70312C1.21094 9.64062 0.882812 9.29688 0.882812 8.85938C0.882812 8.42188 1.21875 8.0625 1.67188 8.00781C6.71875 7.44531 7.4375 6.71094 8.15625 1.5C8.22656 1.05469 8.57031 0.742188 9 0.742188C9.42188 0.742188 9.76562 1.05469 9.83594 1.5C10.625 6.71094 11.3047 7.38281 16.3359 8.00781C16.7812 8.07031 17.1172 8.42188 17.1172 8.85938C17.1172 9.29688 16.7812 9.64844 16.3281 9.70312C11.2812 10.2734 10.5547 11.0078 9.83594 16.2188C9.77344 16.6641 9.42969 16.9766 9 16.9766Z" fill="#007AFF"/>
-                        </svg>
-                        <p class="paragraphText noSelect" style="flex: 1 0 0; color: #007AFF;">Your Time with Duolingo Pro</p>
-                        <svg width="18" height="17" viewBox="0 0 18 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M9 16.6172C4.47656 16.6172 0.75 12.8906 0.75 8.35938C0.75 3.83594 4.46875 0.109375 9 0.109375C13.5234 0.109375 17.25 3.83594 17.25 8.35938C17.25 12.8906 13.5312 16.6172 9 16.6172ZM8.99219 5.86719C9.65625 5.86719 10.2031 5.3125 10.2031 4.64844C10.2031 3.96094 9.65625 3.42188 8.99219 3.42188C8.32031 3.42188 7.76562 3.96094 7.76562 4.64844C7.76562 5.3125 8.32031 5.86719 8.99219 5.86719ZM7.52344 12.8125H10.8438C11.2734 12.8125 11.6094 12.5156 11.6094 12.0703C11.6094 11.6562 11.2734 11.3281 10.8438 11.3281H10.1094V7.95312C10.1094 7.36719 9.82031 6.99219 9.27344 6.99219H7.67969C7.25 6.99219 6.91406 7.32031 6.91406 7.72656C6.91406 8.16406 7.25 8.47656 7.67969 8.47656H8.42969V11.3281H7.52344C7.09375 11.3281 6.75781 11.6562 6.75781 12.0703C6.75781 12.5156 7.09375 12.8125 7.52344 12.8125Z" fill="#007AFF"/>
-                        </svg>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 8px; align-self: stretch;">
-                        <p class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);">Questions Solved:</p>
-                        <p id="eASGBnBrCZmjwbBq" class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);">0</p>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 8px; align-self: stretch;">
-                        <p class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);">Lessons Solved:</p>
-                        <p id="WuLExbHJuqjJkLpE" class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);">0</p>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 8px; align-self: stretch;">
-                        <p class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);">XP Gained:</p>
-                        <p id="OZIoPjGvTCPohXmD" class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);">0</p>
-                    </div>
-                </div>
-
-                <div style="display: flex; padding: 16px; flex-direction: column; justify-content: center; align-items: flex-start; gap: 8px; align-self: stretch; border-radius: 8px; border: 2px solid rgba(0, 122, 255, 0.10); background: rgba(0, 122, 255, 0.10);">
-                    <div style="display: flex; align-items: center; gap: 8px; align-self: stretch;">
-                        <svg width="18" height="17" viewBox="0 0 18 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M9 16.9766C8.57812 16.9766 8.24219 16.6719 8.15625 16.2188C7.35156 11.0156 6.70312 10.3984 1.66406 9.70312C1.21094 9.64062 0.882812 9.29688 0.882812 8.85938C0.882812 8.42188 1.21875 8.0625 1.67188 8.00781C6.71875 7.44531 7.4375 6.71094 8.15625 1.5C8.22656 1.05469 8.57031 0.742188 9 0.742188C9.42188 0.742188 9.76562 1.05469 9.83594 1.5C10.625 6.71094 11.3047 7.38281 16.3359 8.00781C16.7812 8.07031 17.1172 8.42188 17.1172 8.85938C17.1172 9.29688 16.7812 9.64844 16.3281 9.70312C11.2812 10.2734 10.5547 11.0078 9.83594 16.2188C9.77344 16.6641 9.42969 16.9766 9 16.9766Z" fill="#007AFF"/>
-                        </svg>
-                        <p class="paragraphText noSelect" style="flex: 1 0 0; color: #007AFF;">Contributors & Libraries</p>
-                        <svg width="18" height="17" viewBox="0 0 18 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M9 16.6172C4.47656 16.6172 0.75 12.8906 0.75 8.35938C0.75 3.83594 4.46875 0.109375 9 0.109375C13.5234 0.109375 17.25 3.83594 17.25 8.35938C17.25 12.8906 13.5312 16.6172 9 16.6172ZM8.99219 5.86719C9.65625 5.86719 10.2031 5.3125 10.2031 4.64844C10.2031 3.96094 9.65625 3.42188 8.99219 3.42188C8.32031 3.42188 7.76562 3.96094 7.76562 4.64844C7.76562 5.3125 8.32031 5.86719 8.99219 5.86719ZM7.52344 12.8125H10.8438C11.2734 12.8125 11.6094 12.5156 11.6094 12.0703C11.6094 11.6562 11.2734 11.3281 10.8438 11.3281H10.1094V7.95312C10.1094 7.36719 9.82031 6.99219 9.27344 6.99219H7.67969C7.25 6.99219 6.91406 7.32031 6.91406 7.72656C6.91406 8.16406 7.25 8.47656 7.67969 8.47656H8.42969V11.3281H7.52344C7.09375 11.3281 6.75781 11.6562 6.75781 12.0703C6.75781 12.5156 7.09375 12.8125 7.52344 12.8125Z" fill="#007AFF"/>
-                        </svg>
-                    </div>
-                    <p class="paragraphText noSelect" style="align-self: stretch; color: rgba(0, 122, 255, 0.50);"><a href="https://github.com/anonymoushackerIV" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink paragraphText">anonymoushackerIV</a>, <a href="https://github.com/ByThon1" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink paragraphText">ByThon1</a>, <a href="https://github.com/JxxIT" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink paragraphText">JxxIT</a>, <a href="https://github.com/tkwon09137" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink paragraphText">Eclipse</a>, <a href="https://github.com/surebrec" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink paragraphText">surebrec</a>, <a href="https://github.com/SicariusBlack" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink paragraphText">SicariusBlack</a>, <a href="https://github.com/fakeduo" target="_blank" rel="noopener noreferrer" class="DuolingoProSettingsBoxContributorsLink paragraphText">fakeduo</a></p>
-                </div>
-
-            </div>
-            <div class="DuolingoProSettingsBoxSectionThree">
-                <button class="DPLSecondaryButtonStyleT1" id="DuolingoProSettingsBoxCancelButton">CANCEL</button>
-                <button class="DPLPrimaryButtonStyleT1" id="DuolingoProSettingsBoxSaveButton">SAVE</button>
-            </div>
-        </div>
-    </div>
-</div>
-`;
-
-    const DuolingoProSettingsBoxCSS = `
-.DuolingoProSettingsBoxLayers {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-    align-self: stretch;
-
-    overflow-y: auto;
-    padding: 16px 0 16px 0;
-    margin-right: -16px;
-    padding-right: 16px;
-}
-
-.DuolingoProSettingsBoxSectionOne {
-    display: flex;
-    height: 36px;
-    justify-content: space-between;
-    align-items: center;
-    align-self: stretch;
-}
-
-.DuolingoProSettingsBoxSectionOneBoxOne {
-    display: flex;
-    //width: 98px;
-    height: 36px;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-
-    border-radius: 8px;
-    border: 2px solid rgba(0, 0, 0, 0.20);
-    background: #FF2D55;
-
-    padding-left: 8px;
-    padding-right: 8px;
-}
-
-.DuolingoProSettingsBoxSectionOneBoxOneTextOne {
-    color: #FFF;
-    font-size: 16px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: normal;
-
-    margin: 0px;
-    cursor: default;
-}
-
-.DuolingoProSettingsBoxSectionTwo {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-    align-self: stretch;
-}
-
-.DuolingoProSettingsBoxSectionTwoBoxOne {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    align-self: stretch;
-}
-
-.DuolingoProSettingsBoxSectionTwoBoxOneBoxOne {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-    flex: 1 0 0;
-}
-
-.DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextOne {
-    align-self: stretch;
-
-    color: rgb(var(--color-eel));
-    font-size: 16px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: normal;
-
-    margin: 0px;
-    cursor: default;
-}
-
-.DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextTwo {
-    align-self: stretch;
-
-    color: rgb(var(--color-hare));
-    font-size: 14px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: normal;
-
-    margin: 0px;
-    cursor: default;
-}
-
-.DuolingoProSettingsBoxSectionTwoBoxOneBoxOneTextThree {
-    align-self: stretch;
-
-    font-size: 14px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: normal;
-
-    margin: 0px;
-    cursor: default;
-}
-
-
-
-.DuolingoProSettingsBoxSectionThree {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    align-self: stretch;
-}
-
-.DuolingoProSettingsBoxContributorsLink {
-    color: rgba(0, 122, 255, 0.50);
-    text-decoration-line: underline;
-    transition: .1s;
-}
-.DuolingoProSettingsBoxContributorsLink:hover {
-    color: #007AFF;
-}
-`;
-
-    let injectedDuolingoProSettingsBoxElement = null;
-    let injectedDuolingoProSettingsBoxStyle = null;
-
-    function injectDuolingoProSettingsBox() {
-        if (wasDuolingoProSettingsButtonOnePressed === true) {
-            if (!injectedDuolingoProSettingsBoxElement) {
-
-                injectedDuolingoProSettingsBoxElement = document.createElement('div');
-                injectedDuolingoProSettingsBoxElement.innerHTML = DuolingoProSettingsBoxHTML;
-                document.body.appendChild(injectedDuolingoProSettingsBoxElement);
-
-                injectedDuolingoProSettingsBoxStyle = document.createElement('style');
-                injectedDuolingoProSettingsBoxStyle.type = 'text/css';
-                injectedDuolingoProSettingsBoxStyle.innerHTML = DuolingoProSettingsBoxCSS;
-                document.head.appendChild(injectedDuolingoProSettingsBoxStyle);
-
-                let DuolingoProSettingsBoxWholeDiv = document.querySelector('#DuolingoProSettingsBoxShadow');
-                setTimeout(function() {
-                    DuolingoProSettingsBoxWholeDiv.style.opacity = '1';
-                }, 50);
-
-                const DuolingoProSettingsBoxCancelButton = document.querySelector('#DuolingoProSettingsBoxCancelButton');
-                DuolingoProSettingsBoxCancelButton.addEventListener('click', () => {
-                    let DuolingoProSettingsBoxWholeDiv = document.querySelector('#DuolingoProSettingsBoxShadow');
-                    setTimeout(function() {
-                        DuolingoProSettingsBoxWholeDiv.style.opacity = '0';
-                    }, 50);
-
-                    setTimeout(function() {
-                        wasDuolingoProSettingsButtonOnePressed = false;
-
-                        //AutoSolverSettingsShowPracticeOnlyModeForAutoSolverBox = JSON.parse(localStorage.getItem('AutoSolverSettingsShowPracticeOnlyModeForAutoSolverBox'));
-                        //AutoSolverSettingsShowRepeatLessonModeForAutoSolverBox = JSON.parse(localStorage.getItem('AutoSolverSettingsShowRepeatLessonModeForAutoSolverBox'));
-                        AutoSolverSettingsLowPerformanceMode = JSON.parse(localStorage.getItem('AutoSolverSettingsLowPerformanceMode'));
-                        solveSpeed = parseFloat(localStorage.getItem('duopro.autoSolveDelay'));
-                    }, 500);
-                });
-
-                const DuolingoProSettingsBoxSaveButton = document.querySelector('#DuolingoProSettingsBoxSaveButton');
-                DuolingoProSettingsBoxSaveButton.addEventListener('click', () => {
-
-                    //if (JSON.parse(localStorage.getItem('AutoSolverSettingsLowPerformanceMode')) !== AutoSolverSettingsLowPerformanceMode) {
-                    //    settingsStuff("Duolingo Pro Low Performance Mode", AutoSolverSettingsLowPerformanceMode ? 'ON' : 'OFF');
-                    //}
-                    //if (JSON.parse(localStorage.getItem('DuolingoProSettingsProBlockMode')) !== DuolingoProSettingsProBlockMode) {
-                    //    settingsStuff("Duolingo Pro ProBlock", DuolingoProSettingsProBlockMode ? 'ON' : 'OFF');
-                    //}
-                    //if (JSON.parse(localStorage.getItem('DuolingoProShadeLessonsMode')) !== DuolingoProShadeLessonsMode) {
-                    //    settingsStuff("Duolingo Pro Shade Mode", DuolingoProShadeLessonsMode ? 'ON' : 'OFF');
-                    //}
-                    //if (JSON.parse(localStorage.getItem('DuolingoProAntiStuckProtectionMode')) !== DuolingoProAntiStuckProtectionMode) {
-                    //    settingsStuff("Duolingo Pro AntiStuck Protection", DuolingoProAntiStuckProtectionMode ? 'ON' : 'OFF');
-                    //}
-                    if (parseFloat(localStorage.getItem('duopro.autoSolveDelay')) !== solveSpeed) {
-
-                    }
-
-                    localStorage.setItem('duopro.autoSolveDelay', solveSpeed);
-                    localStorage.setItem('DuolingoProShadeLessonsMode', DuolingoProShadeLessonsMode);
-                    //localStorage.setItem('AutoSolverSettingsLowPerformanceMode', AutoSolverSettingsLowPerformanceMode);
-                    //localStorage.setItem('DuolingoProSettingsProBlockMode', DuolingoProSettingsProBlockMode);
-                    localStorage.setItem('DuolingoProAntiStuckProtectionMode', DuolingoProAntiStuckProtectionMode);
-                    localStorage.setItem('DLPOMEGA', DLPOMEGA);
-
-                    DuolingoProSettingsBoxSaveButton.textContent = 'SAVING AND RELOADING';
-
-                    setTimeout(function() {
-                        //wasDuolingoProSettingsButtonOnePressed = false;
-                        location.reload();
-                    }, 2000);
-
-                });
-
-                document.querySelector('#eASGBnBrCZmjwbBq').textContent = String(duoproForeverTotalQuestions);
-                document.querySelector('#WuLExbHJuqjJkLpE').textContent = String(duoproForeverTotalLessons);
-                document.querySelector('#OZIoPjGvTCPohXmD').textContent = String(duoproForeverXP);
-
-                const DuolingoProSettingsBoxToggleT1ID1 = document.querySelector('#DuolingoProSettingsBoxToggleT1ID1');
-                DuolingoProSettingsBoxToggleT1ID1.addEventListener('click', () => {
-                    DuolingoProShadeLessonsMode = !DuolingoProShadeLessonsMode;
-                    updateDuolingoProSettingsToggle(1, DuolingoProSettingsBoxToggleT1ID1, DuolingoProShadeLessonsMode);
-                });
-
-                const DuolingoProSettingsBoxToggleT2ID2 = document.querySelector('#DuolingoProSettingsBoxToggleT2ID2');
-                DuolingoProSettingsBoxToggleT2ID2.addEventListener('click', () => {
-                    if (solveSpeed === 0.6) {
-                        solveSpeed = 0.7;
-                        updateDuolingoProSettingsToggle(2, DuolingoProSettingsBoxToggleT2ID2, solveSpeed);
-                    } else if (solveSpeed === 0.7) {
-                        solveSpeed = 0.8;
-                        updateDuolingoProSettingsToggle(2, DuolingoProSettingsBoxToggleT2ID2, solveSpeed);
-                    } else if (solveSpeed === 0.8) {
-                        solveSpeed = 0.9;
-                        updateDuolingoProSettingsToggle(2, DuolingoProSettingsBoxToggleT2ID2, solveSpeed);
-                    } else if (solveSpeed === 0.9) {
-                        updateDuolingoProSettingsToggle(2, DuolingoProSettingsBoxToggleT2ID2, "Custom");
-                        setTimeout(function() {
-                            ObywJEgHfSkHSgDTFunction();
-                        }, 100);
-                    } else {
-                        solveSpeed = 0.6;
-                        updateDuolingoProSettingsToggle(2, DuolingoProSettingsBoxToggleT2ID2, solveSpeed);
-                    }
-                });
-
-                const DuolingoProSettingsBoxToggleT1ID2 = document.querySelector('#DuolingoProSettingsBoxToggleT1ID2');
-                DuolingoProSettingsBoxToggleT1ID2.addEventListener('click', () => {
-                    DuolingoProAntiStuckProtectionMode = !DuolingoProAntiStuckProtectionMode;
-                    updateDuolingoProSettingsToggle(1, DuolingoProSettingsBoxToggleT1ID2, DuolingoProAntiStuckProtectionMode);
-                });
-
-                const DuolingoProSettingsBoxToggleT1ID3 = document.querySelector('#DuolingoProSettingsBoxToggleT1ID3');
-                DuolingoProSettingsBoxToggleT1ID3.addEventListener('click', () => {
-                    DLPOMEGA = !DLPOMEGA;
-                    updateDuolingoProSettingsToggle(1, DuolingoProSettingsBoxToggleT1ID3, DLPOMEGA);
-                });
-
-                const DuolingoProSettingsBoxToggleT3ID1 = document.querySelector('#DLPSettingsToggleT3ID3');
-                DuolingoProSettingsBoxToggleT1ID2.addEventListener('click', () => {
-                    //DuolingoProAntiStuckProtectionMode = !DuolingoProAntiStuckProtectionMode;
-                    //updateDuolingoProSettingsToggle(1, DuolingoProSettingsBoxToggleT1ID2, DuolingoProAntiStuckProtectionMode);
-                });
-
-                function slideEventForT22() {
-                    var startX = null;
-                    var startY = null;
-                    var pressed = false;
-
-                    document.addEventListener('mousedown', function(event) {
-                        if (event.target.classList.contains('DLPSettingsToggleRmElement')) {
-                            startX = event.clientX;
-                            startY = event.clientY;
-                            pressed = true;
-                        }
-                    });
-
-                    document.addEventListener('mouseup', function(event) {
-                        if (pressed) {
-                            let currentX = event.clientX;
-                            let currentY = event.clientY;
-                            pressed = false;
-                            if (Math.abs(currentX - startX) > 20 || Math.abs(currentY - startY) > 20) {
-                                notificationCall("Try clicking instead of swiping", "Click on the toggle instead of swiping.");
-                            }
-                        }
-                    });
-                }
-                slideEventForT22();
-
-                function updateDuolingoProSettingsToggleAll() {
-                    updateDuolingoProSettingsToggle(1, DuolingoProSettingsBoxToggleT1ID1, DuolingoProShadeLessonsMode);
-                    updateDuolingoProSettingsToggle(2, DuolingoProSettingsBoxToggleT2ID2, solveSpeed);
-                    updateDuolingoProSettingsToggle(1, DuolingoProSettingsBoxToggleT1ID2, DuolingoProAntiStuckProtectionMode);
-                    updateDuolingoProSettingsToggle(1, DuolingoProSettingsBoxToggleT1ID3, DLPOMEGA);
-                }
-                updateDuolingoProSettingsToggleAll();
-            }
-        } else {
-            if (injectedDuolingoProSettingsBoxElement) {
-                document.body.removeChild(injectedDuolingoProSettingsBoxElement);
-                document.head.removeChild(injectedDuolingoProSettingsBoxStyle);
-                injectedDuolingoProSettingsBoxElement = null;
-                injectedDuolingoProSettingsBoxStyle = null;
-            }
-        }
-    }
-
-    setInterval(injectDuolingoProSettingsBox, 100);
-
-    function updateDuolingoProSettingsToggle(id, element, variable) {
-        if (id === 1) {
-            let smthElement = element;
-            let smthElementB = smthElement.querySelector(".DLPSettingsToggleT1B1");
-            let smthElementBI1 = smthElement.querySelector(".DLPSettingsToggleT1B1I1");
-            let smthElementBI2 = smthElement.querySelector(".DLPSettingsToggleT1B1I2");
-            if (variable === false) {
-                smthElement.classList.add("DLPSettingsToggleT1OFF");
-                smthElement.classList.remove("DLPSettingsToggleT1ON");
-                smthElementB.classList.add("DLPSettingsToggleT1OFFB1");
-                smthElementB.classList.remove("DLPSettingsToggleT1ONB1");
-                smthElementBI1.style.transform = 'scale(0)';
-                setTimeout(function() {
-                    smthElementBI1.style.display = "none";
-                    smthElementBI2.style.display = "";
-                    smthElementBI2.style.transform = 'scale(1)';
-                }, 100);
-            } else if (variable === true) {
-                smthElement.classList.add("DLPSettingsToggleT1ON");
-                smthElement.classList.remove("DLPSettingsToggleT1OFF");
-                smthElementB.classList.add("DLPSettingsToggleT1ONB1");
-                smthElementB.classList.remove("DLPSettingsToggleT1OFFB1");
-                smthElementBI2.style.transform = 'scale(0)';
-                setTimeout(function() {
-                    smthElementBI2.style.display = "none";
-                    smthElementBI1.style.display = "";
-                    smthElementBI1.style.transform = 'scale(1)';
-                }, 100);
-            } else {
-                console.log("error #11");
-            }
-        } else if (id === 2) {
-            let elementTB = element.querySelector(".DLPSettingsToggleT2B1");
-            let elementTBT = element.querySelector(".DLPSettingsToggleT2B1T1");
-            if (variable === 0.6) {
-                elementTB.style.marginLeft = "6px";
-                elementTBT.textContent = "0.6";
-                elementTB.style.width = "";
-            } else if (variable === 0.7) {
-                elementTB.style.marginLeft = "22px";
-                elementTBT.textContent = "0.7";
-            } else if (variable === 0.8) {
-                elementTB.style.marginLeft = "38px";
-                elementTBT.textContent = "0.8";
-            } else if (variable === 0.9) {
-                elementTB.style.marginLeft = "54px";
-                elementTBT.textContent = "0.9";
-            } else if (variable === "Custom") {
-                elementTB.style.marginLeft = "6px";
-                elementTB.style.width = "80px";
-                elementTBT.textContent = "Custom";
-            } else {
-                elementTB.style.marginLeft = "6px";
-                elementTB.style.width = "80px";
-                elementTBT.textContent = String(variable);
-            }
-        } else if (id === 3) {
-
-        }
-    }
-
-
-    const ObywJEgHfSkHSgDT = `
-<div class="DPLBoxShadowStyleT1" id="DLPSettingsBoxCustomSolveDelayBoxOneID">
-	<div class="DPLBoxStyleT1 VStack" style="width: 256px;">
-		<div class="DPIPUL1 HStack" style="display: flex; justify-content: center; align-items: center; gap: 8px; align-self: stretch;">
-			<svg width="17" height="18" viewBox="0 0 17 18" fill="rgb(var(--color-eel))" xmlns="http://www.w3.org/2000/svg">
-				<path d="M8.64844 17.1094C4.07812 17.1094 0.398438 13.4297 0.398438 8.85938C0.398438 6.97656 1.05469 5.22656 2.13281 3.84375C2.58594 3.21875 3.30469 3.17188 3.75 3.59375C4.20312 4.03125 4.10938 4.54688 3.72656 5.10938C2.92969 6.14844 2.46094 7.46875 2.45312 8.85938C2.44531 12.2812 5.20312 15.0547 8.64844 15.0547C12.0938 15.0547 14.8438 12.2812 14.8438 8.85938C14.8438 5.65625 12.4688 3.01562 9.35938 2.65625V4.16406C9.35938 4.65625 9.01562 5.03125 8.52344 5.03125C8.03125 5.03125 7.67969 4.65625 7.67969 4.16406V1.52344C7.67969 0.953125 8.0625 0.609375 8.65625 0.609375C13.2266 0.609375 16.8984 4.28906 16.8984 8.85938C16.8984 13.4297 13.2266 17.1094 8.64844 17.1094ZM9.91406 10.1719C9.21094 10.8594 8.20312 10.7031 7.67188 9.89062L5.1875 6.17969C4.80469 5.59375 5.34375 5.04688 5.92969 5.42969L9.64844 7.91406C10.4609 8.45312 10.6094 9.45312 9.91406 10.1719Z"/>
-			</svg>
-			<p class="DPIPUL1T2" style="margin: 0; flex: 1 0 0; color: rgb(var(--color-eel)); font-size: 16px; font-style: normal; font-weight: 700; line-height: normal; margin: 0;">Custom Solve Delay</p>
-		</div>
-		<input class="DLPFeedbackTextFieldT1" id="DLPSettingsBoxCustomSolveDelayBoxOneInputID" type="number" style="resize: none; height: 54px;" placeholder="0.6 - 30">
-		<div style="display: flex; align-items: flex-start; gap: 8px; align-self: stretch;">
-			<button class="DPLSecondaryButtonStyleT1" id="DLPSettingsBoxCustomSolveDelayBoxOneCancelButtonID">CANCEL</button>
-			<button class="DPLPrimaryButtonStyleT1" id="DLPSettingsBoxCustomSolveDelayBoxOneSaveButtonID">SAVE</button>
-		</div>
-	</div>
-</div>
-`;
-    let ObywJEgHfSkHSgDTElement = null;
-    function ObywJEgHfSkHSgDTFunction() {
-        try {
-            if (!ObywJEgHfSkHSgDTElement) {
-                document.body.insertAdjacentHTML('beforeend', ObywJEgHfSkHSgDT);
-                ObywJEgHfSkHSgDTElement = ObywJEgHfSkHSgDT;
-                let ooSOIuzdgFhWQnMF = document.querySelector("#DLPSettingsBoxCustomSolveDelayBoxOneID")
-                setTimeout(function() {
-                    ooSOIuzdgFhWQnMF.style.opacity = "1";
-                }, 50);
-
-                let dyYWhDVQJASxSpEt = document.querySelector('#DLPSettingsBoxCustomSolveDelayBoxOneCancelButtonID');
-                let WFJpVXqPJOKtwFRX = document.querySelector('#DLPSettingsBoxCustomSolveDelayBoxOneSaveButtonID');
-                dyYWhDVQJASxSpEt.addEventListener('click', () => {
-                    solveSpeed = 0.6;
-                    const DuolingoProSettingsBoxToggleT2ID2 = document.querySelector('#DuolingoProSettingsBoxToggleT2ID2');
-                    updateDuolingoProSettingsToggle(2, DuolingoProSettingsBoxToggleT2ID2, solveSpeed);
-                    setTimeout(function() {
-                        ooSOIuzdgFhWQnMF.style.opacity = '0';
-                    }, 50);
-                    ObywJEgHfSkHSgDTElement = null;
-                    ooSOIuzdgFhWQnMF.remove();
-                });
-                WFJpVXqPJOKtwFRX.addEventListener('click', () => {
-                    let inputValue = document.getElementById('DLPSettingsBoxCustomSolveDelayBoxOneInputID').value.trim();
-                    let regex = /^[0-9]+(\.[0-9]+)?$/;
-                    if (regex.test(inputValue) && inputValue >= 0.6 && inputValue <= 30) {
-                        solveSpeed = parseFloat(inputValue).toFixed(1);
-                        const DuolingoProSettingsBoxToggleT2ID2 = document.querySelector('#DuolingoProSettingsBoxToggleT2ID2');
-                        updateDuolingoProSettingsToggle(2, DuolingoProSettingsBoxToggleT2ID2, solveSpeed);
-                        setTimeout(function() {
-                            ooSOIuzdgFhWQnMF.style.opacity = '0';
-                        }, 50);
-                        ObywJEgHfSkHSgDTElement = null;
-                        ooSOIuzdgFhWQnMF.remove();
-                    } else {
-                        notificationCall("Invalid Number", "Make sure to enter a number between 0.6 and 30, with no other text or spaces. ");
-                        //alert('Input is invalid. Please enter a number between 0.6 and 30 with no more than 1 decimal.');
-                    }
-                });
-            }
-        } catch(error) {}
-    }
-
-
-
-    let downloadStuffVar = 'none';
-    let updateStuffVar = 'none';
-
-    if (String(localStorage.getItem('duolingoProLastInstalledVersion')) === null || String(localStorage.getItem('duolingoProLastInstalledVersion')) === "null") {
-        downloadStuffVar = 'trying';
-
-        setTimeout(function() {
-            versionServerStuff('download', duolingoProCurrentVersion);
-            checkFlagTwo();
-			localStorage.setItem('duolingoProLastInstalledVersion', duolingoProCurrentVersion);
-            newWithUpdatePopUpFunction();
-        }, 2000);
-
-        function checkFlagTwo() {
-            if (downloadStuffVar === 'trying') {
-                setTimeout(function() {
-                    checkFlagTwo();
-                }, 100);
-            } else if (downloadStuffVar === 'true') {
-				//localStorage.setItem('duolingoProLastInstalledVersion', duolingoProCurrentVersion);
-            } else if (downloadStuffVar === 'error') {
-                //setTimeout(function() {
-                //    versionServerStuff('download', duolingoProCurrentVersion);
-                //    checkFlagTwo();
-                //}, 1000);
-            } else if (downloadStuffVar === 'empty') {
-                notificationCall("Duolingo Pro Encountered An Error", "Duolingo Pro error #0001");
-            }
-        }
-
-    } else if (String(localStorage.getItem('duolingoProLastInstalledVersion')) !== duolingoProCurrentVersion) {
-        updateStuffVar = 'trying';
-
-        DLPpromotionBubbleVisibility = true;
-        localStorage.setItem('DLP4Uz53cm6wjnOG7tY', "true");
-
-        setTimeout(function() {
-            versionServerStuff('update', duolingoProCurrentVersion, String(localStorage.getItem('duolingoProLastInstalledVersion')));
-            checkFlagThree();
-			localStorage.setItem('duolingoProLastInstalledVersion', duolingoProCurrentVersion);
-            newWithUpdatePopUpFunction();
-        }, 2000);
-
-        function checkFlagThree() {
-            if (updateStuffVar === 'trying') {
-                setTimeout(function() {
-                    checkFlagThree();
-                }, 100);
-            } else if (updateStuffVar === 'true') {
-                //localStorage.setItem('duolingoProLastInstalledVersion', duolingoProCurrentVersion);
-            } else if (updateStuffVar === 'error') {
-                //setTimeout(function() {
-                //    versionServerStuff('update', duolingoProCurrentVersion, String(localStorage.getItem('duolingoProLastInstalledVersion')));
-                //    checkFlagThree();
-                //}, 1000);
-            } else if (updateStuffVar === 'empty') {
-                notificationCall("Duolingo Pro Encountered An Error", "Duolingo Pro error #0002");
-            }
-        }
-    }
-
-    let screenWidth = screen.width;
-
-    function BegMobileSupport() {
-        try {
-            screenWidth = screen.width;
-            if (Number(localStorage.getItem('screenWidthDuolingoPro')) === null || isNaN(Number(localStorage.getItem('screenWidthDuolingoPro'))) || Number(localStorage.getItem('screenWidthDuolingoPro')) === 0) {
-                localStorage.setItem('screenWidthDuolingoPro', screenWidth);
-                setTimeout(function() {
-                    BegMobileSupport();
-                }, 1000);
-            } else if (Number(localStorage.getItem('screenWidthDuolingoPro')) !== screenWidth) {
-                localStorage.setItem('screenWidthDuolingoPro', screenWidth);
-                setTimeout(function() {
-                    BegMobileSupport();
-                }, 1000);
-            } else {
-                setTimeout(function() {
-                    BegMobileSupport();
-                }, 1000);
-            }
-        } catch (error) {
-        }
-    }
-    BegMobileSupport();
-
-    function MidMobileSupport() {
-        try {
-            screenWidth = screen.width;
-            const boxFirst = document.querySelector('.AutoSolverBoxFirst');
-
-            if (screenWidth < 700) {
-                boxFirst.style.marginBottom = '64px';
-            } else {
-                boxFirst.style.marginBottom = '';
-            }
-        } catch (error) {
-        }
-    }
-
-    setInterval(MidMobileSupport, 1000);
-
-
-
-
-    const DuolingoProShadeHTML = `
-<div class="BlockBoxOne">
-    <div class="BlockBoxOneSectionOne">
-        <p class="BlockBoxOneSectionOneTextOne">Duolingo Pro is working hard</p>
-        <p class="BlockBoxOneSectionOneTextTwo">AntiStuck Protection is <a style="color: #007AFF;">active</a></p>
-    </div>
-    <div class="BlockBoxOneSectionTwo">
-        <div class="BlockBoxOneSectionTwoBoxOne noSelect">END LESSON</div>
-        <div class="BlockBoxOneSectionTwoBoxTwo noSelect">SHOW LESSON</div>
-    </div>
-</div>
-`;
-
-    const DuolingoProShadeCSS = `
-.BlockBoxOne {
-    position: fixed;
-    top: 0px;
-    bottom: 0px;
-    right: 0px;
-    left: 0px;
-    width: 100%;
-    height: 100vh;
-    background: rgb(var(--color-snow));
-
-    justify-content: center;
-    align-items: center;
-    align-self: stretch;
-    display: flex;
-
-    z-index: 512;
-}
-
-.BlockBoxOneSectionOne {
-    width: 100%;
-    height: 100%;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    display: inline-flex;
-}
-
-.BlockBoxOneSectionOneTextOne {
-    color: rgb(var(--color-eel));
-    text-align: center;
-    font-size: 32px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: normal;
-    margin: 0px;
-}
-
-.BlockBoxOneSectionOneTextTwo {
-    align-self: stretch;
-
-    color: rgb(var(--color-hare));
-    text-align: center;
-    font-size: 16px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: normal;
-    margin: 0px;
-}
-
-.BlockBoxOneSectionTwo {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    align-self: stretch;
-
-    position: fixed;
-    bottom: 16px;
-    width: 500px;
-}
-
-.BlockBoxOneSectionTwoBoxOne {
-    display: flex;
-    height: 54px;
-    padding: 0px 16px;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    flex: 1 0 0;
-
-    border-radius: 8px;
-    border: 2px solid rgba(0, 0, 0, 0.20);
-    border-bottom: 4px solid rgba(0, 0, 0, 0.20);
-    background: #FF2D55;
-
-    color: #FFF;
-    text-align: center;
-    font-size: 16px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: normal;
-
-    cursor: pointer;
-    transition: .1s;
-}
-
-.BlockBoxOneSectionTwoBoxOne:hover {
-    filter: brightness(0.95);
-}
-
-.BlockBoxOneSectionTwoBoxOne:active {
-    filter: brightness(0.9);
-    height: 52px;
-    margin-top: 2px;
-    border: 2px solid rgba(0, 0, 0, 0.20);
-}
-
-.BlockBoxOneSectionTwoBoxTwo {
-    display: flex;
-    height: 54px;
-    padding: 0px 16px;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    flex: 1 0 0;
-
-    border-radius: 8px;
-    border: 2px solid rgba(0, 0, 0, 0.20);
-    border-bottom: 4px solid rgba(0, 0, 0, 0.20);
-    background: rgb(var(--color-hare), 0.5);
-
-    color: rgb(var(--color-eel));
-    text-align: center;
-    font-size: 16px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: normal;
-
-    cursor: pointer;
-    transition: .1s;
-}
-
-.BlockBoxOneSectionTwoBoxTwo:hover {
-    filter: brightness(0.95);
-}
-
-.BlockBoxOneSectionTwoBoxTwo:active {
-    filter: brightness(0.9);
-    height: 52px;
-    margin-top: 2px;
-    border: 2px solid rgba(0, 0, 0, 0.20);
-}
-`;
-
-    let injectedDuolingoProShadeElement = null;
-    let injectedDuolingoProShadeStyle = null;
-
-    function injectDuolingoProShade() {
-        if ((window.location.pathname.includes('/lesson') || window.location.pathname.includes('/practice')) && autoSolverBoxAutomatedSolvingActive && DuolingoProShadeLessonsMode) {
-            if (!injectedDuolingoProShadeElement) {
-                injectedDuolingoProShadeElement = document.createElement('div');
-                injectedDuolingoProShadeElement.innerHTML = DuolingoProShadeHTML;
-                document.body.appendChild(injectedDuolingoProShadeElement);
-
-                injectedDuolingoProShadeStyle = document.createElement('style');
-                injectedDuolingoProShadeStyle.type = 'text/css';
-                injectedDuolingoProShadeStyle.innerHTML = DuolingoProShadeCSS;
-                document.head.appendChild(injectedDuolingoProShadeStyle);
-
-                const DuolingoProShadeEndLessonButton = document.querySelector('.BlockBoxOneSectionTwoBoxOne');
-                const DuolingoProShadeShowLessonButton = document.querySelector('.BlockBoxOneSectionTwoBoxTwo');
-
-                DuolingoProShadeEndLessonButton.addEventListener('click', () => {
-                    window.location.href = "https://duolingo.com/learn";
-                    DuolingoProShadeEndLessonButton.textContent = 'ENDING LESSON'
-                });
-
-
-                const DuolingoProShadeDivBox = document.querySelector('.BlockBoxOne');
-
-                DuolingoProShadeShowLessonButton.addEventListener('mouseover', () => {
-                    DuolingoProShadeDivBox.style.transition = '0.4s';
-                    DuolingoProShadeDivBox.style.opacity = '0.8';
-                });
-
-                DuolingoProShadeShowLessonButton.addEventListener('mouseleave', () => {
-                    if (DuolingoProShadeDivBox.style.opacity === '0') {
-                    } else {
-                        DuolingoProShadeDivBox.style.opacity = '';
-                    }
-                });
-
-                DuolingoProShadeShowLessonButton.addEventListener('click', () => {
-                    DuolingoProShadeDivBox.style.opacity = '0';
-                    DuolingoProShadeDivBox.style.pointerEvents = 'none';
-                });
-            }
-        } else {
-            if (injectedDuolingoProShadeElement) {
-                document.body.removeChild(injectedDuolingoProShadeElement);
-                document.head.removeChild(injectedDuolingoProShadeStyle);
-                injectedDuolingoProShadeElement = null;
-                injectedDuolingoProShadeStyle = null;
-            }
-        }
-    }
-
-    setInterval(injectDuolingoProShade, 100);
-
-
-
-    let duolingoProCurrentNewVersion;
-    function checkForUpdatesVersion() {
-        async function updateWarningsFromURL(url, currentVersion) {
-            try {
-                const response = await fetch(url);
-                if (!response.ok) {
-                    //throw new Error('Network response was not ok');
-                }
-                const data = await response.json();
-                const versionData = data[currentVersion];
-                if (versionData) {
-                    for (const warningKey in versionData) {
-                        if (warningKey === 'status') {
-                            if (versionData[warningKey] === "latest") {
-                                isLatestVersion = true;
-                            } else if (versionData[warningKey] === "outdated") {
-                                UpdateAvailableAutoSolverBoxAlertFunction();
-                                isLatestVersion = false;
-                            } else if (versionData[warningKey] === "deprecated") {
-                                UpdateRequiredFunction();
-                                isLatestVersion = false;
-                            } else {
-                                UpdateRequiredFunction();
-                                isLatestVersion = false;
-                            }
-                        }
-                    }
-                } else {
-                    console.log(`Warnings not found for Duolingo Pro ${duolingoProFormalCurrentVersion}, this version may be deprecated.`);
-                    UpdateAvailableAutoSolverBoxAlertFunction();
-                }
-            } catch (error) {
-                console.log(`Error getting data #2: ${error.message}`);
-            }
-        }
-        updateWarningsFromURL('https://raw.githubusercontent.com/anonymoushackerIV/Duolingo-Pro-Assets/main/resources/issues-and-fixes.json', duolingoProFormalCurrentVersion);
-    }
-
-
-
-    const DuolingoProNotificationBoxHTML = `
-<div class="BlockedByDuolingoProBoxBackground" id="DuolingoProNotificationBackgroundOneID">
-    <div class="BlockedByDuolingoProBoxSectionOne">
-        <p class="BlockedByDuolingoProBoxSectionOneTextOne paragraphText" id="DuolingoProNotificationTitleOneID">Title</p>
-        <p class="BlockedByDuolingoProBoxSectionOneTextTwo noSelect paragraphText" id="DuolingoProNotificationHideButtonOneID">DISMISS</p>
-    </div>
-    <p class="BlockedByDuolingoProBoxSectionTwoTextOne paragraphText" id="DuolingoProNotificationDescriptionOneID">Description</p>
-</div>
-`;
-
-    const DuolingoProNotificationBoxCSS = `
-.BlockedByDuolingoProBoxBackground {
-    position: fixed;
-    display: flex;
-    width: 368px !important;
-    padding: 16px;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 4px;
-    flex-shrink: 0;
-
-    border-radius: 16px;
-    border: 2px solid rgb(var(--color-swan));
-    background: rgb(var(--color-snow), 0.84);
-    backdrop-filter: blur(16px);
-
-    z-index: 2048;
-
-    opacity: 1;
-    transition: opacity .2s;
-
-    left: 24px;
-    top: calc(100%);
-    /* Initially, it's hidden below the viewport */
-    transition: top 0.5s cubic-bezier(0.16, 1, 0.32, 1);
-    /* Add a transition for the 'top' property */
-}
-
-.BlockedByDuolingoProBoxSectionOne {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    align-self: stretch;
-}
-
-.BlockedByDuolingoProBoxSectionOneTextOne {
-    flex: 1 0 0;
-
-    color: rgb(var(--color-eel));
-    font-size: 18px;
-    font-weight: 700;
-
-    margin: 0px;
-    cursor: default;
-}
-
-.BlockedByDuolingoProBoxSectionOneTextTwo {
-    color: #007AFF;
-    font-size: 16px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: normal;
-
-    margin: 0px;
-    cursor: pointer;
-
-    transition: .1s;
-}
-.BlockedByDuolingoProBoxSectionOneTextTwo:hover {
-    filter: brightness(0.9);
-}
-.BlockedByDuolingoProBoxSectionOneTextTwo:active {
-    filter: brightness(0.8);
-}
-
-.BlockedByDuolingoProBoxSectionTwoTextOne {
-    align-self: stretch;
-
-    color: rgb(var(--color-eel), 0.6);
-    font-size: 16px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: normal;
-
-    margin: 0px;
-    cursor: default;
-}
-`;
-
-    let injectedDuolingoProNotificationBoxElement = null;
-    let injectedDuolingoProNotificationBoxStyle = null;
-
-    let DuolingoProNotificationOneVar = false;
-
-    function injectDuolingoProNotificationBox() {
-        if (!injectedDuolingoProNotificationBoxElement) {
-            injectedDuolingoProNotificationBoxElement = document.createElement('div');
-            injectedDuolingoProNotificationBoxElement.innerHTML = DuolingoProNotificationBoxHTML;
-            document.body.appendChild(injectedDuolingoProNotificationBoxElement);
-
-            injectedDuolingoProNotificationBoxStyle = document.createElement('style');
-            injectedDuolingoProNotificationBoxStyle.type = 'text/css';
-            injectedDuolingoProNotificationBoxStyle.innerHTML = DuolingoProNotificationBoxCSS;
-            document.head.appendChild(injectedDuolingoProNotificationBoxStyle);
-        }
-    }
-
-    setInterval(injectDuolingoProNotificationBox, 100);
-
-    function notificationCall(title, description) {
-        if (!DuolingoProNotificationOneVar) {
-            notificationPopOne("", "", false);
-            setTimeout(function() {
-                notificationPopOne(title, description, true);
-                DuolingoProNotificationOneVar = true;
-            }, 600);
-        } else if (DuolingoProNotificationOneVar) {
-            notificationPopOne("", "", false);
-            DuolingoProNotificationOneVar = false;
-            setTimeout(function() {
-                notificationPopOne(title, description, true);
-                DuolingoProNotificationOneVar = false;
-            }, 600);
-        }
-    }
-
-    function notificationPopOne(title, description, value) {
-        let DuolingoProNotificationOne = document.querySelector('#DuolingoProNotificationBackgroundOneID');
-
-        let DuolingoProNotificationOneTitle = document.querySelector('#DuolingoProNotificationTitleOneID');
-        let DuolingoProNotificationOneDescription = document.querySelector('#DuolingoProNotificationDescriptionOneID');
-        let DuolingoProNotificationOneHideButton = document.querySelector('#DuolingoProNotificationHideButtonOneID');
-
-        DuolingoProNotificationOneTitle.textContent = title;
-        DuolingoProNotificationOneDescription.textContent = description;
-
-        let DuolingoProNotificationOneHeight = DuolingoProNotificationOne.getBoundingClientRect().height;
-
+    Object.keys(pages).forEach(function (key) {
+        document.getElementById(key).addEventListener("click", function () {
+            if (isBusySwitchingPages || isGetButtonsBusy) return;
+            goToPage(pages[this.id][0], pages[this.id][1], key);
+        });
+    });
+    document.getElementById('DLP_Hide_Button_1_ID').addEventListener("click", function () {
+        if (isBusySwitchingPages) return;
+        hidden = !hidden;
+        hide(hidden);
+    });
+    function hide(value) {
+        if (isBusySwitchingPages) return;
+        isBusySwitchingPages = true;
+        let button = document.querySelector(`#DLP_Hide_Button_1_ID`);
+        let main = document.querySelector(`.DLP_Main`);
+        let mainBox = document.querySelector(`.DLP_Main_Box`);
+
+        let mainBoxHeight = mainBox.offsetHeight;
+
+        main.style.transition = "0.8s cubic-bezier(0.16, 1, 0.32, 1)";
+        mainBox.style.transition = "0.8s cubic-bezier(0.16, 1, 0.32, 1)";
         if (value) {
-            DuolingoProNotificationOne.style.top = `calc(100% - ${DuolingoProNotificationOneHeight + 24}px)`;
+            setButtonState(button, 'Show', button.querySelector('#DLP_Inset_Icon_2_ID'), button.querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
+            main.style.bottom = `-${mainBoxHeight - 8}px`;
+            legacyButtonVisibility(false);
+            mainBox.style.filter = "blur(8px)";
+            mainBox.style.opacity = "0";
         } else {
-            DuolingoProNotificationOne.style.top = `calc(100%)`;
+            setButtonState(button, 'Hide', button.querySelector('#DLP_Inset_Icon_1_ID'), button.querySelector('#DLP_Inset_Icon_2_ID'), '#007AFF', '2px solid rgba(0, 0, 0, 0.20)', '#FFF', 400);
+            main.style.bottom = "16px";
+            if (currentPage === 1 || currentPage === 3) legacyButtonVisibility(true);
+            mainBox.style.filter = "";
+            mainBox.style.opacity = "";
         }
-        DuolingoProNotificationOneHideButton.addEventListener('click', () => {
-            DuolingoProNotificationOne.style.top = `calc(100%)`;
-            DuolingoProNotificationOneVar = false;
+        setTimeout(() => {
+            main.style.transition = "";
+            mainBox.style.transition = "";
+            isBusySwitchingPages = false;
+        }, "800");
+    }
+    document.querySelector(`.DLP_Main`).style.bottom = `-${document.querySelector(`.DLP_Main_Box`).offsetHeight - 8}px`;
+    document.querySelector(`.DLP_Main_Box`).style.opacity = "0";
+    document.querySelector(`.DLP_Main_Box`).style.filter = "blur(8px)";
+    document.querySelector(`#DLP_Switch_Legacy_Button_1_ID`).style.filter = "blur(8px)";
+    document.querySelector(`#DLP_Switch_Legacy_Button_1_ID`).style.opacity = "0";
+    document.querySelector(`#DLP_Switch_Legacy_Button_1_ID`).style.display = "none";
+    hide(false, false);
+    function legacyButtonVisibility(value) {
+        let legacyButton = document.querySelector(`#DLP_Switch_Legacy_Button_1_ID`);
+        legacyButton.style.transition = 'width 0.8s cubic-bezier(0.77,0,0.18,1), opacity 0.8s cubic-bezier(0.16, 1, 0.32, 1), filter 0.8s cubic-bezier(0.16, 1, 0.32, 1), transform 0.4s cubic-bezier(0.16, 1, 0.32, 1)';
+        if (value) {
+            legacyButton.style.display = "";
+            legacyButton.offsetWidth;
+            legacyButton.style.filter = "";
+            legacyButton.style.opacity = "";
+        } else {
+            legacyButton.style.filter = "blur(8px)";
+            legacyButton.style.opacity = "0";
+            setTimeout(() => {
+                legacyButton.style.display = "none";
+            }, "800");
+        }
+    }
+    function handleVisibility() {
+        if (document.querySelector('.MYehf') !== null || window.location.pathname.includes('/lesson') || window.location.pathname === '/practice') {
+            document.querySelector('.DLP_Main').style.display = 'none';
+        } else {
+            document.querySelector('.DLP_Main').style.display = '';
+        }
+    }
+    setInterval(handleVisibility, 200);
+
+
+
+
+    const DLP_Get_PATH_1_ID = document.getElementById("DLP_Get_PATH_1_ID");
+    const DLP_Get_PATH_2_ID = document.getElementById("DLP_Get_PATH_2_ID");
+    const DLP_Get_PRACTICE_1_ID = document.getElementById("DLP_Get_PRACTICE_1_ID");
+    const DLP_Get_PRACTICE_2_ID = document.getElementById("DLP_Get_PRACTICE_2_ID");
+    const DLP_Get_LISTEN_1_ID = document.getElementById("DLP_Get_LISTEN_1_ID");
+    const DLP_Get_LISTEN_2_ID = document.getElementById("DLP_Get_LISTEN_2_ID");
+    const DLP_Get_LESSON_1_ID = document.getElementById("DLP_Get_LESSON_1_ID");
+    const DLP_Get_LESSON_2_ID = document.getElementById("DLP_Get_LESSON_2_ID");
+
+    function inputCheck2() {
+        const ids = {
+            "DLP_Get_PATH_1_ID": ["path"],
+            "DLP_Get_PATH_2_ID": ["path"],
+            "DLP_Get_PRACTICE_1_ID": ["practice"],
+            "DLP_Get_PRACTICE_2_ID": ["practice"],
+            "DLP_Get_LISTEN_1_ID": ["listen"],
+            "DLP_Get_LISTEN_2_ID": ["listen"],
+            "DLP_Get_LESSON_1_ID": ["lesson"],
+            "DLP_Get_LESSON_2_ID": ["lesson"]
+        };
+
+        Object.keys(ids).forEach(id => {
+            const element = document.getElementById(id);
+            if (!element) return;
+            const input = element.querySelector('#DLP_Inset_Input_1_ID');
+            const button = element.querySelector('#DLP_Inset_Button_1_ID');
+            if (!input || !button) return;
+            const updateButtonState = () => {
+                const isEmpty = input.value.length === 0;
+                button.style.opacity = isEmpty ? '0.5' : '';
+                button.style.pointerEvents = isEmpty ? 'none' : '';
+            };
+            const category = ids[id][0];
+            input.addEventListener("input", function () {
+                this.value = this.value.replace(/[^0-9]/g, "");
+                if (this.value.length > 1 && this.value[0] === '0') this.value = this.value.slice(1);
+                if (this.value.length > 6) this.value = this.value.slice(0, 6);
+                updateButtonState();
+                if (!storageSession.legacy[category]) storageSession.legacy[category] = [];
+                storageSession.legacy[category].amount = Number(this.value);
+                saveStorageSession();
+            });
+            if (storageSession.legacy[category].amount !== 0) input.value = storageSession.legacy[category].amount; updateButtonState();
+        });
+    }
+
+    inputCheck2();
+
+    DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
+        if (!storageSession.legacy.status && storageSession.legacy.path.amount > 0) {
+            setButtonState(DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_1_ID'), 'STOP', DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
+            storageSession.legacy.page = 1;
+            storageSession.legacy.status = 'path';
+            saveStorageSession();
+        } else if (storageSession.legacy.status === 'path') {
+            setButtonState(DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_1_ID'), 'START', DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), '#007AFF', '2px solid rgba(0, 0, 0, 0.20)', '#FFF', 400);
+            storageSession.legacy.page = 0;
+            storageSession.legacy.status = false;
+            saveStorageSession();
+        }
+    });
+    DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_2_ID').addEventListener('click', () => {
+        if (storageSession.legacy.path.type === 'lesson') {
+            DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'none';
+            DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'block';
+            storageSession.legacy.path.type = 'xp';
+            saveStorageSession();
+        } else if (storageSession.legacy.path.type === 'xp') {
+            DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'none';
+            DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'block';
+            storageSession.legacy.path.type = 'infinity';
+            saveStorageSession();
+        } else if (storageSession.legacy.path.type === 'infinity') {
+            DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'none';
+            DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'block';
+            storageSession.legacy.path.type = 'lesson';
+            saveStorageSession();
+        }
+    });
+
+    DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
+        if (!storageSession.legacy.status && storageSession.legacy.path.amount > 0) {
+            setButtonState(DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_1_ID'), 'STOP', DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
+            storageSession.legacy.page = 2;
+            storageSession.legacy.status = 'path';
+            saveStorageSession();
+        } else if (storageSession.legacy.status === 'path') {
+            setButtonState(DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_1_ID'), 'START', DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), '#007AFF', '2px solid rgba(0, 0, 0, 0.20)', '#FFF', 400);
+            storageSession.legacy.page = 0;
+            storageSession.legacy.status = false;
+            saveStorageSession();
+        }
+    });
+    DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_2_ID').addEventListener('click', () => {
+        if (storageSession.legacy.path.type === 'lesson') {
+            DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'none';
+            DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'block';
+            storageSession.legacy.path.type = 'xp';
+            saveStorageSession();
+        } else if (storageSession.legacy.path.type === 'xp') {
+            DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'none';
+            DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'block';
+            storageSession.legacy.path.type = 'infinity';
+            saveStorageSession();
+        } else if (storageSession.legacy.path.type === 'infinity') {
+            DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'none';
+            DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'block';
+            storageSession.legacy.path.type = 'lesson';
+            saveStorageSession();
+        }
+    });
+    DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
+        if (!storageSession.legacy.status && storageSession.legacy.practice.amount > 0) {
+            setButtonState(DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_1_ID'), 'STOP', DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
+            storageSession.legacy.page = 1;
+            storageSession.legacy.status = 'practice';
+            saveStorageSession();
+        } else if (storageSession.legacy.status === 'practice') {
+            setButtonState(DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_1_ID'), 'START', DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), '#007AFF', '2px solid rgba(0, 0, 0, 0.20)', '#FFF', 400);
+            storageSession.legacy.page = 0;
+            storageSession.legacy.status = false;
+            saveStorageSession();
+        }
+    });
+    DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_2_ID').addEventListener('click', () => {
+        if (storageSession.legacy.practice.type === 'lesson') {
+            DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'none';
+            DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'block';
+            storageSession.legacy.path.type = 'xp';
+            saveStorageSession();
+        } else if (storageSession.legacy.practice.type === 'xp') {
+            DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'none';
+            DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'block';
+            storageSession.legacy.path.type = 'infinity';
+            saveStorageSession();
+        } else if (storageSession.legacy.practice.type === 'infinity') {
+            DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'none';
+            DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'block';
+            storageSession.legacy.path.type = 'lesson';
+            saveStorageSession();
+        }
+    });
+    DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
+        if (!storageSession.legacy.status && storageSession.legacy.practice.amount > 0) {
+            setButtonState(DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_1_ID'), 'STOP', DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
+            storageSession.legacy.page = 2;
+            storageSession.legacy.status = 'practice';
+            saveStorageSession();
+        } else if (storageSession.legacy.status === 'practice') {
+            setButtonState(DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_1_ID'), 'START', DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), '#007AFF', '2px solid rgba(0, 0, 0, 0.20)', '#FFF', 400);
+            storageSession.legacy.page = 0;
+            storageSession.legacy.status = false;
+            saveStorageSession();
+        }
+    });
+    DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
+        if (!storageSession.legacy.status && storageSession.legacy.listen.amount > 0) {
+            setButtonState(DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_1_ID'), 'STOP', DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
+            storageSession.legacy.page = 1;
+            storageSession.legacy.status = 'listen';
+            saveStorageSession();
+        } else if (storageSession.legacy.status === 'listen') {
+            setButtonState(DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_1_ID'), 'START', DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), '#007AFF', '2px solid rgba(0, 0, 0, 0.20)', '#FFF', 400);
+            storageSession.legacy.page = 0;
+            storageSession.legacy.status = false;
+            saveStorageSession();
+        }
+    });
+    DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
+        if (!storageSession.legacy.status && storageSession.legacy.listen.amount > 0) {
+            setButtonState(DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_1_ID'), 'STOP', DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
+            storageSession.legacy.page = 2;
+            storageSession.legacy.status = 'listen';
+            saveStorageSession();
+        } else if (storageSession.legacy.status === 'listen') {
+            setButtonState(DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_1_ID'), 'START', DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), '#007AFF', '2px solid rgba(0, 0, 0, 0.20)', '#FFF', 400);
+            storageSession.legacy.page = 0;
+            storageSession.legacy.status = false;
+            saveStorageSession();
+        }
+    });
+    DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
+        if (!storageSession.legacy.status && storageSession.legacy.lesson.amount > 0) {
+            setButtonState(DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_1_ID'), 'STOP', DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
+            storageSession.legacy.page = 1;
+            storageSession.legacy.status = 'listen';
+            saveStorageSession();
+        } else if (storageSession.legacy.status === 'listen') {
+            setButtonState(DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_1_ID'), 'START', DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), '#007AFF', '2px solid rgba(0, 0, 0, 0.20)', '#FFF', 400);
+            storageSession.legacy.page = 0;
+            storageSession.legacy.status = false;
+            saveStorageSession();
+        }
+    });
+    DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
+        if (!storageSession.legacy.status && storageSession.legacy.lesson.amount > 0) {
+            setButtonState(DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_1_ID'), 'STOP', DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
+            storageSession.legacy.page = 2;
+            storageSession.legacy.status = 'listen';
+            saveStorageSession();
+        } else if (storageSession.legacy.status === 'listen') {
+            setButtonState(DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_1_ID'), 'START', DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), '#007AFF', '2px solid rgba(0, 0, 0, 0.20)', '#FFF', 400);
+            storageSession.legacy.page = 0;
+            storageSession.legacy.status = false;
+            saveStorageSession();
+        }
+    });
+
+    function restoreClick2() {
+        if (storageSession.legacy.status === 'path' && storageSession.legacy.path.amount > 0) {
+            if (storageSession.legacy.page === 1) {
+                setButtonState(DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_1_ID'), 'STOP', DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
+            } else if (storageSession.legacy.page === 2) {
+                setButtonState(DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_1_ID'), 'STOP', DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
+            }
+        } else if (storageSession.legacy.status === 'practice' && storageSession.legacy.practice.amount > 0) {
+            if (storageSession.legacy.page === 1) {
+                setButtonState(DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_1_ID'), 'STOP', DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
+            } else if (storageSession.legacy.page === 2) {
+                setButtonState(DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_1_ID'), 'STOP', DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
+            }
+        } else if (storageSession.legacy.status === 'listen' && storageSession.legacy.practice.listen > 0) {
+            if (storageSession.legacy.page === 1) {
+                setButtonState(DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_1_ID'), 'STOP', DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
+            } else if (storageSession.legacy.page === 2) {
+                setButtonState(DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_1_ID'), 'STOP', DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
+            }
+        } else if (storageSession.legacy.status === 'lesson' && storageSession.legacy.practice.lesson > 0) {
+            if (storageSession.legacy.page === 1) {
+                setButtonState(DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_1_ID'), 'STOP', DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
+            } else if (storageSession.legacy.page === 2) {
+                setButtonState(DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_1_ID'), 'STOP', DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
+            }
+        }
+    }
+    setTimeout(restoreClick2, 400);
+
+    let pageSwitching = false;
+    function process1() {
+        if (pageSwitching) return;
+        if (window.location.href.includes('/lesson') || window.location.href.includes('/practice') || window.location.href.includes('/practice-hub/listening-practice')) return;
+        if (storageSession.legacy.status) {
+            setTimeout(() => {
+                if (storageSession.legacy.status === 'path') {
+                    window.location.href = "https://duolingo.com/lesson";
+                    pageSwitching = true;
+                } else if (storageSession.legacy.status === 'practice') {
+                    window.location.href = "https://duolingo.com/practice";
+                    pageSwitching = true;
+                } else if (storageSession.legacy.status === 'listen') {
+                    window.location.href = "https://duolingo.com/practice-hub/listening-practice";
+                    pageSwitching = true;
+                } else if (storageSession.legacy.status === 'lesson') {
+                    window.location.href = "https://duolingo.com/lesson/unit/1/level/1";
+                    pageSwitching = true;
+                }
+            }, 4000);
+        }
+    }
+    setInterval(process1, 500);
+
+
+
+
+
+
+
+    const DLP_Get_XP_1_ID = document.getElementById("DLP_Get_XP_1_ID");
+    const DLP_Get_XP_2_ID = document.getElementById("DLP_Get_XP_2_ID");
+    const DLP_Get_GEMS_1_ID = document.getElementById("DLP_Get_GEMS_1_ID");
+    const DLP_Get_GEMS_2_ID = document.getElementById("DLP_Get_GEMS_2_ID");
+    const DLP_Get_SUPER_2_ID = document.getElementById("DLP_Get_SUPER_2_ID");
+
+    function inputCheck1() {
+        let xpInput1 = DLP_Get_XP_1_ID.querySelector('#DLP_Inset_Input_1_ID');
+        xpInput1.addEventListener("input", function () {
+            xpInput1.value = xpInput1.value.replace(/[^0-9]/g, "");
+            if (xpInput1.value.length > 8) xpInput1.value = xpInput1.value.slice(0, 8);
+        });
+        let xpInput2 = DLP_Get_XP_2_ID.querySelector('#DLP_Inset_Input_1_ID');
+        xpInput2.addEventListener("input", function () {
+            xpInput2.value = xpInput2.value.replace(/[^0-9]/g, "");
+            if (xpInput2.value.length > 8) xpInput2.value = xpInput2.value.slice(0, 8);
+        });
+
+        let gemsInput1 = DLP_Get_GEMS_1_ID.querySelector('#DLP_Inset_Input_1_ID');
+        gemsInput1.addEventListener("input", function () {
+            gemsInput1.value = gemsInput1.value.replace(/[^0-9]/g, "");
+            if (gemsInput1.value.length > 8) gemsInput1.value = gemsInput1.value.slice(0, 8);
+        });
+        let gemsInput2 = DLP_Get_GEMS_2_ID.querySelector('#DLP_Inset_Input_1_ID');
+        gemsInput2.addEventListener("input", function () {
+            gemsInput2.value = gemsInput2.value.replace(/[^0-9]/g, "");
+            if (gemsInput2.value.length > 8) gemsInput2.value = gemsInput2.value.slice(0, 8);
+        });
+    }
+    inputCheck1();
+
+    let DLP_Magnetic_Hover_1 = document.querySelectorAll('.DLP_Magnetic_Hover_1');
+    DLP_Magnetic_Hover_1.forEach(element => {
+        let mouseDown = false;
+        element.addEventListener('mousemove', (e) => {
+            const rect = element.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+            if (mouseDown) {
+                element.style.transform = `translate(${x * 0.1}px, ${y * 0.1}px) scale(0.9)`;
+            } else {
+                element.style.transform = `translate(${x * 0.1}px, ${y * 0.1}px) scale(1.1)`;
+            }
+        });
+        element.addEventListener('mouseleave', () => {
+            element.style.transform = 'translate(0, 0) scale(1)';
+            mouseDown = false;
+        });
+        element.addEventListener('mousedown', (e) => {
+            mouseDown = true;
+            const rect = element.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+            if (mouseDown) {
+                element.style.transform = `translate(${x * 0.1}px, ${y * 0.1}px) scale(0.9)`;
+            } else {
+                element.style.transform = `translate(${x * 0.1}px, ${y * 0.1}px) scale(1.1)`;
+            }
+        });
+        element.addEventListener('mouseup', (e) => {
+            mouseDown = false;
+            const rect = element.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+            if (mouseDown) {
+                element.style.transform = `translate(${x * 0.1}px, ${y * 0.1}px) scale(0.9)`;
+            } else {
+                element.style.transform = `translate(${x * 0.1}px, ${y * 0.1}px) scale(1.1)`;
+            }
+        });
+    });
+
+
+    let DLP_Server_Connection_Button = document.getElementById("DLP_Main_1_Server_Connection_Button_1_ID");
+    let DLP_Server_Connection_Button_2 = document.getElementById("DLP_Secondary_1_Server_Connection_Button_1_ID");
+    DLP_Server_Connection_Button.querySelector("#DLP_Inset_Icon_1_ID").style.animation = 'DLP_Rotate_360_Animation_1 4s ease-in-out infinite';
+    DLP_Server_Connection_Button_2.querySelector("#DLP_Inset_Icon_1_ID").style.animation = 'DLP_Rotate_360_Animation_1 4s ease-in-out infinite';
+    function updateConnetionButtonStyles(button, text, iconToShow, iconToHide, buttonColor) {
+        let textToChange = button.querySelector("#DLP_Inset_Text_1_ID");
+        textToChange.style.animation = '';
+        iconToHide.style.animation = '';
+        iconToShow.style.animation = '';
+        textToChange.offsetWidth;
+        iconToHide.offsetWidth;
+        iconToShow.offsetWidth;
+        requestAnimationFrame(() => {
+            textToChange.style.filter = 'blur(4px)';
+            textToChange.style.opacity = '0';
+            iconToHide.style.filter = 'blur(4px)';
+            iconToHide.style.opacity = '0';
+            iconToShow.style.filter = 'blur(4px)';
+            iconToShow.style.opacity = '0';
+            button.style.background = buttonColor;
+            button.style.outline = '2px solid rgba(0, 0, 0, 0.20)';
+        });
+        setTimeout(() => {
+            iconToHide.style.display = 'none';
+            iconToShow.style.display = 'block';
+            requestAnimationFrame(() => {
+                textToChange.style.transition = '0s';
+                textToChange.textContent = text;
+                textToChange.style.color = '#FFF';
+                textToChange.offsetWidth;
+                textToChange.style.transition = '0.4s';
+                textToChange.offsetWidth;
+                textToChange.style.filter = '';
+                textToChange.style.opacity = '';
+                iconToShow.offsetWidth;
+                iconToShow.style.filter = '';
+                iconToShow.style.opacity = '';
+                setTimeout(() => {
+                    textToChange.style.animation = 'DLP_Pulse_Opacity_Animation_1 6s ease-in-out infinite';
+                    iconToShow.style.animation = 'DLP_Pulse_Opacity_Animation_1 6s ease-in-out infinite';
+                }, 400);
+            });
+        }, 400);
+    }
+    let serverConnectedBefore = 'no';
+    let newTermID;
+    function connectToServer() {
+        let mainInputsDiv1 = document.getElementById('DLP_Main_Inputs_1_Divider_1_ID');
+        fetch(serverURL + '/static/3.0/server.json')
+            .then(response => response.json())
+            .then(data => {
+                if (data.global || data.versions) {
+                    const globalData = data.global;
+                    const versionData = data.versions[versionName];
+                    const warnings = versionData.warnings || [];
+
+                    const termsText = Object.entries(globalData.terms)[0][1];
+                    newTermID = Object.entries(globalData.terms)[0][0];
+
+                    console.log('Global Warning:', globalData.warning);
+                    console.log('Notifications:', globalData.notifications);
+
+                    document.getElementById("DLP_Main_Donate_Button_1_ID").removeEventListener("click", openDonateLink);
+                    document.getElementById("DLP_Secondary_Donate_Button_1_ID").removeEventListener("click", openSecondaryDonateLink);
+
+                    document.getElementById("DLP_Main_Donate_Button_1_ID").addEventListener("click", function() {
+                        window.open(globalData.donate, "_blank");
+                    });
+                    document.getElementById("DLP_Secondary_Donate_Button_1_ID").addEventListener("click", function() {
+                        window.open(globalData.donate, "_blank");
+                    });
+
+                    document.querySelector(`#DLP_Terms_Main_Text_1_ID`).innerHTML = termsText;
+
+                    if (versionData.status === 'latest') {
+                        if (storageLocal.terms === newTermID) {
+                            if (serverConnectedBefore === 'no' || serverConnectedBefore === 'error') {
+                                updateReleaseNotes(warnings);
+                                mainInputsDiv1.style.opacity = '1';
+                                mainInputsDiv1.style.pointerEvents = 'auto';
+                                if (serverConnectedBefore === 'no') {
+                                    updateConnetionButtonStyles(DLP_Server_Connection_Button, 'Connected', DLP_Server_Connection_Button.querySelector("#DLP_Inset_Icon_2_ID"), DLP_Server_Connection_Button.querySelector("#DLP_Inset_Icon_1_ID"), '#34C759');
+                                    updateConnetionButtonStyles(DLP_Server_Connection_Button_2, 'Connected', DLP_Server_Connection_Button_2.querySelector("#DLP_Inset_Icon_2_ID"), DLP_Server_Connection_Button_2.querySelector("#DLP_Inset_Icon_1_ID"), '#34C759');
+                                } else if (serverConnectedBefore === 'error') {
+                                    updateConnetionButtonStyles(DLP_Server_Connection_Button, 'Connected', DLP_Server_Connection_Button.querySelector("#DLP_Inset_Icon_2_ID"), DLP_Server_Connection_Button.querySelector("#DLP_Inset_Icon_3_ID"), '#34C759');
+                                    updateConnetionButtonStyles(DLP_Server_Connection_Button_2, 'Connected', DLP_Server_Connection_Button_2.querySelector("#DLP_Inset_Icon_2_ID"), DLP_Server_Connection_Button_2.querySelector("#DLP_Inset_Icon_3_ID"), '#34C759');
+                                }
+                                serverConnectedBefore = 'yes';
+                            }
+                        } else {
+                            if (storageLocal.onboarding) if (currentPage !== 5 && currentPage !== 6) goToPage(currentPage, 5);
+                        }
+                    } else if (document.getElementById('DLP_Main_Warning_1_ID').style.display === 'none') {
+                        document.getElementById('DLP_Main_Inputs_1_Divider_1_ID').style.display = 'none';
+                        document.getElementById('DLP_Main_Warning_1_ID').style.display = 'block';
+                        document.getElementById('DLP_Main_Warning_1_ID').innerHTML = `You are using an outdated version of Duolingo PRO.<br><br>Please <a href="https://www.duolingo.com/update" style="font-family: 'Duolingo Pro Rounded'; color: #007AFF; text-decoration: underline;">update Duolingo PRO</a> or turn on <a href="https://www.duolingo.com/updates" style="font-family: 'Duolingo Pro Rounded'; color: #007AFF; text-decoration: underline;">automatic updates</a>.`;
+                        throw new Error('Outdated Client');
+                    }
+                } else {
+                    console.error(`Version ${versionNumber} not found in the data`);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+                if (serverConnectedBefore === 'yes') {
+                    serverConnectedBefore = 'error';
+                    mainInputsDiv1.style.opacity = '0.5';
+                    mainInputsDiv1.style.pointerEvents = 'none';
+                    updateConnetionButtonStyles(DLP_Server_Connection_Button, 'Error', DLP_Server_Connection_Button.querySelector("#DLP_Inset_Icon_3_ID"), DLP_Server_Connection_Button.querySelector("#DLP_Inset_Icon_2_ID"), '#FF2D55');
+                    updateConnetionButtonStyles(DLP_Server_Connection_Button_2, 'Error', DLP_Server_Connection_Button_2.querySelector("#DLP_Inset_Icon_3_ID"), DLP_Server_Connection_Button_2.querySelector("#DLP_Inset_Icon_2_ID"), '#FF2D55');
+                } else if (serverConnectedBefore === 'no') {
+                    serverConnectedBefore = 'error';
+                    mainInputsDiv1.style.opacity = '0.5';
+                    mainInputsDiv1.style.pointerEvents = 'none';
+                    updateConnetionButtonStyles(DLP_Server_Connection_Button, 'Error', DLP_Server_Connection_Button.querySelector("#DLP_Inset_Icon_3_ID"), DLP_Server_Connection_Button.querySelector("#DLP_Inset_Icon_1_ID"), '#FF2D55');
+                    updateConnetionButtonStyles(DLP_Server_Connection_Button_2, 'Error', DLP_Server_Connection_Button_2.querySelector("#DLP_Inset_Icon_3_ID"), DLP_Server_Connection_Button_2.querySelector("#DLP_Inset_Icon_1_ID"), '#FF2D55');
+                }
+            });
+    }
+    connectToServer();
+    setInterval(() => {
+        connectToServer();
+    }, 6000);
+
+
+    function updateReleaseNotes(warnings) {
+        const releaseNotesContainer = document.getElementById('DLP_Release_Notes_List_1_ID');
+        releaseNotesContainer.innerHTML = '';
+        warnings.forEach(warning => {
+            if (warning.head && warning.body && warning.icon) {
+                console.log(warning);
+                let warningHTML = '';
+                if (warning.icon === 'error') {
+                    warningHTML = `
+                            <div class="DLP_HStack_8" style="align-items: center;">
+                                <svg width="18" height="16" viewBox="0 0 18 16" fill="#FF2D55" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2.98438 15.5469C1.55469 15.5469 0.617188 14.4688 0.617188 13.1797C0.617188 12.7812 0.71875 12.375 0.9375 11.9922L6.95312 1.47656C7.40625 0.695312 8.19531 0.289062 9 0.289062C9.79688 0.289062 10.5781 0.6875 11.0391 1.47656L17.0547 11.9844C17.2734 12.3672 17.375 12.7812 17.375 13.1797C17.375 14.4688 16.4375 15.5469 15.0078 15.5469H2.98438ZM9.00781 9.96094C9.54688 9.96094 9.85938 9.65625 9.89062 9.09375L10.0156 5.72656C10.0469 5.14062 9.61719 4.73438 9 4.73438C8.375 4.73438 7.95312 5.13281 7.98438 5.72656L8.10938 9.10156C8.13281 9.65625 8.45312 9.96094 9.00781 9.96094ZM9.00781 12.7812C9.625 12.7812 10.1094 12.3906 10.1094 11.7891C10.1094 11.2031 9.63281 10.8047 9.00781 10.8047C8.38281 10.8047 7.89844 11.2031 7.89844 11.7891C7.89844 12.3906 8.38281 12.7812 9.00781 12.7812Z"/>
+                                </svg>
+                                <div class="DLP_VStack_0" style="align-items: flex-start;">
+                                    <p class="DLP_Text_Style_1 DLP_NoSelect" style="opacity: 0.5;">${warning.head}</p>
+                                    <p class="DLP_Text_Style_1 DLP_NoSelect" style="opacity: 0.25;">${warning.body}</p>
+                                </div>
+                            </div>`;
+                } else if (warning.icon === 'warning') {
+                    warningHTML = `
+                            <div class="DLP_HStack_8" style="align-items: center;">
+                                <svg width="18" height="18" viewBox="0 0 18 18" fill="#FFB000" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M9 17.1094C4.44531 17.1094 0.75 13.4141 0.75 8.85938C0.75 4.30469 4.44531 0.609375 9 0.609375C13.5547 0.609375 17.25 4.30469 17.25 8.85938C17.25 13.4141 13.5547 17.1094 9 17.1094ZM9.00781 10.0312C9.54688 10.0312 9.85938 9.72656 9.89062 9.16406L10.0156 5.79688C10.0469 5.21094 9.61719 4.80469 9 4.80469C8.375 4.80469 7.95312 5.20312 7.98438 5.79688L8.10938 9.17188C8.13281 9.72656 8.45312 10.0312 9.00781 10.0312ZM9.00781 12.8516C9.625 12.8516 10.1016 12.4609 10.1016 11.8594C10.1016 11.2734 9.63281 10.875 9.00781 10.875C8.38281 10.875 7.89844 11.2734 7.89844 11.8594C7.89844 12.4609 8.38281 12.8516 9.00781 12.8516Z"/>
+                                </svg>
+                                <div class="DLP_VStack_0" style="align-items: flex-start;">
+                                    <p class="DLP_Text_Style_1 DLP_NoSelect" style="opacity: 0.5;">${warning.head}</p>
+                                    <p class="DLP_Text_Style_1 DLP_NoSelect" style="opacity: 0.25;">${warning.body}</p>
+                                </div>
+                            </div>`;
+                } else if (warning.icon === 'checkmark') {
+                    warningHTML = `
+                            <div class="DLP_HStack_8" style="align-items: center;">
+                                <svg width="18" height="17" viewBox="0 0 18 17" fill="#34C759" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M9 16.6094C4.44531 16.6094 0.75 12.9141 0.75 8.35938C0.75 3.80469 4.44531 0.109375 9 0.109375C13.5547 0.109375 17.25 3.80469 17.25 8.35938C17.25 12.9141 13.5547 16.6094 9 16.6094ZM8.14062 12.2812C8.47656 12.2812 8.78125 12.1094 8.98438 11.8125L12.6094 6.26562C12.75 6.0625 12.8281 5.85156 12.8281 5.65625C12.8281 5.17188 12.3984 4.82812 11.9297 4.82812C11.625 4.82812 11.3672 4.99219 11.1641 5.32031L8.11719 10.1641L6.75781 8.48438C6.54688 8.23438 6.32812 8.125 6.04688 8.125C5.57031 8.125 5.17969 8.50781 5.17969 8.99219C5.17969 9.21875 5.25 9.41406 5.42969 9.63281L7.26562 11.8203C7.51562 12.125 7.78906 12.2812 8.14062 12.2812Z"/>
+                                </svg>
+                                <div class="DLP_VStack_0" style="align-items: flex-start;">
+                                    <p class="DLP_Text_Style_1 DLP_NoSelect" style="opacity: 0.5;">${warning.head}</p>
+                                    <p class="DLP_Text_Style_1 DLP_NoSelect" style="opacity: 0.25;">${warning.body}</p>
+                                </div>
+                            </div>`;
+                }
+                releaseNotesContainer.insertAdjacentHTML('beforeend', warningHTML);
+            }
         });
     }
 
 
-    let DuolingoProShortSessionID;
-    if (Number(sessionStorage.getItem('DuolingoProShortSessionID')) === null || Number(sessionStorage.getItem('DuolingoProShortSessionID')) === 0 || Number(sessionStorage.getItem('DuolingoProShortSessionID')) === NaN) {
-        DuolingoProShortSessionID = Math.floor(Math.random() * (9999 - 1 + 1)) + 1;
-        sessionStorage.setItem('DuolingoProShortSessionID', DuolingoProShortSessionID);
-    } else {
-        DuolingoProShortSessionID = Number(sessionStorage.getItem('DuolingoProShortSessionID')); //sessionStorage will be deleted after the tab is closed
-    }
+    let DLP_Feedback_Text_Input_1_ID = document.getElementById("DLP_Feedback_Text_Input_1_ID");
+    let DLP_Feedback_Type_Bug_Report_Button_1_ID = document.getElementById("DLP_Feedback_Type_Bug_Report_Button_1_ID");
+    let DLP_Feedback_Type_Suggestion_Button_1_ID = document.getElementById("DLP_Feedback_Type_Suggestion_Button_1_ID");
+    let DLP_Feedback_Attachment_Upload_Button_1_ID = document.getElementById("DLP_Feedback_Attachment_Upload_Button_1_ID");
+    let DLP_Feedback_Attachment_Input_Hidden_1_ID = document.getElementById("DLP_Feedback_Attachment_Input_Hidden_1_ID");
+    let DLP_Feedback_Send_Button_1_ID = document.getElementById("DLP_Feedback_Send_Button_1_ID");
 
+    let sendFeedbackStatus = '';
+    DLP_Feedback_Send_Button_1_ID.addEventListener('click', () => {
+        if (sendFeedbackStatus !== '') return;
+        let FeedbackText = DLP_Feedback_Text_Input_1_ID.value;
+        sendFeedbackServer('', FeedbackText, feedbackType, '');
 
-    const asdgfhjklHTML = `
-<div class="jfie paragraphText" id="dshuigf" style="transition: all 0.5s cubic-bezier(0.16, 1, 0.32, 1); position: fixed; bottom: 16px; left: 16px; z-index: 1024; display: inline-flex; padding: 8px 12px; flex-direction: column; justify-content: center; align-items: center; border-radius: 32px; border: 2px solid rgb(var(--color-swan), 0.84); background: rgb(var(--color-snow), 0.84); box-shadow: 0px 0px 16px 0px rgba(0, 0, 0, 0.08); backdrop-filter: blur(16px); color: rgb(var(--color-eel), 0.64); font-size: 16px; font-weight: 700;">null</div>
-`;
-
-    let asdgfhjklElement = null;
-    let smythr;
-
-    function asdgfhjklElementFunctionInj() {
-        if (!asdgfhjklElement) {
-            // Creating a container for the overlay
-            document.body.insertAdjacentHTML('beforeend', asdgfhjklHTML);
-            asdgfhjklElement = asdgfhjklHTML;
-
-            smythr = document.querySelector('#dshuigf');
-            smythr.style.opacity = '0';
-        }
-    }
-
-    setInterval(asdgfhjklElementFunctionInj, 100);
-
-    function refreshactivatorThingDPHDJfunction() {
-        let dfsuhf = document.querySelectorAll('.activatorThingDPHDJ');
-
-        dfsuhf.forEach(dfsuhfO => {
-            dfsuhfO.addEventListener('mouseover', () => {
-                fhduishfu(true, dfsuhfO.getAttribute('aria-label'));
-            });
+        const ogIcon = DLP_Feedback_Send_Button_1_ID.querySelector('#DLP_Inset_Icon_1_ID');
+        const loadingIcon = DLP_Feedback_Send_Button_1_ID.querySelector('#DLP_Inset_Icon_2_ID');
+        const doneIcon = DLP_Feedback_Send_Button_1_ID.querySelector('#DLP_Inset_Icon_3_ID');
+        const failedIcon = DLP_Feedback_Send_Button_1_ID.querySelector('#DLP_Inset_Icon_4_ID');
+        setButtonState(DLP_Feedback_Send_Button_1_ID, 'SENDING', loadingIcon, ogIcon, 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400, () => {
+            loadingIcon.style.animation = 'DLP_Rotate_360_Animation_1 4s ease-in-out infinite';
+            function f() {
+                if (sendFeedbackStatus === 'sent') {
+                    setButtonState(DLP_Feedback_Send_Button_1_ID, 'SENT', doneIcon, loadingIcon, 'rgba(52, 199, 89, 0.10)', '2px solid rgba(52, 199, 89, 0.20)', '#34C759', 400, () => {
+                        confetti();
+                        setTimeout(() => {
+                            setButtonState(DLP_Feedback_Send_Button_1_ID, 'SEND', ogIcon, doneIcon, '#007AFF', '2px solid rgba(0, 0, 0, 0.20)', '#FFF', 400);
+                            sendFeedbackStatus = '';
+                        }, 4000);
+                    });
+                } else if (sendFeedbackStatus === 'error') {
+                    setButtonState(DLP_Feedback_Send_Button_1_ID, 'FAILED', failedIcon, loadingIcon, 'rgba(255, 45, 85, 0.10)', '2px solid rgba(255, 45, 85, 0.20)', '#FF2D55', 400, () => {
+                        setTimeout(() => {
+                            setButtonState(DLP_Feedback_Send_Button_1_ID, 'SEND', ogIcon, failedIcon, '#007AFF', '2px solid rgba(0, 0, 0, 0.20)', '#FFF', 400);
+                            sendFeedbackStatus = '';
+                        }, 4000);
+                    });
+                } else if (sendFeedbackStatus === 'sending') {
+                    setTimeout(() => { f(); }, 800);
+                }
+            }
+            f();
         });
-        dfsuhf.forEach(dfsuhfO => {
-            dfsuhfO.addEventListener('mouseleave', () => {
-                fhduishfu(false);
+    });
+
+    let feedbackType = 'Suggestion';
+    DLP_Feedback_Type_Bug_Report_Button_1_ID.addEventListener('click', () => {
+        feedbackType = 'Bug Report';
+        DLP_Feedback_Type_Bug_Report_Button_1_ID.classList.add('DLP_Feedback_Type_Button_Style_1_ON');
+        DLP_Feedback_Type_Bug_Report_Button_1_ID.classList.remove('DLP_Feedback_Type_Button_Style_1_OFF');
+        DLP_Feedback_Type_Suggestion_Button_1_ID.classList.add('DLP_Feedback_Type_Button_Style_2_OFF');
+        DLP_Feedback_Type_Suggestion_Button_1_ID.classList.remove('DLP_Feedback_Type_Button_Style_2_ON');
+    });
+    DLP_Feedback_Type_Suggestion_Button_1_ID.addEventListener('click', () => {
+        feedbackType = 'Suggestion';
+        DLP_Feedback_Type_Bug_Report_Button_1_ID.classList.add('DLP_Feedback_Type_Button_Style_1_OFF');
+        DLP_Feedback_Type_Bug_Report_Button_1_ID.classList.remove('DLP_Feedback_Type_Button_Style_1_ON');
+        DLP_Feedback_Type_Suggestion_Button_1_ID.classList.add('DLP_Feedback_Type_Button_Style_2_ON');
+        DLP_Feedback_Type_Suggestion_Button_1_ID.classList.remove('DLP_Feedback_Type_Button_Style_2_OFF');
+    });
+    let currentFileName = '';
+    setInterval(() => {
+        if (DLP_Feedback_Attachment_Input_Hidden_1_ID.files.length > 0) {
+            let fileName = DLP_Feedback_Attachment_Input_Hidden_1_ID.files[0].name;
+            if (currentFileName === fileName) return;
+            currentFileName = fileName;
+            DLP_Feedback_Attachment_Upload_Button_1_ID.querySelector('#DLP_Inset_Text_1_ID').style.filter = 'blur(4px)';
+            DLP_Feedback_Attachment_Upload_Button_1_ID.querySelector('#DLP_Inset_Text_1_ID').style.opacity = '0';
+            DLP_Feedback_Attachment_Upload_Button_1_ID.querySelector('#DLP_Inset_Icon_1_ID').style.filter = 'blur(4px)';
+            DLP_Feedback_Attachment_Upload_Button_1_ID.querySelector('#DLP_Inset_Icon_1_ID').style.opacity = '0';
+            DLP_Feedback_Attachment_Upload_Button_1_ID.style.background = '#007AFF';
+            DLP_Feedback_Attachment_Upload_Button_1_ID.style.outline = '2px solid rgba(0, 0, 0, 0.20)';
+            setTimeout(() => {
+                DLP_Feedback_Attachment_Upload_Button_1_ID.querySelector('#DLP_Inset_Icon_1_ID').style.display = 'none';
+                DLP_Feedback_Attachment_Upload_Button_1_ID.querySelector('#DLP_Inset_Text_1_ID').textContent = fileName;
+                DLP_Feedback_Attachment_Upload_Button_1_ID.querySelector('#DLP_Inset_Text_1_ID').style.color = '#FFF';
+                DLP_Feedback_Attachment_Upload_Button_1_ID.querySelector('#DLP_Inset_Text_1_ID').style.filter = '';
+                DLP_Feedback_Attachment_Upload_Button_1_ID.querySelector('#DLP_Inset_Text_1_ID').style.opacity = '';
+            }, 400);
+        }
+    }, 1000);
+    DLP_Feedback_Attachment_Upload_Button_1_ID.addEventListener('click', () => {
+        DLP_Feedback_Attachment_Input_Hidden_1_ID.click();
+    });
+    async function sendFeedbackServer(head, body, type, email) {
+        try {
+            sendFeedbackStatus = 'sending';
+            const formData = new FormData();
+            if (DLP_Feedback_Attachment_Input_Hidden_1_ID.files.length > 0) {
+                formData.append('file', DLP_Feedback_Attachment_Input_Hidden_1_ID.files[0]);
+            }
+            formData.append('head', head);
+            formData.append('body', body);
+            formData.append('type', type);
+            formData.append('email', email);
+            formData.append('version', versionFullname);
+            formData.append('pro_id', document.cookie.split(';').find(cookie => cookie.includes('jwt_token')).split('=')[1]);
+            const response = await fetch(serverURL + "/feedback", {
+                method: 'POST',
+                body: formData
             });
-        });
-    }
-    setInterval(refreshactivatorThingDPHDJfunction, 200);
-
-    function fhduishfu(state, message) {
-        if (state) {
-            smythr.textContent = message;
-            smythr.style.opacity = '1';
-        } else {
-            smythr.style.opacity = '0';
-        }
-    }
-
-    const UpdateAvailableAutoSolverBoxAlertHTML = `
-<div class="AutoSolverBoxAlertOneBox" id="AutoSolverBoxAlertOneBoxIDUpdate" style="border: 2px solid rgba(52, 199, 89, 0.10); background: rgba(52, 199, 89, 0.10); padding: 8px; border-radius: 8px;">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 17 17" width="18" height="18" fill="#34C759">
-        <path d="M8.64844 16.625C4.125 16.625 0.398438 12.8984 0.398438 8.375C0.398438 3.84375 4.11719 0.125 8.64844 0.125C13.1719 0.125 16.8984 3.84375 16.8984 8.375C16.8984 12.8984 13.1797 16.625 8.64844 16.625ZM8.64844 3.47656C8.46875 3.47656 8.25 3.55469 8.09375 3.72656L4.92969 7.125C4.70312 7.36719 4.59375 7.57812 4.59375 7.83594C4.59375 8.22656 4.89062 8.52344 5.28906 8.52344H6.72656V11.7188C6.72656 12.4531 7.14062 12.8672 7.85938 12.8672H9.42188C10.1328 12.8672 10.5625 12.4531 10.5625 11.7188V8.52344H12C12.3906 8.52344 12.7031 8.22656 12.7031 7.82812C12.7031 7.57812 12.6016 7.39062 12.3516 7.125L9.21094 3.72656C9.03906 3.54688 8.84375 3.47656 8.64844 3.47656Z"/>
-    </svg>
-    <p class="paragraphText noSelect textFill" style="color: #34C759;">Update Available</p>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 15" width="9" height="15" fill="#34C759">
-        <path d="M8.57031 7.35938C8.57031 7.74219 8.4375 8.0625 8.10938 8.375L2.20312 14.1641C1.96875 14.3984 1.67969 14.5156 1.33594 14.5156C0.648438 14.5156 0.0859375 13.9609 0.0859375 13.2734C0.0859375 12.9219 0.226562 12.6094 0.484375 12.3516L5.63281 7.35156L0.484375 2.35938C0.226562 2.10938 0.0859375 1.78906 0.0859375 1.44531C0.0859375 0.765625 0.648438 0.203125 1.33594 0.203125C1.67969 0.203125 1.96875 0.320312 2.20312 0.554688L8.10938 6.34375C8.42969 6.64844 8.57031 6.96875 8.57031 7.35938Z"/>
-    </svg>
-</div>
-`;
-
-    let UpdateAvailableAutoSolverBoxAlertElement = null;
-
-    function UpdateAvailableAutoSolverBoxAlertFunction() {
-        try {
-            let targetDiv = document.querySelector('.AutoSolverBoxAlertSectionOne');
-            if (targetDiv) {
-                if (!UpdateAvailableAutoSolverBoxAlertElement) {
-                    targetDiv.insertAdjacentHTML('beforeend', UpdateAvailableAutoSolverBoxAlertHTML);
-                    let dhsofadsuh = document.querySelector('#AutoSolverBoxAlertOneBoxIDUpdate');
-                    dhsofadsuh.addEventListener('click', () => {
-                        window.open('https://greasyfork.org/en/scripts/473310-duolingo-pro-beta', '_blank');
-                    });
-                }
-            }
-        } catch(error) {}
-    }
-
-        let FAYTQyoBeuQFtKGK = `
-<div class="AutoSolverBoxLayers" id="NPnJObBq" style="padding: 16px;">
-    <svg width="34" height="33" viewBox="0 0 34 33" fill="#34C759" xmlns="http://www.w3.org/2000/svg">
-        <path d="M17 33C7.95312 33 0.5 25.5503 0.5 16.4922C0.5 7.4496 7.9375 0 17 0C26.0469 0 33.5 7.4496 33.5 16.4922C33.5 25.5503 26.0625 33 17 33ZM17.0156 24.9569C18.0781 24.9569 18.8906 24.2229 18.8906 23.1921V16.2579L18.6875 13.0095L19.9062 14.6805L21.5469 16.4765C21.8281 16.8202 22.2812 17.0076 22.75 17.0076C23.7031 17.0076 24.375 16.3516 24.375 15.4458C24.375 14.9461 24.2344 14.5868 23.875 14.1964L18.5469 8.65215C18.1094 8.18362 17.625 7.96497 17.0156 7.96497C16.4062 7.96497 15.9375 8.18362 15.5 8.65215L10.1562 14.1964C9.79688 14.5868 9.65625 14.9461 9.65625 15.4458C9.65625 16.3516 10.3281 17.0076 11.2812 17.0076C11.75 17.0076 12.2031 16.8045 12.4844 16.4765L14.1406 14.6337L15.3281 13.0251L15.1406 16.2579V23.1921C15.1406 24.2229 15.9531 24.9569 17.0156 24.9569Z"/>
-    </svg>
-    <p class="paragraphText" style="align-self: stretch; color: rgb(var(--color-eel)); text-align: center; font-size: 24px;">Update Duolingo Pro</p>
-    <p class="paragraphText" style="align-self: stretch; color: rgb(var(--color-wolf)); text-align: center;">This version of Duolingo Pro has been deprecated. It might have issues that can cause problems.</p>
-    <div id="yuRrhejvxtRsqjUp" class="AutoSolverBoxAlertOneBox" style="margin-top: 8px; align-self: auto; border: 2px solid rgba(0, 122, 255, 0.10); flex: 1 0 0; background: rgba(0, 122, 255, 0.10);">
-        <p class="paragraphText noSelect" style="color: #007AFF;">Update Duolingo Pro</p>
-    </div>
-</div>
-`;
-    let FBeVBhvyjBeJqdSq;
-    function UpdateRequiredFunction() {
-        try {
-            document.querySelector('.AutoSolverBoxLayers').remove();
-            FBeVBhvyjBeJqdSq = document.createElement('div');
-            FBeVBhvyjBeJqdSq.innerHTML = FAYTQyoBeuQFtKGK;
-            document.querySelector('.AutoSolverBoxBackground').appendChild(FBeVBhvyjBeJqdSq);
-            document.querySelector('#yuRrhejvxtRsqjUp').addEventListener('click', () => {
-                window.open('https://greasyfork.org/en/scripts/473310-duolingo-pro-beta', '_blank');
-            });
-        } catch (error) {}
-    }
-
-
-    const DPAutoServerButtonMainMenuHTML = `
-<div class="DPAutoServerButtonMainMenu activatorThingDPHDJ" aria-label="AutoServer">
-    <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <g clip-path="url(#clip0_952_270)">
-            <rect width="30" height="30" rx="15" fill="#007AFF"/>
-            <path d="M19.9424 20.5947H10.4404C7.96582 20.5947 6.04492 18.7764 6.04492 16.582C6.04492 14.8115 7.02246 13.3623 8.61523 13.0342C8.73145 11.0859 10.5361 9.77344 12.3545 10.1904C13.2773 8.88477 14.7061 8.02344 16.4766 8.02344C19.4502 8.02344 21.7334 10.2998 21.7402 13.458C23.1279 14.0322 23.9551 15.3926 23.9551 16.876C23.9551 18.9404 22.1777 20.5947 19.9424 20.5947ZM10.6318 16.1445C10.2285 16.6504 10.6934 17.1904 11.2539 16.9102L13.4688 15.7549L16.1006 17.2109C16.2578 17.2998 16.4082 17.3477 16.5586 17.3477C16.7705 17.3477 16.9688 17.2383 17.1465 17.0195L19.3818 14.1963C19.7646 13.7109 19.3203 13.1641 18.7598 13.4443L16.5312 14.5928L13.9062 13.1436C13.7422 13.0547 13.5986 13.0068 13.4414 13.0068C13.2363 13.0068 13.0381 13.1094 12.8535 13.335L10.6318 16.1445Z" fill="white"/>
-        </g>
-        <defs>
-            <clipPath id="clip0_952_270">
-                <rect width="30" height="30" rx="15" fill="white"/>
-            </clipPath>
-        </defs>
-    </svg>
-    <p class="DPAutoServerElementsMenu noSelect" style="flex: 1 0 0; color: #007AFF; font-size: 16px; font-style: normal; font-weight: 700; line-height: normal; margin: 0px;">AutoServer</p>
-    <svg class="DPAutoServerElementsMenu" style="visibility: hidden;" width="9" height="16" viewBox="0 0 9 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M8.57031 7.85938C8.57031 8.24219 8.4375 8.5625 8.10938 8.875L2.20312 14.6641C1.96875 14.8984 1.67969 15.0156 1.33594 15.0156C0.648438 15.0156 0.0859375 14.4609 0.0859375 13.7734C0.0859375 13.4219 0.226562 13.1094 0.484375 12.8516L5.63281 7.85156L0.484375 2.85938C0.226562 2.60938 0.0859375 2.28906 0.0859375 1.94531C0.0859375 1.26562 0.648438 0.703125 1.33594 0.703125C1.67969 0.703125 1.96875 0.820312 2.20312 1.05469L8.10938 6.84375C8.42969 7.14844 8.57031 7.46875 8.57031 7.85938Z" fill="#007AFF"/>
-    </svg>
-</div>
-`;
-
-    const DPAutoServerButtonMainMenuCSS = `
-.DPAutoServerButtonMainMenu {
-	display: flex;
-	box-sizing: border-box;
-	justify-content: center;
-	align-items: center;
-	gap: 16px;
-	flex-shrink: 0;
-
-	border-radius: 12px;
-
-	cursor: pointer;
-}
-.DPAutoServerButtonMainMenu:hover {
-	background: rgba(0, 122, 255, 0.10);
-}
-.DPAutoServerButtonMainMenu:active {
-	filter: brightness(.9);
-
-}
-
-.DPAutoServerButtonMainMenuMedium {
-	width: 56px;
-	height: 52px;
-	padding: 8px;
-}
-.DPAutoServerButtonMainMenu:hover .DPAutoServerElementsMenu {
-	visibility: visible !important;
-}
-
-.DPAutoServerButtonMainMenuLarge {
-	width: 222px;
-	height: 52px;
-	padding: 16px 16px 16px 17px;
-}
-`;
-
-    let DPAutoServerButtonMainMenuElement = null;
-    let DPAutoServerButtonMainMenuStyle = null;
-
-    function DPAutoServerButtonMainMenuFunction() {
-        if (ASB969) {
-            try {
-                let targetDiv;
-                if (document.querySelector('.e1t8Z')) {
-                    targetDiv = document.querySelector('.e1t8Z');
-                } else {
-                    targetDiv = document.querySelector('._1ZKwW');
-                }
-                if (targetDiv && !document.querySelector('.DPAutoServerButtonMainMenu')) {
-                    DPAutoServerButtonMainMenuStyle = document.createElement('style');
-                    DPAutoServerButtonMainMenuStyle.type = 'text/css';
-                    DPAutoServerButtonMainMenuStyle.innerHTML = DPAutoServerButtonMainMenuCSS;
-                    document.head.appendChild(DPAutoServerButtonMainMenuStyle);
-
-                    let targetDivLast = document.querySelector('[data-test="profile-tab"]');
-
-                    if (targetDiv && targetDivLast) {
-                        targetDiv.lastChild.insertAdjacentHTML('beforebegin', DPAutoServerButtonMainMenuHTML);
-
-                        let otherTargetDiv = document.querySelector('.DPAutoServerButtonMainMenu');
-                        otherTargetDiv.addEventListener('click', () => {
-                            notificationCall("AutoServer is under construction", "AutoServer is currently under construction. We'll let you know when it's available. Join our Discord server to learn more & be the first few people to use it discord.gg/r8xQ7K59Mt");
-                        });
-
-                        if (targetDiv.offsetWidth === 56) {
-                            otherTargetDiv.classList.add('DPAutoServerButtonMainMenuMedium');
-                            document.querySelectorAll('.DPAutoServerElementsMenu').forEach(function(element) {
-                                element.remove();
-                            });
-                            fdhuf();
-                            function fdhuf() {
-                                if (targetDiv.offsetWidth !== 56) {
-                                    otherTargetDiv.remove();
-                                    DPAutoServerButtonMainMenuFunction();
-                                } else {
-                                    setTimeout(function() { fdhuf(); }, 100);
-                                }
-                            }
-                        } else {
-                            otherTargetDiv.classList.add('DPAutoServerButtonMainMenuLarge');
-                            urhef();
-                            function urhef() {
-                                if (targetDiv.offsetWidth !== 222) {
-                                    otherTargetDiv.remove();
-                                    DPAutoServerButtonMainMenuFunction();
-                                } else {
-                                    setTimeout(function() { urhef(); }, 100);
-                                }
-                            }
-                        }
-                    }
-                }
-            } catch(error) {}
-        }
-    }
-    setInterval(DPAutoServerButtonMainMenuFunction, 100);
-
-
-    const DuolingoProCounterOneHTML = `
-<div id="DLPTBL1ID" class="DuolingoProCounterBoxOneClass" style="display: inline-flex; justify-content: center; flex-direction: row-reverse; align-items: center; gap: 4px; position: fixed; top: 16px; right: 16px; z-index: 1024;">
-    <div class="vCIrKKxykXwXyUza" id="DLPTB1e1ID">
-        <svg id="DLPTB1e1i1ID" style="display: none;" width="20" height="10" viewBox="0 0 20 10" fill="rgb(var(--color-eel))" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0.223633 5.06445C0.223633 2.2959 2.01465 0.470703 4.66699 0.470703C6.02734 0.470703 7.20312 1.04492 8.41309 2.2207L9.91016 3.66309L11.4004 2.2207C12.6104 1.04492 13.7861 0.470703 15.1465 0.470703C17.7988 0.470703 19.5898 2.2959 19.5898 5.06445C19.5898 7.82617 17.7988 9.65137 15.1465 9.65137C13.7861 9.65137 12.6104 9.08398 11.4004 7.9082L9.91016 6.45898L8.41309 7.9082C7.20312 9.08398 6.02734 9.65137 4.66699 9.65137C2.01465 9.65137 0.223633 7.82617 0.223633 5.06445ZM2.25391 5.06445C2.25391 6.61621 3.21777 7.62109 4.66699 7.62109C5.45312 7.62109 6.17773 7.23828 6.99121 6.46582L8.47461 5.06445L6.99121 3.66309C6.17773 2.89062 5.45312 2.50098 4.66699 2.50098C3.21777 2.50098 2.25391 3.50586 2.25391 5.06445ZM11.3389 5.06445L12.8223 6.46582C13.6426 7.23828 14.3604 7.62109 15.1465 7.62109C16.5957 7.62109 17.5596 6.61621 17.5596 5.06445C17.5596 3.50586 16.5957 2.50098 15.1465 2.50098C14.3604 2.50098 13.6357 2.89062 12.8223 3.66309L11.3389 5.06445Z"/>
-        </svg>
-        <p id="DLPTB1e1t1ID" class="vCIrKKxykXwXyUza-Text noSelect"></p>
-    </div>
-    <div class="vCIrKKxykXwXyUza" id="DLPTB1e4ID">
-        <svg id="DLPTB1i1" style="" width="15" height="15" viewBox="0 0 15 15" fill="rgb(var(--color-eel))" xmlns="http://www.w3.org/2000/svg">
-            <path d="M13.3916 13.9004L0.991211 1.51367C0.772461 1.29492 0.772461 0.918945 0.991211 0.700195C1.2168 0.474609 1.58594 0.474609 1.81152 0.700195L14.2051 13.0869C14.4307 13.3125 14.4238 13.6748 14.2051 13.9004C13.9863 14.126 13.6172 14.126 13.3916 13.9004ZM10.958 8.54785L6.09766 3.70117H6.2002C6.23438 3.69434 6.26172 3.68066 6.28223 3.66016L8.76367 1.35645C9.18066 0.966797 9.48828 0.802734 9.87793 0.802734C10.5 0.802734 10.958 1.28809 10.958 1.89648V8.54785ZM3.94434 10.1611C2.80957 10.1611 2.21484 9.5459 2.21484 8.35645V5.79297C2.21484 5.21191 2.36523 4.76074 2.64551 4.4668L10.8691 12.6768C10.6982 13.1006 10.3359 13.3398 9.88477 13.3398C9.47461 13.3398 9.15332 13.1758 8.76367 12.8066L5.96777 10.209C5.93359 10.1748 5.88574 10.1611 5.83789 10.1611H3.94434Z"/>
-        </svg>
-        <svg id="DLPTB1i2" style="display: none;" width="18" height="14" viewBox="0 0 18 14" fill="rgb(var(--color-eel))" xmlns="http://www.w3.org/2000/svg">
-            <path d="M7.88477 13.3398C7.47461 13.3398 7.15332 13.1758 6.76367 12.8066L3.98828 10.209C3.9541 10.1748 3.90625 10.1611 3.8584 10.1611H1.95801C0.830078 10.1611 0.214844 9.52539 0.214844 8.34277V5.81348C0.214844 4.63086 0.830078 3.98828 1.95801 3.98828H3.8584C3.91309 3.98828 3.9541 3.96777 3.99512 3.93359L6.76367 1.35645C7.1875 0.966797 7.48145 0.802734 7.87793 0.802734C8.5 0.802734 8.95801 1.28809 8.95801 1.89648V12.2666C8.95801 12.875 8.5 13.3398 7.88477 13.3398ZM14.4609 12.2119C14.0166 11.9521 13.9619 11.4121 14.2627 10.9268C14.96 9.84668 15.3633 8.48633 15.3633 7.06445C15.3633 5.64258 14.9668 4.27539 14.2627 3.20215C13.9619 2.7168 14.0166 2.17676 14.4609 1.91016C14.8643 1.67773 15.3564 1.77344 15.6162 2.16992C16.5391 3.5166 17.0586 5.25977 17.0586 7.06445C17.0586 8.86914 16.5322 10.5986 15.6162 11.959C15.3564 12.3555 14.8643 12.4512 14.4609 12.2119ZM11.3848 10.3115C10.9609 10.0449 10.8652 9.53906 11.2139 8.97168C11.5557 8.44531 11.7471 7.76855 11.7471 7.06445C11.7471 6.35352 11.5625 5.67676 11.2139 5.15723C10.8652 4.59668 10.9609 4.08398 11.3848 3.81738C11.7676 3.57129 12.2529 3.66699 12.5059 4.01562C13.1006 4.83594 13.4492 5.92285 13.4492 7.06445C13.4492 8.20605 13.1006 9.29297 12.5059 10.1064C12.2529 10.4619 11.7676 10.5508 11.3848 10.3115Z"/>
-        </svg>
-        <p class="vCIrKKxykXwXyUza-Text noSelect">Mute</p>
-    </div>
-    <div class="vCIrKKxykXwXyUza" id="DLPTB1e2ID">
-        <svg width="13" height="15" viewBox="0 0 13 15" fill="rgb(var(--color-eel))" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12.3486 8.44531C12.3486 10.9336 10.9268 12.0137 6.92773 14.1055C6.74316 14.1943 6.54492 14.2559 6.4082 14.2559C6.27148 14.2559 6.07324 14.1943 5.89551 14.1055C1.88965 12.0205 0.474609 10.9336 0.474609 8.44531V3.38672C0.474609 2.40918 0.795898 2.0127 1.65039 1.65039C2.32031 1.36328 4.80859 0.529297 5.44434 0.324219C5.74512 0.228516 6.11426 0.166992 6.4082 0.166992C6.70215 0.166992 7.07129 0.242188 7.37207 0.324219C8.00781 0.501953 10.4961 1.37012 11.1729 1.65039C12.0205 2.0127 12.3486 2.40918 12.3486 3.38672V8.44531ZM6.33301 12.4512V1.79395C6.2168 1.80078 6.10742 1.82812 5.90234 1.89648C5.19824 2.16309 3.33203 2.80566 2.35449 3.16797C2.16309 3.24316 2.10156 3.35254 2.10156 3.6123V8.18555C2.10156 10.0381 3.09961 10.5576 6.06641 12.3281C6.19629 12.4033 6.26465 12.4375 6.33301 12.4512Z"/>
-        </svg>
-        <p class="vCIrKKxykXwXyUza-Text noSelect">AntiStuck <a id="DLPTB1e2t2ID" style="color: #FF2D55;">OFF</a></p>
-    </div>
-    <div class="vCIrKKxykXwXyUza" id="DLPTB1e3ID">
-        <svg width="17" height="15" viewBox="0 0 17 15" fill="rgb(var(--color-eel))" xmlns="http://www.w3.org/2000/svg">
-            <path d="M5.32324 14.8984C4.86523 14.8984 4.5918 14.584 4.5918 14.0918V12.1436H3.97656C2.08301 12.1436 0.743164 10.8721 0.743164 8.80078V3.37988C0.743164 1.30176 2.00098 0.0302734 4.09277 0.0302734H13.1436C15.2354 0.0302734 16.4932 1.30176 16.4932 3.37988V8.80078C16.4932 10.8721 15.2354 12.1436 13.1436 12.1436H8.82324L6.25977 14.4268C5.88379 14.7617 5.63086 14.8984 5.32324 14.8984Z"/>
-        </svg>
-        <p class="vCIrKKxykXwXyUza-Text noSelect">Feedback</p>
-    </div>
-    <div class="vCIrKKxykXwXyUza" id="DLPTB1eC1ID" style="width: 40px; padding: 0;">
-        <svg id="DLPTB1eC1i1ID" style="transition: all 0.8s cubic-bezier(0.16, 1, 0.32, 1);" width="15" height="16" viewBox="0 0 15 16" fill="rgb(var(--color-eel))" xmlns="http://www.w3.org/2000/svg">
-            <path d="M7.44238 15.29C3.48438 15.29 0.223633 12.0293 0.223633 8.06445C0.223633 4.10645 3.47754 0.845703 7.44238 0.845703C11.4004 0.845703 14.6611 4.10645 14.6611 8.06445C14.6611 12.0293 11.4072 15.29 7.44238 15.29ZM8.87793 11.5303C9.17188 11.2363 9.15137 10.7783 8.87793 10.5117L6.2666 8.07129L8.87793 5.63086C9.1582 5.36426 9.1582 4.88574 8.85742 4.6123C8.59082 4.36621 8.16016 4.35938 7.87305 4.63281L5.09766 7.23047C4.61914 7.68164 4.61914 8.46777 5.09766 8.91895L7.87305 11.5166C8.13281 11.7627 8.63184 11.7695 8.87793 11.5303Z"/>
-        </svg>
-    </div>
-</div>
-`;
-    const DuolingoProCounterOneCSS = `
-.vCIrKKxykXwXyUza {
-    border: 2px solid rgb(var(--color-swan));
-    height: 40px;
-    width: auto;
-    padding: 0 12px;
-    gap: 8px;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: nowrap;
-
-    border-radius: 32px;
-    background: rgb(var(--color-snow), 0.84);
-    box-shadow: 0px 0px 16px 0px rgba(0, 0, 0, 0.08);
-    backdrop-filter: blur(16px);
-    overflow: hidden;
-
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.32, 1);
-    cursor: pointer;
-}
-
-.vCIrKKxykXwXyUza:hover {
-    scale: 1.05;
-}
-
-.vCIrKKxykXwXyUza:active {
-    scale: 0.85;
-}
-
-.vCIrKKxykXwXyUza svg {
-    flex-shrink: 0;
-}
-
-.vCIrKKxykXwXyUza-Text {
-    color: rgb(var(--color-eel));
-    font-size: 16px;
-    font-weight: 700;
-
-    white-space: nowrap;
-    margin: 0;
-}
-`;
-    let injectedDuolingoProCounterOneElement = null;
-    let injectedDuolingoProCounterOneStyle = null;
-
-    function DuolingoProCounterOneFunction() {
-        if ((window.location.pathname.includes('/lesson') || window.location.pathname.includes('/practice')) && autoSolverBoxAutomatedSolvingActive) {
-            if (!injectedDuolingoProCounterOneElement) {
-                injectedDuolingoProCounterOneStyle = document.createElement('style');
-                injectedDuolingoProCounterOneStyle.type = 'text/css';
-                injectedDuolingoProCounterOneStyle.innerHTML = DuolingoProCounterOneCSS;
-                document.head.appendChild(injectedDuolingoProCounterOneStyle);
-
-                document.body.insertAdjacentHTML('beforeend', DuolingoProCounterOneHTML);
-                injectedDuolingoProCounterOneElement = DuolingoProCounterOneHTML;
-
-                let fgOFCULKfxUUvNjw1 = document.querySelector('#DLPTB1e1ID');
-                let fgOFCULKfxUUvNjw2 = document.querySelector('#DLPTB1e2ID');
-                let fgOFCULKfxUUvNjw3 = document.querySelector('#DLPTB1e3ID');
-                let UqgpktnVnpDIrSaY = document.querySelector('#DLPTB1eC1ID');
-                let UqgpktnVnpDIrSaY1 = document.querySelector('#DLPTB1eC1i1ID');
-                let theBarVisibility = false;
-                function hideKDOS(noAnimation) {
-                    fgOFCULKfxUUvNjw2.style.width = fgOFCULKfxUUvNjw2.offsetWidth + "px";
-                    fgOFCULKfxUUvNjw3.style.width = fgOFCULKfxUUvNjw3.offsetWidth + "px";
-                    fgOFCULKfxUUvNjw2.style.width = "0px";
-                    fgOFCULKfxUUvNjw3.style.width = "0px";
-                    fgOFCULKfxUUvNjw2.style.padding = "0";
-                    fgOFCULKfxUUvNjw3.style.padding = "0";
-                    fgOFCULKfxUUvNjw2.style.filter = "blur(8px)";
-                    fgOFCULKfxUUvNjw3.style.filter = "blur(8px)";
-                    fgOFCULKfxUUvNjw2.style.margin = "0 -4px";
-                    fgOFCULKfxUUvNjw3.style.margin = "0 -4px";
-                    fgOFCULKfxUUvNjw2.style.opacity = "0";
-                    fgOFCULKfxUUvNjw3.style.opacity = "0";
-                    if (!noAnimation) {
-                        setTimeout(function() {
-                            fgOFCULKfxUUvNjw2.style.display = "none";
-                            fgOFCULKfxUUvNjw3.style.display = "none";
-                        }, 400);
-                    } else {
-                        fgOFCULKfxUUvNjw2.style.display = "none";
-                        fgOFCULKfxUUvNjw3.style.display = "none";
-                    }
-                }
-                function showKDOS() {
-                    EAWoMwEP();
-                    fgOFCULKfxUUvNjw2.style.display = "";
-                    fgOFCULKfxUUvNjw3.style.display = "";
-                    fgOFCULKfxUUvNjw2.style.width = "";
-                    fgOFCULKfxUUvNjw3.style.width = "";
-                    fgOFCULKfxUUvNjw2.style.padding = "";
-                    fgOFCULKfxUUvNjw3.style.padding = "";
-                    let remember0009 = (fgOFCULKfxUUvNjw2.offsetWidth - 0) + "px";
-                    let remember0010 = (fgOFCULKfxUUvNjw3.offsetWidth - 0) + "px";
-                    fgOFCULKfxUUvNjw2.style.width = "0px";
-                    fgOFCULKfxUUvNjw3.style.width = "0px";
-                    requestAnimationFrame(function() {
-                        fgOFCULKfxUUvNjw2.style.width = remember0009;
-                        fgOFCULKfxUUvNjw2.style.padding = "";
-                        fgOFCULKfxUUvNjw2.style.filter = "";
-                        fgOFCULKfxUUvNjw2.style.opacity = "";
-                        fgOFCULKfxUUvNjw2.style.margin = "";
-                        fgOFCULKfxUUvNjw3.style.width = remember0010;
-                        fgOFCULKfxUUvNjw3.style.padding = "";
-                        fgOFCULKfxUUvNjw3.style.filter = "";
-                        fgOFCULKfxUUvNjw3.style.opacity = "";
-                        fgOFCULKfxUUvNjw3.style.margin = "";
-                    });
-                }
-                hideKDOS(true);
-                UqgpktnVnpDIrSaY.addEventListener('click', () => {
-                    if (theBarVisibility) {
-                        UqgpktnVnpDIrSaY1.style.transform = "rotate(0deg)";
-                        theBarVisibility = false;
-                        hideKDOS();
-                    } else {
-                        UqgpktnVnpDIrSaY1.style.transform = "rotate(180deg)";
-                        theBarVisibility = true;
-                        showKDOS();
-                    }
-                });
-                fgOFCULKfxUUvNjw2.addEventListener('click', () => {
-                    DuolingoProAntiStuckProtectionMode = !DuolingoProAntiStuckProtectionMode;
-                    localStorage.setItem('DuolingoProAntiStuckProtectionMode', DuolingoProAntiStuckProtectionMode);
-                    EAWoMwEP();
-                    let remember013 = fgOFCULKfxUUvNjw2.offsetWidth;
-                    fgOFCULKfxUUvNjw2.style.width = '';
-                    let remember014 = fgOFCULKfxUUvNjw2.offsetWidth;
-                    fgOFCULKfxUUvNjw2.style.width = remember013 + 'px';
-                    requestAnimationFrame(function() {
-                        fgOFCULKfxUUvNjw2.style.width = remember014 + 'px';
-                    });
-                });
-                fgOFCULKfxUUvNjw3.addEventListener('click', () => {
-                    solving("stop");
-                    if (isLatestVersion) {
-                        SendFeedBackBox(true);
-                    } else {
-                        notificationCall("Update Duolingo Pro to Send Feedback", "The problem you're having might have been fixed with a newer version of Duolingo Pro. Try updating first.");
-                    }
-                });
-
-                if (isTabMuted) muteTab(false);
-                let DLPCE258 = document.querySelector('#DLPTB1e4ID');
-                let DLPCE258i1 = DLPCE258.querySelector('#DLPTB1i1');
-                let DLPCE258i2 = DLPCE258.querySelector('#DLPTB1i2');
-                let DLPCE258t1 = DLPCE258.querySelectorAll('.vCIrKKxykXwXyUza-Text');
-
-                DLPCE258.addEventListener('click', () => {
-                    muteTab(!isTabMuted);
-                    isTabMuted = !isTabMuted;
-                    localStorage.setItem('DLPisTabMuted', isTabMuted);
-                    HKebcVuk();
-                    let remember013 = fgOFCULKfxUUvNjw2.offsetWidth;
-                    fgOFCULKfxUUvNjw2.style.width = '';
-                    let remember014 = fgOFCULKfxUUvNjw2.offsetWidth;
-                    fgOFCULKfxUUvNjw2.style.width = remember013 + 'px';
-                    requestAnimationFrame(function() {
-                        fgOFCULKfxUUvNjw2.style.width = remember014 + 'px';
-                    });
-                });
-            }
-
-            let cLsYCmdd = document.querySelector('#DLPTB1e2t2ID');
-            function EAWoMwEP() {
-                if (DuolingoProAntiStuckProtectionMode) {
-                    cLsYCmdd.style.color = '#007AFF';
-                    cLsYCmdd.textContent = 'ON';
-                } else {
-                    cLsYCmdd.style.color = '#FF2D55';
-                    cLsYCmdd.textContent = 'OFF';
-                }
-            }
-
-            let DLPCE258 = document.querySelector('#DLPTB1e4ID');
-            let DLPCE258i1 = DLPCE258.querySelector('#DLPTB1i1');
-            let DLPCE258i2 = DLPCE258.querySelector('#DLPTB1i2');
-            let DLPCE258t1 = DLPCE258.querySelector('.vCIrKKxykXwXyUza-Text');
-            function HKebcVuk() {
-                if (isTabMuted) {
-                    DLPCE258i1.style.display = 'none';
-                    DLPCE258i2.style.display = '';
-                    DLPCE258t1.textContent = 'Unmute';
-                } else {
-                    DLPCE258i1.style.display = '';
-                    DLPCE258i2.style.display = 'none';
-                    DLPCE258t1.textContent = 'Mute';
-                }
-            }
-
-            let DLPCE728 = document.querySelector('#DLPTB1e1t1ID');
-            let DLPCE728i = document.querySelector('#DLPTB1e1i1ID');
-
-            if (DuolingoProSettingsNeverEndMode) {
-                DLPCE728i.style.display = '';
-                DLPCE728.textContent = 'Infinity';
-            } else if (DuolingoProSettingsXPMode) {
-                DLPCE728.textContent = String(autoSolverBoxRepeatAmount + ' XP Left');
-            } else if (window.location.pathname === '/practice') {
-                if (autoSolverBoxRepeatAmount === 1) {
-                    DLPCE728.textContent = 'Last Practice';
-                } else if (autoSolverBoxRepeatAmount === 0) {
-                    DLPCE728.textContent = 'Finishing Up';
-                } else if (autoSolverBoxRepeatAmount) {
-                    DLPCE728.textContent = String(autoSolverBoxRepeatAmount + ' Practices Left');
-                }
-            } else {
-                if (autoSolverBoxRepeatAmount === 1) {
-                    DLPCE728.textContent = 'Last Lesson';
-                } else if (autoSolverBoxRepeatAmount === 0) {
-                    DLPCE728.textContent = 'Finishing Up';
-                } else if (autoSolverBoxRepeatAmount) {
-                    DLPCE728.textContent = String(autoSolverBoxRepeatAmount + ' Lessons Left');
-                }
-            }
-        } else {
-            if (injectedDuolingoProCounterOneElement) {
-                let DuolingoProShadeStatusOne = document.querySelector('#DLPTBL1ID');
-                if (DuolingoProShadeStatusOne) {
-                    DuolingoProShadeStatusOne.remove();
-                }
-                injectedDuolingoProCounterOneElement = null;
-            }
-        }
-    }
-
-    setInterval(DuolingoProCounterOneFunction, 500);
-
-
-
-
-    const CurrentIssuesPopUpHTML = `
-<div class="DPLBoxShadowStyleT1" id="SeeActiveIssuesBoxShadow">
-    <div class="DPLBoxStyleT1" id="SendFeebackBoxBackground">
-        <div class="DPIPUB1">
-            <div class="DPIPUL1">
-                <p class="paragraphText noSelect textFill" style="font-size: 24px; line-height: 32px;">Release Notes</p>
-                <p class="DPIPUL1T2 paragraphText" id="DPIPUL1T2DATE">Loading...</p>
-            </div>
-            <div class="DPIPUL2">
-
-            </div>
-            <div class="DPIPUL3" style="display: flex; justify-content: center; align-items: flex-start; gap: 8px; align-self: stretch;">
-                <div class="DPIPUL3B1 noSelect paragraphText" id="DPIPUL3BLearnMoreID">LEARN MORE</div>
-                <div class="DPIPUL3B1 noSelect paragraphText" id="DPIPUL3BDissmissID">OK</div>
-            </div>
-        </div>
-    </div>
-</div>
-`;
-
-    const CurrentIssuesPopUpCSS = `
-.DPIPUB1 {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-
-    width: 100%;
-}
-
-.DPIPUL1 {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	align-self: stretch;
-}
-
-.DPIPUL1T1 {
-	color: rgb(var(--color-eel));
-	font-size: 24px;
-	font-weight: 700;
-
-	margin: 0px;
-}
-
-.DPIPUL1T2 {
-	color: rgb(var(--color-eel), .4);
-	font-size: 16px;
-	font-weight: 700;
-
-	margin: 0px;
-}
-
-.DPIPUL2 {
-	display: flex;
-	width: 100%;
-	flex-direction: column;
-	justify-content: center;
-	align-items: flex-start;
-	gap: 16px;
-}
-
-.DPIPUL2TI1 {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	align-self: stretch;
-}
-
-.DPIPUL2TI1T1 {
-	flex: 1 0 0;
-
-	font-size: 16px;
-	font-weight: 700;
-
-	margin: 0px;
-}
-
-.DPIPUL2TI1T1R {
-	color: #FF2D55;
-}
-.DPIPUL2TI1T1O {
-	color: #FF9500;
-}
-.DPIPUL2TI1T1B {
-	color: rgb(var(--color-eel));
-}
-.DPIPUL2TI1T1G {
-	color: #34C759;
-}
-
-.DPIPUL2TI2 {
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: flex-start;
-	gap: 8px;
-	align-self: stretch;
-}
-
-.DPIPUL2TI2TG1 {
-	display: flex;
-	height: 8px;
-	padding-right: 0px;
-	align-items: center;
-	flex: 1 0 0;
-
-	border-radius: 8px;
-	background: rgb(var(--color-swan));
-}
-
-.DPIPUL2TI2TG1TG1 {
-	display: flex;
-	height: 8px;
-	width: 60%;
-
-	border-radius: 8px;
-	background: linear-gradient(117deg, #34C759 16.66%, #007AFF 50%, #AF52DE 83.34%);
-}
-
-.DPIPUL3B1 {
-	display: flex;
-	height: 54px;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-	flex: 1 0 0;
-
-	border-radius: 8px;
-	border: 2px solid rgb(var(--color-swan));
-    border-bottom: 4px solid rgb(var(--color-swan));
-    background: rgb(var(--color-snow));
-
-
-	color: rgb(var(--color-eel));
-	font-size: 16px;
-	font-weight: 700;
-
-	cursor: pointer;
-	transition: .1s;
-}
-.DPIPUL3B1:hover {
-    filter: brightness(0.95);
-}
-.DPIPUL3B1:active {
-    filter: brightness(0.9);
-
-    margin-top: 2px;
-    height: 52px;
-    border-bottom: 2px solid rgb(var(--color-swan));
-}
-`;
-
-    let CurrentIssuesPopUpElement = null;
-    let CurrentIssuesPopUpStyle = null;
-
-    function CurrentIssuesPopUpFunction(status) {
-        try {
-            if (status) {
-                CurrentIssuesPopUpStyle = document.createElement('style');
-                CurrentIssuesPopUpStyle.type = 'text/css';
-                CurrentIssuesPopUpStyle.innerHTML = CurrentIssuesPopUpCSS;
-                document.head.appendChild(CurrentIssuesPopUpStyle);
-
-                document.body.insertAdjacentHTML('beforeend', CurrentIssuesPopUpHTML);
-
-                setTimeout(function() {
-                    let djhsafjkds = document.querySelector('#SeeActiveIssuesBoxShadow');
-                    djhsafjkds.style.opacity = '1';
-                }, 50);
-
-                let gfhdsfjdsh = document.querySelector('#DPIPUL3BDissmissID');
-                gfhdsfjdsh.addEventListener('click', () => {
-                    CurrentIssuesPopUpFunction(false);
-                });
-                let dhbGkaCU = document.querySelector('#DPIPUL3BLearnMoreID');
-                dhbGkaCU.addEventListener('click', () => {
-                    window.open("https://discord.gg/r8xQ7K59Mt", "_blank");
-                });
-
-                let HighWarningComponent1 = `<div class="DPIPUL2TI1"><svg width="18" height="16" viewBox="0 0 18 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.96094 15.5469C1.53125 15.5469 0.59375 14.4688 0.59375 13.1797C0.59375 12.7812 0.695312 12.375 0.914062 11.9922L6.92969 1.47656C7.38281 0.695312 8.17188 0.289062 8.97656 0.289062C9.77344 0.289062 10.5547 0.6875 11.0156 1.47656L17.0312 11.9844C17.25 12.3672 17.3516 12.7812 17.3516 13.1797C17.3516 14.4688 16.4141 15.5469 14.9844 15.5469H2.96094ZM8.98438 9.96094C9.52344 9.96094 9.83594 9.65625 9.86719 9.09375L9.99219 5.72656C10.0234 5.14062 9.59375 4.73438 8.97656 4.73438C8.35156 4.73438 7.92969 5.13281 7.96094 5.72656L8.08594 9.10156C8.10938 9.65625 8.42969 9.96094 8.98438 9.96094ZM8.98438 12.7812C9.60156 12.7812 10.0859 12.3906 10.0859 11.7891C10.0859 11.2031 9.60938 10.8047 8.98438 10.8047C8.35938 10.8047 7.875 11.2031 7.875 11.7891C7.875 12.3906 8.35938 12.7812 8.98438 12.7812Z" fill="#FF2D55"/></svg><p id="DPIPUL2TI1T1ID" class="DPIPUL2TI1T1 DPIPUL2TI1T1R paragraphText">Warning Title</p></div>`;
-                let MediumWarningComponent1 = `<div class="DPIPUL2TI1"><svg width="17" height="18" viewBox="0 0 17 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.64844 17.1172C4.125 17.1172 0.398438 13.3906 0.398438 8.85938C0.398438 4.33594 4.11719 0.609375 8.64844 0.609375C13.1719 0.609375 16.8984 4.33594 16.8984 8.85938C16.8984 13.3906 13.1797 17.1172 8.64844 17.1172ZM8.65625 10.0312C9.19531 10.0312 9.50781 9.72656 9.53906 9.16406L9.66406 5.79688C9.69531 5.21094 9.26562 4.80469 8.64844 4.80469C8.02344 4.80469 7.60156 5.20312 7.63281 5.79688L7.75781 9.17188C7.78125 9.72656 8.10156 10.0312 8.65625 10.0312ZM8.65625 12.8516C9.27344 12.8516 9.75 12.4609 9.75 11.8594C9.75 11.2734 9.28125 10.875 8.65625 10.875C8.03125 10.875 7.54688 11.2734 7.54688 11.8594C7.54688 12.4609 8.03125 12.8516 8.65625 12.8516Z" fill="#FF9500"/></svg><p id="DPIPUL2TI1T1ID" class="DPIPUL2TI1T1 DPIPUL2TI1T1O paragraphText">Warning Title</p></div>`;
-                let LowWarningComponent1 = `<div class="DPIPUL2TI1"><svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.64844 16.6172C4.125 16.6172 0.398438 12.8906 0.398438 8.35938C0.398438 3.83594 4.11719 0.109375 8.64844 0.109375C13.1719 0.109375 16.8984 3.83594 16.8984 8.35938C16.8984 12.8906 13.1797 16.6172 8.64844 16.6172Z" fill="rgb(var(--color-eel))"/></svg><p id="DPIPUL2TI1T1ID" class="DPIPUL2TI1T1 DPIPUL2TI1T1B paragraphText">Warning Title</p></div>`;
-                let FixedWarningComponent1 = `<div class="DPIPUL2TI1"><svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.64844 16.6172C4.125 16.6172 0.398438 12.8906 0.398438 8.35938C0.398438 3.83594 4.11719 0.109375 8.64844 0.109375C13.1719 0.109375 16.8984 3.83594 16.8984 8.35938C16.8984 12.8906 13.1797 16.6172 8.64844 16.6172ZM7.78906 12.2812C8.125 12.2812 8.42969 12.1094 8.63281 11.8125L12.2578 6.26562C12.3984 6.0625 12.4766 5.85156 12.4766 5.65625C12.4766 5.17188 12.0469 4.82812 11.5781 4.82812C11.2734 4.82812 11.0156 4.99219 10.8125 5.32031L7.76562 10.1641L6.40625 8.48438C6.19531 8.23438 5.97656 8.125 5.69531 8.125C5.21875 8.125 4.82812 8.50781 4.82812 8.99219C4.82812 9.21875 4.89844 9.41406 5.07812 9.63281L6.91406 11.8203C7.16406 12.125 7.4375 12.2812 7.78906 12.2812Z" fill="#34C759"/></svg><p id="DPIPUL2TI1T1ID" class="DPIPUL2TI1T1 DPIPUL2TI1T1G paragraphText">Warning Title</p></div>`;
-
-                function createWarningElement(warning) {
-                    let htmlContent = '';
-
-                    switch (warning['warning-level']) {
-                        case 'high':
-                            htmlContent = HighWarningComponent1;
-                            break;
-                        case 'medium':
-                            htmlContent = MediumWarningComponent1;
-                            break;
-                        case 'low':
-                            htmlContent = LowWarningComponent1;
-                            break;
-                        case 'fixed':
-                            htmlContent = FixedWarningComponent1;
-                            break;
-                        default:
-                            //htmlContent = `<div class="DPIPUL2TI1"><p id="DPIPUL2TI1T1ID" class="DPIPUL2TI1T1">${warning['warning-title']}</p></div>`;
-                            break;
-                    }
-
-                    htmlContent = htmlContent.replace('Warning Title', warning['warning-title']);
-                    document.querySelector('.DPIPUL2').insertAdjacentHTML('beforeend', htmlContent);
-                }
-
-                let NextUpdateTrackerComponent1 = `
-            <div class="DPIPUL2TI2">
-                <p class="DPIPUL2TI1T1 paragraphText">Next Update Tracker</p>
-                <div class="DPIPUL2TI1">
-                    <svg width="17" height="18" viewBox="0 0 17 18" fill="rgb(var(--color-swan))" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M8.64844 17.1172C4.125 17.1172 0.398438 13.3906 0.398438 8.85938C0.398438 4.33594 4.11719 0.609375 8.64844 0.609375C13.1719 0.609375 16.8984 4.33594 16.8984 8.85938C16.8984 13.3906 13.1797 17.1172 8.64844 17.1172ZM8.64844 15.0625C12.0859 15.0625 14.8438 12.2969 14.8438 8.85938C14.8438 5.42969 12.0781 2.66406 8.64844 2.66406C5.21094 2.66406 2.46094 5.42969 2.46094 8.85938C2.46094 12.2969 5.21875 15.0625 8.64844 15.0625Z"/>
-                    </svg>
-                    <div class="DPIPUL2TI2TG1">
-                        <div class="DPIPUL2TI2TG1TG1"></div>
-                    </div>
-                    <svg id="TUEZQYXDAhmVUfZf" width="17" height="18" viewBox="0 0 17 18" fill="rgb(var(--color-swan))" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M8.64844 17.1172C4.125 17.1172 0.398438 13.3906 0.398438 8.85938C0.398438 4.33594 4.11719 0.609375 8.64844 0.609375C13.1719 0.609375 16.8984 4.33594 16.8984 8.85938C16.8984 13.3906 13.1797 17.1172 8.64844 17.1172ZM7.78906 12.7812C8.125 12.7812 8.42969 12.6094 8.63281 12.3125L12.2578 6.76562C12.3984 6.5625 12.4766 6.35156 12.4766 6.15625C12.4766 5.67188 12.0469 5.32812 11.5781 5.32812C11.2734 5.32812 11.0156 5.49219 10.8125 5.82031L7.76562 10.6641L6.40625 8.98438C6.19531 8.73438 5.97656 8.625 5.69531 8.625C5.21875 8.625 4.82812 9.00781 4.82812 9.49219C4.82812 9.71875 4.89844 9.91406 5.07812 10.1328L6.91406 12.3203C7.16406 12.625 7.4375 12.7812 7.78906 12.7812Z"/>
-                    </svg>
-                </div>
-            </div>
-            `;
-
-                async function updateWarningsFromURL(url, currentVersion) {
-                    try {
-                        const response = await fetch(url);
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-                        const data = await response.json();
-
-                        const versionData = data[currentVersion];
-                        const lastUpdated = versionData['last-updated'];
-                        let syvxYxgE;
-                        if (versionData) {
-                            for (const warningKey in versionData) {
-                                if (warningKey !== 'status' && warningKey !== 'last-updated' && warningKey !== 'next-update') {
-                                    createWarningElement(versionData[warningKey]);
-                                } else if (warningKey === 'status') {
-                                    let shfueowifj = versionData[warningKey];
-                                } else if (warningKey === 'next-update') {
-                                    syvxYxgE = String(versionData[warningKey]);
-                                    console.log(syvxYxgE);
-                                }
-                            }
-                            document.querySelector('#DPIPUL1T2DATE').textContent = "Last Updated: " + String(lastUpdated);
-                            document.querySelector('.DPIPUL2').insertAdjacentHTML('beforeend', NextUpdateTrackerComponent1);
-                            document.querySelector('.DPIPUL2TI2TG1TG1').style.width = syvxYxgE;
-                            if (syvxYxgE === "100%") {
-                                document.querySelector('#TUEZQYXDAhmVUfZf').style.fill = "#34C759";
-                            }
-                        } else {
-                            alert(`Warnings not found for Duolingo Pro ${duolingoProFormalCurrentVersion}, this version may be deprecated. `);
-                        }
-                    } catch (error) {
-                        console.log(`Error getting data #3: ${error.message}`);
-                    }
-                }
-                updateWarningsFromURL('https://raw.githubusercontent.com/anonymoushackerIV/Duolingo-Pro-Assets/main/resources/issues-and-fixes.json', duolingoProFormalCurrentVersion);
-            } else {
-                let djhsafjkds = document.querySelector('#SeeActiveIssuesBoxShadow');
-                djhsafjkds.style.opacity = '0';
-
-                setTimeout(function() {
-                    djhsafjkds.remove();
-
-                    CurrentIssuesPopUpElement = null;
-                    CurrentIssuesPopUpStyle = null;
-                }, 200);
-
-            }
-        } catch(error) {}
-    }
-
-
-    function hgfem() {
-        let currentTz = Intl.DateTimeFormat().resolvedOptions().timeZone; // Get the current timezone
-        let currentDate = new Date(); // Get the current date in the current timezone
-
-        console.log('Current date in ' + currentTz + ': ' + currentDate.toString());
-
-        let estDate = currentDate.toLocaleDateString("en-US", {timeZone: "America/New_York"}); // Convert the current date to EST and get only the date part
-
-        console.log('Current date in EST: ' + estDate);
-    }
-
-
-    let EGxjxpyyQVICYLlt = `
-<div class="gFyuyoyv">
-    <div class="rjtso" style="display: flex; justify-content: space-between; align-items: flex-start; align-self: stretch; margin-bottom: 4px;">
-        <div class="OuCoTKrL" style="opacity: 0; filter: blur(8px); transition: .4s; position: relative; display: flex; justify-content: center; align-items: center;"></div>
-        <svg class="closeIcon094" style="transition: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);" width="15" height="14" viewBox="0 0 15 14" fill="rgba(255, 255, 255, 0.5)" xmlns="http://www.w3.org/2000/svg">
-            <path d="M1.32812 13.4922C0.875 13.0469 0.890625 12.2578 1.3125 11.8359L5.78125 7.36719L1.3125 2.91406C0.890625 2.48438 0.875 1.70312 1.32812 1.25C1.78125 0.789062 2.57031 0.804688 2.99219 1.23438L7.45312 5.69531L11.9141 1.23438C12.3516 0.796875 13.1172 0.796875 13.5703 1.25C14.0312 1.70312 14.0312 2.46875 13.5859 2.91406L9.13281 7.36719L13.5859 11.8281C14.0312 12.2734 14.0234 13.0312 13.5703 13.4922C13.125 13.9453 12.3516 13.9453 11.9141 13.5078L7.45312 9.04688L2.99219 13.5078C2.57031 13.9375 1.78906 13.9453 1.32812 13.4922Z"/>
-        </svg>
-    </div>
-    <p class="paragraphText noSelect fiaks"></p>
-    <p class="paragraphText noSelect lkfds"></p>
-    <div class="qjids"></div>
-</div>
-`;
-    let lXTUDhsszBlpOzyG = `
-.gFyuyoyv {
-	display: flex;
-	width: 222px;
-	padding: 16px;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-	gap: 4px;
-	box-sizing: border-box;
-
-	border-radius: 16px;
-	border: 2px solid rgba(0, 0, 0, 0.10);
-	background: #000;
-
-	cursor: pointer;
-	overflow: hidden;
-
-	position: fixed;
-	bottom: 16px;
-	left: -154px;
-
-    z-index: 2;
-
-	transition: scale .4s, background .8s, left .4s, box-shadow .4s, opacity .4s, filter .4s;
-}
-.gFyuyoyv:hover {
-	box-shadow: 0px 0px 16px 0px rgba(0, 0, 0, 0.2);
-	scale: 1.05;
-}
-.gFyuyoyv:active {
-	box-shadow: none;
-	scale: .95;
-}
-
-.closeIcon094:hover {
-    fill: rgba(255, 255, 255, 1);
-	box-shadow: 0px 0px 16px 0px rgba(0, 0, 0, 0.2);
-	scale: 1.2;
-}
-.closeIcon094:active {
-	box-shadow: none;
-	scale: .9;
-}
-
-.fiaks {
-	align-self: stretch;
-
-	color: #FFF;
-	font-size: 20px;
-	font-weight: 700;
-
-	margin: 0;
-	transition: .4s;
-}
-.lkfds {
-	align-self: stretch;
-
-	color: rgba(255, 255, 255, 0.75);
-	font-size: 16px;
-	font-weight: 700;
-
-	margin: 0;
-
-	height: 0;
-	opacity: 0;
-	transition: .4s;
-}
-
-.qjids {
-	display: flex;
-	padding-top: 4px;
-	justify-content: center;
-	align-items: center;
-	gap: 4px;
-
-}
-.iohft {
-	height: 8px;
-	border-radius: 4px;
-
-	background: rgba(255, 255, 255, 0.50);
-	backdrop-filter: blur(4px);
-
-	transition: 1s;
-}
-.fheks {
-	height: 8px;
-	border-radius: 4px;
-
-	background: rgba(255, 255, 255, 0.50);
-	backdrop-filter: blur(4px);
-
-	transition: width 8s, opacity 1s;
-}
-`;
-    let EGxjxpyyQVICYLltElement = null;
-    let lXTUDhsszBlpOzyGStyle = null;
-    function cBcutPZB() {
-        try {
-            if (!document.querySelector('.gFyuyoyv')) {
-                if (!lXTUDhsszBlpOzyGStyle) {
-                    lXTUDhsszBlpOzyGStyle = document.createElement('style');
-                    lXTUDhsszBlpOzyGStyle.type = 'text/css';
-                    lXTUDhsszBlpOzyGStyle.innerHTML = lXTUDhsszBlpOzyG;
-                    document.head.appendChild(lXTUDhsszBlpOzyGStyle);
-
-                    document.body.insertAdjacentHTML('beforeend', EGxjxpyyQVICYLlt);
-                }
-                function eipwofa() {
-                    if ((document.querySelector('._1ZKwW') || document.querySelector('.e1t8Z'))) { // sidebar classes
-                        try { document.querySelector('.gFyuyoyv').style.display = ''; } catch (error) {}
-                    } else {
-                        try { document.querySelector('.gFyuyoyv').style.display = 'none'; } catch (error) {}
-                    }
-                }
-                setInterval(eipwofa, 1000);
-
-                let djwodElement = document.querySelector('.gFyuyoyv');
-
-                let smallView = false;
-                if (window.innerWidth < 1160) {
-                    smallView = true;
-                } else {
-                    smallView = false;
-                }
-                //
-                let EdIozuiv = true;
-                let isPaused = false;
-                let currentNumber = 1;
-
-                let isHoveringCloseButton094 = false;
-                let currentURL = "";
-                document.querySelector('.closeIcon094').addEventListener('mouseover', function() {
-                    isHoveringCloseButton094 = true;
-                });
-                document.querySelector('.closeIcon094').addEventListener('mouseout', function() {
-                    setTimeout(function() {
-                        isHoveringCloseButton094 = false;
-                    }, 800);
-                });
-                document.querySelector('.closeIcon094').addEventListener('click', function() {
-                    localStorage.setItem('DLP4Uz53cm6wjnOG7tY', "false");
-                    DLPpromotionBubbleVisibility = false;
-                    djwodElement.style.scale = "0.8";
-                    djwodElement.style.filter = "blur(16px)";
-                    djwodElement.style.opacity = "0";
-                    notificationCall("Promotions Hidden", "Duolingo Pro promotions are hidden until the next update. ");
-                });
-                djwodElement.addEventListener("click", function() {
-                    if (!isHoveringCloseButton094) {
-                        window.open(BubbleResult.bubbles[currentNumber - 1].link, '_blank');
-                    } else {
-                    }
-                });
-
-                let isTransitionTime832 = false;
-                let sjidhf = document.querySelector(".fiaks");
-                let ifdhsi = document.querySelector(".lkfds");
-                let OuCoTKrL = document.querySelector('.OuCoTKrL');
-
-                sjidhf.textContent = BubbleResult.bubbles[0].title.text;
-                ifdhsi.textContent = BubbleResult.bubbles[0].description.text;
-                sjidhf.style.opacity = "1";
-                sjidhf.style.filter = "blur(0px)";
-                sjidhf.style.height = BubbleResult.bubbles[0].title.height;
-                djwodElement.style.background = BubbleResult.bubbles[0].background;
-
-                OuCoTKrL.insertAdjacentHTML('afterbegin', BubbleResult.bubbles[0].icon);
-                OuCoTKrL.style.filter = "blur(0px)";
-                OuCoTKrL.style.opacity = "1";
-
-                document.querySelector(".gFyuyoyv").style.background = BubbleResult.bubbles[0].background;
-
-                if (!smallView) {
-                    djwodElement.style.left = "16px";
-                }
-                djwodElement.addEventListener("mouseover", function() {
-                    let fgijgElement = document.querySelector(".fiaks");
-                    let lkfdsElement = document.querySelector(".lkfds");
-
-                    if (smallView) {
-                        djwodElement.style.left = "16px";
-                    }
-                    tddfnj();
-                    function tddfnj() {
-                        if (!isTransitionTime832) {
-                            lkfdsElement.style.height = BubbleResult.bubbles[currentNumber - 1].description.height;
-                            lkfdsElement.style.opacity = "1";
-                            lkfdsElement.style.filter = "blur(0px)";
-
-                            fgijgElement.style.height = BubbleResult.bubbles[currentNumber - 1].title.height;
-                            fgijgElement.style.opacity = "1";
-                            fgijgElement.style.filter = "blur(0px)";
-                        } else {
-                            setTimeout(function() {
-                                tddfnj();
-                            }, 50);
-                        }
-                    }
-                    isPaused = true;
-                });
-
-                djwodElement.addEventListener("mouseout", function() {
-                    let lkfdsElement = document.getElementsByClassName("lkfds")[0];
-                    if (smallView) {
-                        djwodElement.style.left = "-154px";
-                    }
-                    lkfdsElement.style.height = "0px";
-                    lkfdsElement.style.opacity = "0";
-                    lkfdsElement.style.filter = "blur(8px)";
-                    isPaused = false;
-                });
-
-                function injectElements(amount) {
-                    for (let i = 1; i <= amount; i++) {
-                        let outerDiv = document.createElement('div');
-                        outerDiv.id = 'jfei' + i;
-                        outerDiv.className = 'iohft';
-                        outerDiv.style.width = '8px';
-
-                        let innerDiv = document.createElement('div');
-                        innerDiv.className = 'fheks';
-                        innerDiv.style.width = '8px';
-                        innerDiv.style.background = '#FFF';
-                        innerDiv.style.opacity = '0';
-
-                        outerDiv.appendChild(innerDiv);
-
-                        document.querySelector('.qjids').appendChild(outerDiv);
-                    }
-                }
-
-                function disdf(total) {
-                    let numbersList = [];
-                    let jfei1Element = document.getElementById("jfei" + String(currentNumber));
-                    jfei1Element.style.width = "32px";
-                    let jfei1fheksElement = jfei1Element.getElementsByClassName("fheks")[0];
-                    jfei1fheksElement.style.width = "8px";
-                    jfei1fheksElement.style.opacity = "1";
-                    for (let i = 1; i <= total; i++) {
-                        if (i !== currentNumber) {
-                            numbersList.push(i);
-                        }
-                    }
-                    numbersList.forEach(function(num) {
-                        let element = document.getElementById("jfei" + String(num));
-                        if (element) {
-                            //console.log("Element found for ID:", "jfei" + String(num));
-                            element.style.width = "8px";
-                        }
-                    });
-
-
-                    setTimeout(function() {
-                        jfei1fheksElement.style.width = "100%";
-                    }, 50);
-
-                    document.querySelector(".gFyuyoyv").style.background = BubbleResult.bubbles[currentNumber - 1].background;
-
-                    ifhji();
-                    function ifhji() {
-                        setTimeout(function() {
-                            sjidhf.textContent = BubbleResult.bubbles[currentNumber - 1].title.text;
-                            ifdhsi.textContent = BubbleResult.bubbles[currentNumber - 1].description.text;
-                            sjidhf.style.opacity = "1";
-                            sjidhf.style.filter = "blur(0px)";
-                            sjidhf.style.height = BubbleResult.bubbles[currentNumber - 1].title.height;
-
-                            if (!EdIozuiv) {
-                                document.querySelector('.OuCoTKrL .dihafk').remove();
-                                document.querySelector('.OuCoTKrL').insertAdjacentHTML('afterbegin', BubbleResult.bubbles[currentNumber - 1].icon);
-
-                                //requestAnimationFrame(function() {
-                                setTimeout(function() {
-                                    document.querySelector('.OuCoTKrL').style.filter = "blur(0px)";
-                                    document.querySelector('.OuCoTKrL').style.opacity = "1";
-                                }, 0);
-                                //});
-                            }
-                            EdIozuiv = false;
-
-                            if (isPaused) {
-                                ifdhsi.style.opacity = "1";
-                                ifdhsi.style.filter = "blur(0px)";
-                                ifdhsi.style.height = BubbleResult.bubbles[currentNumber - 1].description.height;
-                            }
-                        }, 400);
-                        setTimeout(function() {
-                            isTransitionTime832 = false;
-                        }, 800);
-                    }
-
-
-                    setTimeout(function() {
-                        isTransitionTime832 = true;
-                        if (currentNumber < total) {
-                            currentNumber = currentNumber + 1;
-                            disdf(bubbleTotal);
-                        } else if (currentNumber === total) {
-                            currentNumber = 1;
-                            disdf(bubbleTotal);
-                        }
-
-                        jfei1fheksElement.style.width = "8px";
-                        jfei1fheksElement.style.opacity = "0";
-
-                        sjidhf.style.opacity = "0";
-                        sjidhf.style.filter = "blur(8px)";
-                        sjidhf.style.height = "0px";
-                        ifdhsi.style.opacity = "0";
-                        ifdhsi.style.filter = "blur(8px)";
-                        ifdhsi.style.height = "0px";
-
-                        document.querySelector('.OuCoTKrL').style.filter = "blur(8px)";
-                        document.querySelector('.OuCoTKrL').style.opacity = "0";
-                    }, 8050);
-                }
-                injectElements(bubbleTotal);
-                disdf(bubbleTotal);
-            } else {
-            }
-        } catch (error) {
-            console.log(error);
-        }
-    }
-    let bubbleTotal;
-    let BubbleResult;
-    async function fetchDatacBcutPZB(url) {
-        try {
-            const response = await fetch(url);
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                console.error("HTTP error! Status:", response.status);
+                return;
+            }
+            const responseData = await response.text();
+            if (responseData === 'success') {
+                sendFeedbackStatus = 'sent';
             } else {
-                const data = await response.json();
-                bubbleTotal = parseInt(data["bubble-total"]);
-                const bubbleList = [];
-                for (let i = 1; i <= bubbleTotal; i++) {
-                    const bubbleKey = `bubble-${i}`;
-                    const bubbleInfo = {
-                        icon: data[bubbleKey].icon,
-                        title: {
-                            text: data[bubbleKey].title["title-text"],
-                            color: data[bubbleKey].title["title-color"],
-                            height: data[bubbleKey].title["title-height"]
-                        },
-                        description: {
-                            text: data[bubbleKey].description["description-text"],
-                            color: data[bubbleKey].description["description-color"],
-                            height: data[bubbleKey].description["description-height"]
-                        },
-                        background: data[bubbleKey].background,
-                        border: data[bubbleKey].border,
-                        link: data[bubbleKey].link
-                    };
-                    bubbleList.push(bubbleInfo);
-                }
-                BubbleResult = {
-                    bubbleTotal,
-                    bubbles: bubbleList
-                };
-                if (!document.querySelector('.gFyuyoyv')) {
-                    cBcutPZB();
-                }
+                sendFeedbackStatus = 'error';
+                console.log('0001 Response:', responseData);
             }
         } catch (error) {
-            console.log(`Error getting data #4: ${error.message}`);
+            sendFeedbackStatus = 'error';
         }
     }
-    async function sTvtBAMVJoWFodPG() {
-        if (DLPpromotionBubbleVisibility && !document.querySelector('.gFyuyoyv') && (document.querySelector('._1ZKwW') || document.querySelector('.e1t8Z'))) {
-            await fetchDatacBcutPZB("https://raw.githubusercontent.com/anonymoushackerIV/Duolingo-Pro-Assets/main/resources/promotion-bubble.json");
-        }
+
+
+    let isGetButtonsBusy = false;
+
+    function setButtonState(button, text, iconToShow, iconToHide, bgColor, outlineColor, textColor, delay, callback) {
+        const textElement = button.querySelector('#DLP_Inset_Text_1_ID');
+        const icons = [1, 2, 3, 4].map(num => button.querySelector(`#DLP_Inset_Icon_${num}_ID`));
+
+        let previousText = textElement.textContent;
+        textElement.textContent = text;
+        iconToShow.style.display = 'block';
+        iconToHide.style.display = 'none';
+        let buttonNewWidth = button.offsetWidth;
+        textElement.textContent = previousText;
+        iconToShow.style.display = 'none';
+        iconToHide.style.display = 'block';
+
+        button.style.transition = 'width 0.8s cubic-bezier(0.77,0,0.18,1), background 0.8s cubic-bezier(0.16, 1, 0.32, 1), outline 0.8s cubic-bezier(0.16, 1, 0.32, 1), filter 0.4s cubic-bezier(0.16, 1, 0.32, 1), transform 0.4s cubic-bezier(0.16, 1, 0.32, 1)';
+        button.style.width = `${button.offsetWidth}px`;
+
+        requestAnimationFrame(() => {
+            textElement.style.transition = '0.4s';
+            iconToShow.style.transition = '0.4s';
+            iconToHide.style.transition = '0.4s';
+
+            textElement.style.filter = 'blur(4px)';
+            textElement.style.opacity = '0';
+            iconToHide.style.filter = 'blur(4px)';
+            iconToHide.style.opacity = '0';
+            button.style.width = `${buttonNewWidth}px`;
+
+            button.style.background = bgColor;
+            button.style.outline = outlineColor;
+        });
+
+        setTimeout(() => {
+            textElement.style.transition = '0s';
+            textElement.style.color = textColor;
+            textElement.offsetWidth;
+            textElement.style.transition = '0.4s';
+
+            iconToShow.style.display = 'block';
+            iconToHide.style.display = 'none';
+            iconToShow.style.filter = 'blur(4px)';
+            iconToShow.style.opacity = '0';
+
+            textElement.textContent = text;
+
+            requestAnimationFrame(() => {
+                textElement.style.filter = '';
+                textElement.style.opacity = '';
+                iconToShow.style.filter = '';
+                iconToShow.style.opacity = '1';
+            });
+
+            setTimeout(() => {
+                button.style.width = '';
+            }, 400);
+
+            if (callback) callback();
+        }, delay);
     }
-    setInterval(sTvtBAMVJoWFodPG, 2000);
 
-        let euhqzwyaHTML = `
-<div class="DPLBoxShadowStyleT1" id="DLPNewWithUpdateMainBox1ID1">
-  <div class="DPLBoxStyleT1" style="height: 512px; background-image: url('https://github.com/anonymoushackerIV/Duolingo-Pro-Assets/blob/main/images/whatsnewbackground1.png?raw=true'); background-size: 100% cover; background-position: center; background-repeat: no-repeat; position: relative;">
-    <div style="display: flex; width: 384px; flex-direction: column; justify-content: center; align-items: center; gap: 8px;">
-      <p class="paragraphText noSelect" style="font-size: 32px; align-self: stretch; text-align: center;">Story Support & XP Mode is Here</p>
-      <p class="paragraphText noSelect" style="align-self: stretch; text-align: center; opacity: 0.8;">Story support & XP Mode are finally here. We plan on adding Legendary support soon. Join our Discord Server to get the new updates before everyone else.</p>
-      <div style="display: flex; justify-content: center; align-items: center; gap: 8px; position: absolute; left: 16px; right: 16px; bottom: 16px;">
-        <div class="BPUDPUB1BN1 paragraphText noSelect" id="NUIHB1ID1">JOIN DISCORD</div>
-			  <div class="BPUDPUB1BN1 paragraphText noSelect" id="NUIHB2ID1">DISMISS</div>
-      </div>
-    </div>
-  <canvas style="position: fixed; pointer-events: none;" id="NUIHMB1"></canvas>
-</div>
-`;
-    let euhqzwyaCSS = `
-    .BPUDPUB1BN1 {
-	display: flex;
-	width: 256px;
-	height: 54px;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-
-	border-radius: 8px;
-	border: 2px solid rgba(0, 0, 0, 0.20);
-	border-bottom: 4px solid rgba(0, 0, 0, 0.20);
-	background: #FFF;
-
-	color: #000;
-	font-size: 16px;
-	font-weight: 700;
-
-	margin: 0px;
-	cursor: pointer;
-	transition: .1s;
-}
-.BPUDPUB1BN1:hover {
-    filter: brightness(0.95);
-}
-.BPUDPUB1BN1:active {
-    filter: brightness(0.9);
-    height: 52px;
-    margin-top: 2px;
-	border-bottom: 2px solid rgba(0, 0, 0, 0.20);
-}
-`;
-    let euhqzwyaElement = null;
-    let euhqzwyaStyle = null;
-
-    function newWithUpdatePopUpFunction() {
-        try {
-            if (!document.querySelector('#NUIHMB1')) {
-                if (!euhqzwyaStyle) {
-                    euhqzwyaStyle = document.createElement('style');
-                    euhqzwyaStyle.type = 'text/css';
-                    euhqzwyaStyle.innerHTML = euhqzwyaCSS;
-                    document.head.appendChild(euhqzwyaStyle);
-
-                    document.body.insertAdjacentHTML('beforeend', euhqzwyaHTML);
-
-                    let canvas = document.getElementById("NUIHMB1");
-                    let ctx = canvas.getContext("2d");
-                    canvas.width = window.innerWidth;
-                    canvas.height = window.innerHeight;
-                    let cx = ctx.canvas.width / 2;
-                    let cy = ctx.canvas.height / 2;
-
-                    let confetti = [];
-                    const confettiCount = 500;
-                    const gravity = 0.5;
-                    const terminalVelocity = 10;
-                    const drag = 0.01;
-                    const colors = [
-                        { front: "#FF2D55", back: "#FF2D55" },
-                        { front: "#FF9500", back: "#FF9500" },
-                        { front: "#FFCC00", back: "#FFCC00" },
-                        { front: "#34C759", back: "#34C759" },
-                        { front: "#5AC8FA", back: "#5AC8FA" },
-                        { front: "#007AFF", back: "#007AFF" },
-                        { front: "#5856D6", back: "#5856D6" },
-                        { front: "#AF52DE", back: "#AF52DE" },
-                    ];
-
-                    let resizeCanvas = () => {
-                        canvas.width = window.innerWidth;
-                        canvas.height = window.innerHeight;
-                        cx = ctx.canvas.width / 2;
-                        cy = ctx.canvas.height / 2;
-                    };
-
-                    let randomRange = (min, max) => Math.random() * (max - min) + min;
-
-                    let initConfetti = () => {
-                        for (let i = 0; i < confettiCount; i++) {
-                            confetti.push({
-                                color: colors[Math.floor(randomRange(0, colors.length))],
-                                dimensions: {
-                                    x: randomRange(5, 10),
-                                    y: randomRange(5, 10),
-                                },
-
-                                position: {
-                                    x: randomRange(0, canvas.width),
-                                    y: canvas.height - 1,
-                                },
-
-                                rotation: randomRange(0, 2 * Math.PI),
-                                scale: {
-                                    x: 1,
-                                    y: 1,
-                                },
-
-                                velocity: {
-                                    x: randomRange(-25, 25),
-                                    y: randomRange(0, -50),
-                                },
-                            });
-                        }
-                    };
-
-                    let render = () => {
-                        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                        confetti.forEach((confetto, index) => {
-                            let width = confetto.dimensions.x * confetto.scale.x;
-                            let height = confetto.dimensions.y * confetto.scale.y;
-                            ctx.translate(confetto.position.x, confetto.position.y);
-                            ctx.rotate(confetto.rotation);
-
-                            confetto.velocity.x -= confetto.velocity.x * drag;
-                            confetto.velocity.y = Math.min(
-                                confetto.velocity.y + gravity,
-                                terminalVelocity,
-                            );
-                            confetto.velocity.x +=
-                                Math.random() > 0.5 ? Math.random() : -Math.random();
-
-                            confetto.position.x += confetto.velocity.x;
-                            confetto.position.y += confetto.velocity.y;
-
-                            if (confetto.position.y >= canvas.height) confetti.splice(index, 1);
-
-                            if (confetto.position.x > canvas.width) confetto.position.x = 0;
-                            if (confetto.position.x < 0) confetto.position.x = canvas.width;
-
-                            ctx.fillStyle = confetto.color.front;
-
-                            ctx.fillRect(-width / 2, -height / 2, width, height);
-
-                            ctx.setTransform(1, 0, 0, 1, 0, 0);
-                        });
-                        window.requestAnimationFrame(render);
-                    };
-
-                    render();
-
-                    window.addEventListener("resize", function () {
-                        resizeCanvas();
+    function handleClick(button, id, amount) {
+        const ogIcon = button.querySelector('#DLP_Inset_Icon_1_ID');
+        const loadingIcon = button.querySelector('#DLP_Inset_Icon_2_ID');
+        const doneIcon = button.querySelector('#DLP_Inset_Icon_3_ID');
+        const failedIcon = button.querySelector('#DLP_Inset_Icon_4_ID');
+        setButtonState(button, 'LOADING', loadingIcon, ogIcon, 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400, () => {
+            loadingIcon.style.animation = 'DLP_Rotate_360_Animation_1 4s ease-in-out infinite';
+            let status = 'loading';
+            fetch(serverURL + '/request', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    token: document.cookie.split(';').find(cookie => cookie.includes('jwt_token')).split('=')[1],
+                    gain_type: id, // fuck u bython
+                    amount: amount // legit fuck u for this
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === true) {
+                        status = 'done';
+                        console.log('Status true:', data.status);
+                    } else {
+                        status = 'error';
+                        console.error('Status false:', data.status);
+                    }
+                })
+                .catch(error => {
+                    status = 'error';
+                    console.error('Error fetching data:', error);
+                });
+            setTimeout(() => {
+                f();
+            }, 800);
+            function f() {
+                if (status === 'done') {
+                    setButtonState(button, 'DONE', doneIcon, loadingIcon, 'rgba(52, 199, 89, 0.10)', '2px solid rgba(52, 199, 89, 0.20)', '#34C759', 400, () => {
+                        confetti();
+                        isGetButtonsBusy = false;
+                        setTimeout(() => {
+                            setButtonState(button, 'GET', ogIcon, doneIcon, '#007AFF', '2px solid rgba(0, 0, 0, 0.20)', '#FFF', 400);
+                        }, 3000);
                     });
-
-                    let djhsafjkds = document.querySelector('#DLPNewWithUpdateMainBox1ID1');
-                    djhsafjkds.style.opacity = '1';
-
-                    setTimeout(function() {
-                        setTimeout(function() {
-                            initConfetti();
-                        }, 500);
-                    }, 200);
-
-                    document.getElementById("NUIHB1ID1").addEventListener("click", function() {
-                        window.open("https://discord.gg/r8xQ7K59Mt", "_blank");
+                } else if (status === 'error') {
+                    setButtonState(button, 'FAILED', failedIcon, loadingIcon, 'rgba(255, 45, 85, 0.10)', '2px solid rgba(255, 45, 85, 0.20)', '#FF2D55', 400, () => {
+                        isGetButtonsBusy = false;
+                        setTimeout(() => {
+                            setButtonState(button, 'GET', ogIcon, failedIcon, '#007AFF', '2px solid rgba(0, 0, 0, 0.20)', '#FFF', 400);
+                        }, 3000);
                     });
-
-                    document.getElementById("NUIHB2ID1").addEventListener("click", function() {
-                        djhsafjkds.style.opacity = '0';
-
-                        setTimeout(function() {
-                            djhsafjkds.remove();
-
-                            euhqzwyaElement = null;
-                            euhqzwyaStyle = null;
-                        }, 200);
-                    });
+                } else {
+                    setTimeout(() => { f(); }, 400);
                 }
             }
-        } catch (error) {
-        }
+        });
     }
+    DLP_Get_XP_1_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
+        if (isGetButtonsBusy) return;
+        isGetButtonsBusy = true;
+        handleClick(DLP_Get_XP_1_ID.querySelector('#DLP_Inset_Button_1_ID'), 'xp', Number(DLP_Get_XP_1_ID.querySelector('#DLP_Inset_Input_1_ID').value));
+    });
+    DLP_Get_XP_2_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
+        if (isGetButtonsBusy) return;
+        isGetButtonsBusy = true;
+        handleClick(DLP_Get_XP_2_ID.querySelector('#DLP_Inset_Button_1_ID'), 'xp', Number(DLP_Get_XP_2_ID.querySelector('#DLP_Inset_Input_1_ID').value));
+    });
+    DLP_Get_GEMS_1_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
+        if (isGetButtonsBusy) return;
+        isGetButtonsBusy = true;
+        handleClick(DLP_Get_GEMS_1_ID.querySelector('#DLP_Inset_Button_1_ID'), 'gems', Number(DLP_Get_GEMS_1_ID.querySelector('#DLP_Inset_Input_1_ID').value));
+    });
+    DLP_Get_GEMS_2_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
+        if (isGetButtonsBusy) return;
+        isGetButtonsBusy = true;
+        handleClick(DLP_Get_GEMS_2_ID.querySelector('#DLP_Inset_Button_1_ID'), 'gems', Number(DLP_Get_GEMS_2_ID.querySelector('#DLP_Inset_Input_1_ID').value));
+    });
+    DLP_Get_SUPER_2_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
+        if (isGetButtonsBusy) return;
+        isGetButtonsBusy = true;
+        handleClick(DLP_Get_SUPER_2_ID.querySelector('#DLP_Inset_Button_1_ID'), 'super', 1);
+    });
+
+
+
+    let DLP_Settings_Save_Button_1_ID = document.getElementById("DLP_Settings_Save_Button_1_ID");
+    let DLP_Settings_Save_Button_1_ID_Busy = false;
+    DLP_Settings_Save_Button_1_ID.addEventListener('click', () => {
+        if (DLP_Settings_Save_Button_1_ID_Busy) return;
+        DLP_Settings_Save_Button_1_ID_Busy = true;
+        storageLocal.settings.autoUpdate = DLP_Settings_Auto_Update;
+        saveStorageLocal();
+        setButtonState(DLP_Settings_Save_Button_1_ID, 'SAVED', DLP_Settings_Save_Button_1_ID.querySelector('#DLP_Inset_Icon_3_ID'), DLP_Settings_Save_Button_1_ID.querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(52, 199, 89, 0.10)', '2px solid rgba(52, 199, 89, 0.20)', '#34C759', 400, () => {
+            //confetti();
+            setTimeout(() => {
+                goToPage(7, 1);
+            }, 1600);
+            setTimeout(() => {
+                setButtonState(DLP_Settings_Save_Button_1_ID, 'SAVE', DLP_Settings_Save_Button_1_ID.querySelector('#DLP_Inset_Icon_1_ID'), DLP_Settings_Save_Button_1_ID.querySelector('#DLP_Inset_Icon_3_ID'), '#007AFF', '2px solid rgba(0, 0, 0, 0.20)', '#FFF', 400);
+                DLP_Settings_Save_Button_1_ID_Busy = false;
+            }, 2400);
+        });
+    });
+
+    let DLP_Settings_Auto_Update = storageLocal.settings.autoUpdate;
+    let DLP_Settings_Auto_Update_Toggle_1_ID_Busy = false;
+    let DLP_Settings_Auto_Update_Toggle_1_ID = document.getElementById("DLP_Settings_Auto_Update_Toggle_1_ID");
+    handleToggleClick(DLP_Settings_Auto_Update_Toggle_1_ID, DLP_Settings_Auto_Update);
+    function handleToggleClick(button, state) {
+        let iconToHide;
+        let iconToShow;
+        if (state) {
+            iconToHide = button.querySelector("#DLP_Inset_Icon_2_ID");
+            iconToShow = button.querySelector("#DLP_Inset_Icon_1_ID");
+        } else {
+            iconToHide = button.querySelector("#DLP_Inset_Icon_1_ID");
+            iconToShow = button.querySelector("#DLP_Inset_Icon_2_ID");
+        }
+        if (state) {
+            button.classList.add('DLP_Toggle_Style_1_ON');
+            button.classList.remove('DLP_Toggle_Style_1_OFF');
+        } else {
+            button.classList.add('DLP_Toggle_Style_1_OFF');
+            button.classList.remove('DLP_Toggle_Style_1_ON');
+        }
+        iconToHide.style.transition = '0.4s';
+        iconToShow.style.transition = '0.4s';
+        if (iconToHide.style.display === 'block') {
+            iconToHide.style.display = 'block';
+            iconToShow.style.display = 'none';
+            requestAnimationFrame(() => {
+                iconToHide.style.filter = 'blur(4px)';
+                iconToHide.style.opacity = '0';
+            });
+        }
+        setTimeout(() => {
+            iconToHide.style.display = 'none';
+            iconToShow.style.display = 'block';
+
+            iconToShow.offsetWidth; // idk
+
+            iconToShow.style.filter = 'blur(4px)';
+            iconToShow.style.opacity = '0';
+
+            setTimeout(() => { // idk
+                requestAnimationFrame(() => {
+                    iconToShow.offsetWidth;
+                    iconToShow.style.filter = '';
+                    iconToShow.style.opacity = '1';
+                });
+            }, 20); // idk
+        }, (iconToHide.style.display === 'block') ? 400 : 0);
+    }
+    DLP_Settings_Auto_Update_Toggle_1_ID.addEventListener('click', () => {
+        if (DLP_Settings_Auto_Update_Toggle_1_ID_Busy) return;
+        if (greasyfork) {
+        } else {
+            DLP_Settings_Auto_Update = !DLP_Settings_Auto_Update;
+            DLP_Settings_Auto_Update_Toggle_1_ID_Busy = true;
+            handleToggleClick(DLP_Settings_Auto_Update_Toggle_1_ID, DLP_Settings_Auto_Update);
+            setTimeout(() => {
+                DLP_Settings_Auto_Update_Toggle_1_ID_Busy = false;
+            }, 800);
+        }
+    });
+
+
+    function confetti() {
+        let canvas = document.getElementById("DLP_Confetti_Canvas");
+        let ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let cx = ctx.canvas.width / 2;
+        let cy = ctx.canvas.height / 2;
+
+        let confetti = [];
+        const confettiCount = 500;
+        const gravity = 0.5;
+        const terminalVelocity = 10;
+        const drag = 0.01;
+        const colors = [
+            { front: "#FF2D55", back: "#FF2D55" },
+            { front: "#FF9500", back: "#FF9500" },
+            { front: "#FFCC00", back: "#FFCC00" },
+            { front: "#34C759", back: "#34C759" },
+            { front: "#5AC8FA", back: "#5AC8FA" },
+            { front: "#007AFF", back: "#007AFF" },
+            { front: "#5856D6", back: "#5856D6" },
+            { front: "#AF52DE", back: "#AF52DE" },
+        ];
+
+        let resizeCanvas = () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            cx = ctx.canvas.width / 2;
+            cy = ctx.canvas.height / 2;
+        };
+
+        let randomRange = (min, max) => Math.random() * (max - min) + min;
+
+        let initConfetti = () => {
+            for (let i = 0; i < confettiCount; i++) {
+                confetti.push({
+                    color: colors[Math.floor(randomRange(0, colors.length))],
+                    dimensions: {
+                        x: randomRange(5, 10),
+                        y: randomRange(5, 10),
+                    },
+                    position: {
+                        x: randomRange(0, canvas.width),
+                        y: canvas.height - 1,
+                    },
+                    rotation: randomRange(0, 2 * Math.PI),
+                    scale: {
+                        x: 1,
+                        y: 1,
+                    },
+                    velocity: {
+                        x: randomRange(-25, 25),
+                        y: randomRange(0, -50),
+                    },
+                });
+            }
+        };
+
+        let render = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            confetti.forEach((confetto, index) => {
+                let width = confetto.dimensions.x * confetto.scale.x;
+                let height = confetto.dimensions.y * confetto.scale.y;
+                ctx.translate(confetto.position.x, confetto.position.y);
+                ctx.rotate(confetto.rotation);
+
+                confetto.velocity.x -= confetto.velocity.x * drag;
+                confetto.velocity.y = Math.min(
+                    confetto.velocity.y + gravity,
+                    terminalVelocity,
+                );
+                confetto.velocity.x +=
+                    Math.random() > 0.5 ? Math.random() : -Math.random();
+
+                confetto.position.x += confetto.velocity.x;
+                confetto.position.y += confetto.velocity.y;
+
+                if (confetto.position.y >= canvas.height) confetti.splice(index, 1);
+
+                if (confetto.position.x > canvas.width) confetto.position.x = 0;
+                if (confetto.position.x < 0) confetto.position.x = canvas.width;
+
+                ctx.fillStyle = confetto.color.front;
+
+                ctx.fillRect(-width / 2, -height / 2, width, height);
+
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+            });
+            window.requestAnimationFrame(render);
+        };
+        render();
+        window.addEventListener("resize", function () {
+            resizeCanvas();
+        });
+        initConfetti();
+    }
+
+
+
 
     const originalPlay = HTMLAudioElement.prototype.play;
-    function muteTab(a) {
-        HTMLAudioElement.prototype.play = function() {
-            if (a) {
+    function muteTab(value) {
+        HTMLAudioElement.prototype.play = function () {
+            if (value) {
                 this.muted = true;
             } else {
                 this.muted = false;
             }
-
             return originalPlay.apply(this, arguments);
         };
     }
 
-
-
-
-
     function updateSolveButtonText(text) {
         document.getElementById("solveAllButton").innerText = text;
     }
-
     function solving(value) {
         if (value === "start") {
             isAutoMode = true;
             updateSolveButtonText(isAutoMode ? "PAUSE SOLVE" : "SOLVE ALL");
-            solvingIntervalId = isAutoMode ? setInterval(solve, solveSpeed * 1000) : clearInterval(solvingIntervalId);
+            solvingIntervalId = isAutoMode ? setInterval(solve, storageLocal.settings.solveSpeed * 1000) : clearInterval(solvingIntervalId);
         } else if (value === "stop") {
             isAutoMode = false;
             updateSolveButtonText(isAutoMode ? "PAUSE SOLVE" : "SOLVE ALL");
-            solvingIntervalId = isAutoMode ? setInterval(solve, solveSpeed * 1000) : clearInterval(solvingIntervalId);
+            solvingIntervalId = isAutoMode ? setInterval(solve, storageLocal.settings.solveSpeed * 1000) : clearInterval(solvingIntervalId);
         } else {
             isAutoMode = !isAutoMode;
             updateSolveButtonText(isAutoMode ? "PAUSE SOLVE" : "SOLVE ALL");
-            solvingIntervalId = isAutoMode ? setInterval(solve, solveSpeed * 1000) : clearInterval(solvingIntervalId);
+            solvingIntervalId = isAutoMode ? setInterval(solve, storageLocal.settings.solveSpeed * 1000) : clearInterval(solvingIntervalId);
         }
     }
     let hcwNIIOdaQqCZRDL = false;
@@ -5142,44 +2954,71 @@ function OMEGA() {
             '[data-test="plus-no-thanks"]',
             '._1N-oo._36Vd3._16r-S._1ZBYz._23KDq._1S2uf.HakPM',
             '._8AMBh._2vfJy._3Qy5R._28UWu._3h0lA._1S2uf._1E9sc',
-            '._1Qh5D._36g4N._2YF0P._28UWu._3h0lA._1S2uf._1E9sc'
+            '._1Qh5D._36g4N._2YF0P._28UWu._3h0lA._1S2uf._1E9sc',
+            '[data-test="story-start"]'
         ];
         selectorsForSkip.forEach(selector => {
             const element = document.querySelector(selector);
-            if (element) {
-                element.click();
-                return;
-            }
+            if (element) element.click();
         });
 
-        if (sessionCompleteSlide !== null && isAutoMode && autoSolverBoxAutomatedSolvingActive) {
-            mainSolveStatistics('lesson', 1);
-            mainSolveStatistics('xp', findSubReact(document.getElementsByClassName("_1XNQX")[0]).xpGoalSessionProgress.totalXpThisSession);
-            if (!DuolingoProSettingsNeverEndMode && !hcwNIIOdaQqCZRDL) {
+
+        const status = storageSession.legacy.status;
+        const type = status ? storageSession.legacy[status]?.type : null;
+        let amount;
+
+        if (sessionCompleteSlide !== null && isAutoMode && storageSession.legacy.status) {
+            if (!hcwNIIOdaQqCZRDL) {
                 hcwNIIOdaQqCZRDL = true;
-                if (!DuolingoProSettingsXPMode) {
-                   autoSolverBoxRepeatAmount--;
-                } else {
-                    autoSolverBoxRepeatAmount -= findSubReact(document.getElementsByClassName("_1XNQX")[0]).xpGoalSessionProgress.totalXpThisSession;
-                    autoSolverBoxRepeatAmount = Math.max(autoSolverBoxRepeatAmount, 0);
+                if (type === 'lesson') {
+                    storageSession.legacy[status].amount -= 1;
+                    saveStorageSession();
+                    amount = status ? storageSession.legacy[status]?.amount : null;
+                    if (amount > 0) {
+                        if (practiceAgain !== null) {
+                            practiceAgain.click();
+                            return;
+                        } else {
+                            location.reload();
+                        }
+                    } else {
+                        storageSession.legacy[status].amount = 0;
+                        saveStorageSession();
+                        window.location.href = "https://duolingo.com";
+                        return;
+                    }
+                } else if (type === 'xp') {
+                    storageSession.legacy[status].amount -= findSubReact(document.getElementsByClassName("_1XNQX")[0]).xpGoalSessionProgress.totalXpThisSession;
+                    saveStorageSession();
+                    amount = status ? storageSession.legacy[status]?.amount : null;
+                    if (amount > 0) {
+                        if (practiceAgain !== null) {
+                            practiceAgain.click();
+                            return;
+                        } else {
+                            location.reload();
+                        }
+                    } else {
+                        storageSession.legacy[status].amount = 0;
+                        saveStorageSession();
+                        window.location.href = "https://duolingo.com";
+                        return;
+                    }
+                } else if (type === 'infinity') {
+                    if (practiceAgain !== null) {
+                        practiceAgain.click();
+                        return;
+                    } else {
+                        location.reload();
+                    }
                 }
-                sessionStorage.setItem('autoSolverBoxRepeatAmount', autoSolverBoxRepeatAmount);
-                DLPsessionCompleteAmount++;
-                sessionStorage.setItem('duopro.autoSolveSessionCompleteAmount', DLPsessionCompleteAmount);
-            }
-            if ((autoSolverBoxRepeatAmount > 0 || DuolingoProSettingsNeverEndMode) && practiceAgain !== null) {
-                practiceAgain.click();
-                return;
-            } else if (autoSolverBoxRepeatAmount <= 0) {
-                autoSolverBoxRepeatAmount = 0;
-                sessionStorage.setItem('autoSolverBoxRepeatAmount', autoSolverBoxRepeatAmount);
-                window.location.href = "https://duolingo.com";
             }
         }
 
         try {
             window.sol = findReact(document.getElementsByClassName(findReactMainElementClass)[0]).props.currentChallenge;
-        } catch {
+        } catch (error) {
+            console.log(error);
             //let next = document.querySelector('[data-test="player-next"]');
             //if (next) {
             //    next.click();
@@ -5193,16 +3032,14 @@ function OMEGA() {
         let challengeType;
         if (window.sol) {
             challengeType = determineChallengeType();
-        } else if (!window.sol) {
+        } else {
             challengeType = 'error';
             nextClickFunc();
         }
         if (challengeType === 'error') {
             nextClickFunc();
         } else if (challengeType) {
-            if (debug) {
-                document.getElementById("solveAllButton").innerText = challengeType;
-            }
+            if (debug) document.getElementById("solveAllButton").innerText = challengeType;
             handleChallenge(challengeType);
             nextClickFunc();
         } else {
@@ -5214,7 +3051,7 @@ function OMEGA() {
     let GtPzsoCcLnDAVvjb;
     let SciiOTPybxFAimRW = false;
     function nextClickFunc() {
-        setTimeout(function() {
+        setTimeout(function () {
             try {
                 let nextButtonNormal = document.querySelector('[data-test="player-next"]');
                 let storiesContinueButton = document.querySelector('[data-test="stories-player-continue"]');
@@ -5230,49 +3067,30 @@ function OMEGA() {
                     if (nextButtonAriaValue === 'true' || nextButtonAriaValue === true) {
                         if (document.querySelectorAll('._35QY2._3jIlr.f2zGP._18W4a.xtPuL').length > 0) {
                         } else {
-                            if (DuolingoProAntiStuckProtectionMode && nextButtonAriaValue === 'true') {
+                            if (nextButtonAriaValue === 'true') {
                                 console.log('The next button is disabled.');
-                                zXIArDomWMPkmTVf++;
-                                //for (let i = 0; i < 50; i++) {
-                                //    setTimeout(function() {
-                                //if (document.querySelector('[data-test="player-next"]').getAttribute('aria-disabled') === 'true') {
-                                //} else if (document.querySelector('[data-test="player-next"]').getAttribute('aria-disabled') === 'false') {
-                                //        if (document.querySelector('[data-test="player-next"]').getAttribute('aria-disabled') === 'false') {
-                                //            zXIArDomWMPkmTVf = 0;
-                                //        } else {
-                                //            zXIArDomWMPkmTVf = 0;
-                                //        }
-                                //    }, 2);
-                                //}
-                                //if (solveSpeed <= 2) {
-                                //    zXIArDomWMPkmTVf++;
-                                //} else if (solveSpeed <= 3) {
-                                //    setTimeout(function() {
-                                //        nextClickFunc("test");
-                                //    }, 1000);
-                                //}
                             }
                         }
                         if (zXIArDomWMPkmTVf >= 3 && !SciiOTPybxFAimRW && nextButtonAriaValue === 'true') {
                             SciiOTPybxFAimRW = true;
                             LhEqEHHc();
-                            notificationCall("Can't Recognize Question Type", "Duolingo Pro ran into an error while solving this question, an automatic question error report is being made.");
+                            //notificationCall("Can't Recognize Question Type", "Duolingo Pro ran into an error while solving this question, an automatic question error report is being made.");
                         }
                     } else if (nextButtonAriaValue === 'false' || nextButtonAriaValue === false) {
                         nextButton.click();
-                        mainSolveStatistics('question', 1);
+                        //mainSolveStatistics('question', 1);
                         zXIArDomWMPkmTVf = 0;
                         if (document.querySelector('[data-test="player-next"]').classList.contains('_2oGJR')) {
                             if (isAutoMode) {
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     nextButton.click();
-                                }, 50);
+                                }, 100);
                             }
                         } else if (document.querySelector('[data-test="player-next"]').classList.contains('_3S8jJ')) {
-                            if (solveSpeed < 0.6) {
-                                solveSpeed = 0.6;
-                                localStorage.setItem('duopro.autoSolveDelay', solveSpeed);
-                            }
+                            //if (solveSpeed < 0.6) {
+                            //    solveSpeed = 0.6;
+                            //    localStorage.setItem('duopro.autoSolveDelay', solveSpeed);
+                            //}
                         } else {
                             console.log('The element does not have the class ._9C_ii or .NAidc or the element is not found.');
                         }
@@ -5284,15 +3102,15 @@ function OMEGA() {
                 } else {
                     console.log('Element with data-test="player-next" or data-test="stories-player-continue" not found.');
                 }
-            } catch (error) {}
-        }, 50);
+            } catch (error) { }
+        }, 100);
     }
     let fPuxeFVNBsHJUBgP = false;
     function LhEqEHHc() {
         if (!fPuxeFVNBsHJUBgP) {
             fPuxeFVNBsHJUBgP = true;
             const randomImageValue = Math.random().toString(36).substring(2, 15);
-            questionErrorLogs(findReact(document.getElementsByClassName(findReactMainElementClass)[0]).props.currentChallenge, document.body.innerHTML, randomImageValue);
+            //questionErrorLogs(findReact(document.getElementsByClassName(findReactMainElementClass)[0]).props.currentChallenge, document.body.innerHTML, randomImageValue);
             //const challengeAssistElement = document.querySelector('[data-test="challenge challenge-assist"]');
             const challengeAssistElement = document.querySelector('._3x0ok');
             if (challengeAssistElement) {
@@ -5300,24 +3118,6 @@ function OMEGA() {
                 console.log('Element not found');
             }
         }
-    }
-    function mainSolveStatistics(statistic, amount) {
-        if (statistic === 'question') {
-            duoproForeverTotalQuestions += amount;
-        } else if (statistic === 'lesson') {
-            duoproForeverTotalLessons += amount;
-        } else if (statistic === 'xp') {
-            duoproForeverXP += amount;
-        }
-        let question = duoproForeverTotalQuestions;
-        let lesson = duoproForeverTotalLessons;
-        let xp = duoproForeverXP;
-        let data = {
-            lesson: lesson,
-            question: question,
-            xp: xp
-        }
-        localStorage.setItem("duopro.forever.userStatistics", JSON.stringify(data));
     }
     function determineChallengeType() {
         try {
@@ -5577,13 +3377,13 @@ function OMEGA() {
         }
     }
 
-    function findSubReact(dom, traverseUp = 0) {
+    function findSubReact(dom, traverseUp = 1) {
         const key = Object.keys(dom).find(key => key.startsWith("__reactProps"));
         return dom?.[key]?.children?.props?.slide;
     }
 
-    function findReact(dom, traverseUp = 0) {
-        const key = Object.keys(dom).find(key=>{
+    function findReact(dom, traverseUp = 1) {
+        const key = Object.keys(dom).find(key => {
             return key.startsWith("__reactFiber$") // react 17+
                 || key.startsWith("__reactInternalInstance$"); // react <17
         });
@@ -5598,7 +3398,7 @@ function OMEGA() {
             return compFiber._instance;
         }
         // react 16+
-        const GetCompFiber = fiber=>{
+        const GetCompFiber = fiber => {
             //return fiber._debugOwner; // this also works, but is __DEV__ only
             let parentFiber = fiber.return;
             while (typeof parentFiber.type == "string") {
@@ -5616,139 +3416,5 @@ function OMEGA() {
     window.findReact = findReact;
     window.findSubReact = findSubReact;
     window.ss = solving;
-
-
-    async function questionErrorLogs(json, snapshot, imageValue) {
-        //if (json) {
-        //    const { data, error } = await supabase
-        //    .from('question_error')
-        //    .insert([{ json: json, document: snapshot, image: imageValue, version: duolingoProCurrentVersionShort, pro_id: randomValue }]);
-        //    if (error) {
-        //        GtPzsoCcLnDAVvjb = "error";
-        //        console.error("Error sending message:", error);
-        //    } else {
-        GtPzsoCcLnDAVvjb = "sent";
-        //        console.log("Message sent successfully:", data);
-        //    }
-        //} else {
-        //    console.error("Message text is empty.");
-        //}
-    }
-
-    async function settingsStuff(messageValue, value) {
-        console.log("settingsStuff called");
-    }
-
-    async function sendFeedbackServer(feedbackTextOne, feedbackTypeOne, feedbackTextTwo) {
-        if (feedbackTextOne) {
-            try {
-                const formData = new FormData();
-                if (fileInput.files.length > 0) {
-                    let imageFile = fileInput.files[0];
-                    formData.append('file', imageFile);
-                }
-                formData.append('type', feedbackTypeOne);
-                formData.append('body', feedbackTextOne);
-                formData.append('pro_id', randomValue);
-                formData.append('email', feedbackTextTwo);
-                formData.append('version', duolingoProCurrentVersion);
-                const response = await fetch(duolingoProPythonanywhere + "/feedback", {
-                    method: 'POST',
-                    body: formData
-                });
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                const responseData = await response.text();
-                if (responseData === 'success') {
-                    sendFeedbackStatus = 'true';
-                } else {
-                    sendFeedbackStatus = 'error';
-                }
-                console.log('0001 Response:', responseData);
-            } catch (error) {
-                sendFeedbackStatus = 'error';
-            }
-        } else {
-            console.error("Message text is empty.");
-            sendFeedbackStatus = 'empty';
-        }
-    }
-    async function versionServerStuff(option, to, from) {
-        let versionStuffTable = 'nFnRuNki';
-        if (option === 'update') {
-            try {
-                const objectData = {
-                    from: from,
-                    to: to,
-                    pro_id: randomValue,
-                    table: versionStuffTable
-                };
-                const response = await fetch(duolingoProPythonanywhere + "/updateanalytics", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(objectData)
-                });
-                if (response.ok) {
-                    updateStuffVar = 'true';
-                } else {
-                    updateStuffVar = 'server network error';
-                }
-            } catch (error) {
-                updateStuffVar = 'error';
-            }
-        } else if (option === 'download') {
-            try {
-                const objectData = {
-                    to: to,
-                    pro_id: randomValue,
-                    table: versionStuffTable
-                };
-                const response = await fetch(duolingoProPythonanywhere + "/downloadanalytics", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(objectData)
-                });
-                if (response.ok) {
-                    downloadStuffVar = 'true';
-                } else {
-                    downloadStuffVar = 'server network error';
-                }
-            } catch (error) {
-                downloadStuffVar = 'error';
-            }
-        }
-    }
 }
-let DLPOMEGA;
-let OMEGAmaintainerHelper = 0;
-function OMEGAmaintainer() {
-    if (JSON.parse(localStorage.getItem('DLPOMEGA')) === true) {
-        if (document.readyState === "complete") {
-            DLPOMEGA = true;
-            setTimeout(function() {
-                OMEGA();
-            }, 1000);
-        } else if (OMEGAmaintainerHelper <= 50) {
-            OMEGAmaintainerHelper++;
-            setTimeout(function() {
-                OMEGAmaintainer();
-            }, 200);
-            //document.addEventListener("DOMContentLoaded", function() {
-            //    OMEGA();
-            //});
-        } else {
-            setTimeout(function() {
-                OMEGA();
-            }, 1000);
-        }
-    } else {
-        DLPOMEGA = false;
-        OMEGA();
-    }
-}
-OMEGAmaintainer();
+One();
