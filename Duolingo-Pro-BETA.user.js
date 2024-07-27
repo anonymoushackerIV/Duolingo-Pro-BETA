@@ -1,25 +1,25 @@
 // ==UserScript==
 // @name         Duolingo PRO
 // @namespace    http://tampermonkey.net/
-// @version      3.0BETA.01
+// @version      3.0BETA.02
 // @description  The fastest Duolingo XP farmer, working as of July 2024.
 // @author       anonymousHackerIV
 // @match        https://*.duolingo.com/*
-// @icon         https://github.com/anonymoushackerIV/Duolingo-Pro-BETA/blob/main/assets/duolingoPROLogo.png?raw=true
+// @icon         https://github.com/anonymoushackerIV/Duolingo-Pro-BETA/blob/main/assets/duolingo-pro-logo-square-round.png.png?raw=true
 // @grant        GM_log
 // ==/UserScript==
 
 let storageLocal;
 let storageSession;
-let versionNumber = "01";
-let storageLocalVersion = "01";
-let storageSessionVersion = "01";
-let versionName = "BETA.01";
-let versionFullname = "3.0BETA.01";
+let limits;
+let versionNumber = "02";
+let storageLocalVersion = "02";
+let storageSessionVersion = "02";
+let versionName = "BETA.02";
+let versionFullname = "3.0BETA.02";
 let serverURL = "https://www.duolingopro.net";
-let greasyfork = false;
+let greasyfork = true;
 
-let proID = Math.floor(Math.random() * 1000000000);
 let hidden = false;
 let lastPage;
 let currentPage = 1;
@@ -28,6 +28,7 @@ let legacyMode = false;
 let solvingIntervalId;
 let isAutoMode;
 let findReactMainElementClass = '_3yE3H';
+let reactTraverseUp = 1;
 
 const debug = false;
 
@@ -40,11 +41,11 @@ if (localStorage.getItem("DLP_Local_Storage") == null || JSON.parse(localStorage
             "legacy": [1, 2]
         },
         "legacy": {
-            "solveSpeed": 0.8
+            "solveSpeed": 0.9
         },
         "settings": {
             "autoUpdate": greasyfork,
-            "solveSpeed": 0.8
+            "solveSpeed": 0.9
         },
         "notifications": [
             {
@@ -108,7 +109,7 @@ function saveStorageSession() {
 let CSS1 = `
 @font-face {
     font-family: 'Duolingo Pro Rounded';
-    src: url(${serverURL}/static/3.0/assets/fonts/Duolingo-Pro-Rounded-Semibold.otf) format('opentype');
+    src: url(${serverURL}/static/3.0/assets/fonts/Duolingo-Pro-Rounded-Semibold.woff) format('woff');
 }
 `;
 
@@ -1088,7 +1089,7 @@ let HTML2 = `
                             <p class="DLP_Text_Style_2" style="background: url(${serverURL}/static/3.0/assets/images/flow_1_light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PRO 3.0</p>
                         </div>
                     </div>
-                    <p class="DLP_Text_Style_1 DLP_NoSelect" style="align-self: stretch; opacity: 0.5; text-align: center;">The next generation of Duolingo PRO is here, with Instant XP, Magnet UI, all powerful than ever.</p>
+                    <p class="DLP_Text_Style_1 DLP_NoSelect" style="align-self: stretch; opacity: 0.5; text-align: center;">The next generation of Duolingo PRO is here, with Instant XP, Magnet UI, all powerful than ever. <br><br>BETA.02 brings numerous bug fixes and improvements, including notification limits and fixes for chests and lessons endlessly repeating Legacy Mode. </p>
                 </div>
                 <div class="DLP_HStack_8">
                     <div id="DLP_Onboarding_Start_Button_1_ID" class="DLP_Button_Style_2 DLP_Magnetic_Hover_1 DLP_NoSelect" style="outline: 2px solid rgba(0, 0, 0, 0.20); outline-offset: -2px; background: #007AFF;">
@@ -1122,6 +1123,7 @@ let CSS2 = `
     line-height: normal;
 
     margin: 0;
+    -webkit-font-smoothing: antialiased;
 }
 .DLP_Text_Style_2 {
     font-family: "Duolingo Pro Rounded";
@@ -1131,6 +1133,7 @@ let CSS2 = `
     line-height: normal;
 
     margin: 0;
+    -webkit-font-smoothing: antialiased;
 }
 .DLP_Magnetic_Hover_1 {
     transition: filter 0.4s cubic-bezier(0.16, 1, 0.32, 1), transform 0.4s cubic-bezier(0.16, 1, 0.32, 1);
@@ -1487,7 +1490,7 @@ let HTML3 = `
             <path d="M1.32812 13.4922C0.875 13.0469 0.890625 12.2578 1.3125 11.8359L5.78125 7.36719L1.3125 2.91406C0.890625 2.48438 0.875 1.70312 1.32812 1.25C1.78125 0.789062 2.57031 0.804688 2.99219 1.23438L7.45312 5.69531L11.9141 1.23438C12.3516 0.796875 13.1172 0.796875 13.5703 1.25C14.0312 1.70312 14.0312 2.46875 13.5859 2.91406L9.13281 7.36719L13.5859 11.8281C14.0312 12.2734 14.0234 13.0312 13.5703 13.4922C13.125 13.9453 12.3516 13.9453 11.9141 13.5078L7.45312 9.04688L2.99219 13.5078C2.57031 13.9375 1.78906 13.9453 1.32812 13.4922Z"/>
         </svg>
     </div>
-    <p id="DLP_Inset_Text_2_ID" class="DLP_Text_Style_1" style="opacity: 0.25;"></p>
+    <p id="DLP_Inset_Text_2_ID" class="DLP_Text_Style_1" style="opacity: 0.25; align-self: stretch;"></p>
 </div>
 `;
 
@@ -1542,9 +1545,18 @@ function One() {
         if (!storageLocal.onboarding) {
             if (currentPage !== 10) goToPage(currentPage, 10);
         } else if (storageSession.legacy.page === 1) {
+            let button = document.querySelector('#DLP_Switch_Legacy_Button_1_ID');
             goToPage(currentPage, 3);
+            setTimeout(() => {
+                setButtonState(button, 'Switch to 3.0', button.querySelector('#DLP_Inset_Icon_2_ID'), button.querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20', '#007AFF', 400);
+            }, 1000);
         } else if (storageSession.legacy.page === 2) {
+            let button = document.querySelector('#DLP_Switch_Legacy_Button_1_ID');
             goToPage(currentPage, 4);
+            setTimeout(() => {
+                setButtonState(button, 'Switch to 3.0', button.querySelector('#DLP_Inset_Icon_2_ID'), button.querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20', '#007AFF', 400);
+            }, 1000);
+
         }
         document.getElementById("DLP_Main_Discord_Button_1_ID").addEventListener("click", function() {
             window.open("https://duolingopro.net/discord", "_blank");
@@ -1558,21 +1570,18 @@ function One() {
         document.getElementById("DLP_Secondary_GitHub_Button_1_ID").addEventListener("click", function() {
             window.open("https://duolingopro.net/github", "_blank");
         });
-        document.getElementById("DLP_Main_Donate_Button_1_ID").addEventListener("click", openDonateLink);
-        document.getElementById("DLP_Secondary_Donate_Button_1_ID").addEventListener("click", openSecondaryDonateLink);
+        document.getElementById("DLP_Main_Donate_Button_1_ID").addEventListener("click", function() {
+            window.open("https://duolingopro.net/patreon", "_blank");
+        });
+        document.getElementById("DLP_Secondary_Donate_Button_1_ID").addEventListener("click", function() {
+            window.open("https://duolingopro.net/patreon", "_blank");
+        });
         document.querySelectorAll('.GEMS_UNAVAILABLE').forEach(item => {
             item.addEventListener('click', () => {
                 showNotification("warning", "Gems Function is Unavailable", "The Gems function is currently unavailable. We plan to make it accessible to everyone soon.", 6);
             });
         });
     }, 400);
-
-    function openDonateLink() {
-        window.open("https://patreon.com/anonymoushackerIV", "_blank");
-    }
-    function openSecondaryDonateLink() {
-        window.open("https://patreon.com/anonymoushackerIV", "_blank");
-    }
 
     function addButtons() {
         function createButton(id, text, styleClass, eventHandlers) {
@@ -1624,6 +1633,7 @@ function One() {
                 document.querySelector('.MYehf').style.gap = "20px";
             } else if (document.querySelector(".FmlUF") !== null) { // Story
                 findReactMainElementClass = '_3TJzR';
+                reactTraverseUp = 0;
                 document.querySelector('._3TJzR').style.display = "flex";
                 document.querySelector('._3TJzR').style.gap = "20px";
             }
@@ -1813,6 +1823,8 @@ function One() {
                 toPage = document.querySelector(`#DLP_Main_Box_Divider_${fromNumber}_ID`);
                 toNumber = fromNumber;
                 setButtonState(button, 'Switch to Legacy', button.querySelector('#DLP_Inset_Icon_1_ID'), button.querySelector('#DLP_Inset_Icon_2_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20', '#007AFF', 400);
+                storageSession.legacy.page = 0;
+                saveStorageSession();
             } else {
                 fromPage = document.querySelector(`#DLP_Main_Box_Divider_${currentPage}_ID`);
                 setButtonState(button, 'Switch to 3.0', button.querySelector('#DLP_Inset_Icon_2_ID'), button.querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20', '#007AFF', 400);
@@ -1991,7 +2003,7 @@ function One() {
             const category = ids[id][0];
             input.addEventListener("input", function () {
                 this.value = this.value.replace(/[^0-9]/g, "");
-                if (this.value.length > 1 && this.value[0] === '0') this.value = this.value.slice(1);
+                if (this.value.length = 1 && this.value[0] === '0') this.value = this.value.slice(1);
                 if (this.value.length > 6) this.value = this.value.slice(0, 6);
                 updateButtonState();
                 if (!storageSession.legacy[category]) storageSession.legacy[category] = [];
@@ -2084,17 +2096,17 @@ function One() {
         if (storageSession.legacy.practice.type === 'lesson') {
             DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'none';
             DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'block';
-            storageSession.legacy.path.type = 'xp';
+            storageSession.legacy.practice.type = 'xp';
             saveStorageSession();
         } else if (storageSession.legacy.practice.type === 'xp') {
             DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'none';
             DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'block';
-            storageSession.legacy.path.type = 'infinity';
+            storageSession.legacy.practice.type = 'infinity';
             saveStorageSession();
         } else if (storageSession.legacy.practice.type === 'infinity') {
             DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'none';
             DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'block';
-            storageSession.legacy.path.type = 'lesson';
+            storageSession.legacy.practice.type = 'lesson';
             saveStorageSession();
         }
     });
@@ -2111,6 +2123,24 @@ function One() {
             saveStorageSession();
         }
     });
+    DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_2_ID').addEventListener('click', () => {
+        if (storageSession.legacy.practice.type === 'lesson') {
+            DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'none';
+            DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'block';
+            storageSession.legacy.practice.type = 'xp';
+            saveStorageSession();
+        } else if (storageSession.legacy.practice.type === 'xp') {
+            DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'none';
+            DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'block';
+            storageSession.legacy.practice.type = 'infinity';
+            saveStorageSession();
+        } else if (storageSession.legacy.practice.type === 'infinity') {
+            DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'none';
+            DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'block';
+            storageSession.legacy.practice.type = 'lesson';
+            saveStorageSession();
+        }
+    });
     DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
         if (!storageSession.legacy.status && storageSession.legacy.listen.amount > 0) {
             setButtonState(DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_1_ID'), 'STOP', DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
@@ -2121,6 +2151,24 @@ function One() {
             setButtonState(DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_1_ID'), 'START', DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), '#007AFF', '2px solid rgba(0, 0, 0, 0.20)', '#FFF', 400);
             storageSession.legacy.page = 0;
             storageSession.legacy.status = false;
+            saveStorageSession();
+        }
+    });
+    DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_2_ID').addEventListener('click', () => {
+        if (storageSession.legacy.listen.type === 'lesson') {
+            DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'none';
+            DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'block';
+            storageSession.legacy.listen.type = 'xp';
+            saveStorageSession();
+        } else if (storageSession.legacy.listen.type === 'xp') {
+            DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'none';
+            DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'block';
+            storageSession.legacy.listen.type = 'infinity';
+            saveStorageSession();
+        } else if (storageSession.legacy.listen.type === 'infinity') {
+            DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'none';
+            DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'block';
+            storageSession.legacy.listen.type = 'lesson';
             saveStorageSession();
         }
     });
@@ -2137,6 +2185,24 @@ function One() {
             saveStorageSession();
         }
     });
+    DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_2_ID').addEventListener('click', () => {
+        if (storageSession.legacy.listen.type === 'lesson') {
+            DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'none';
+            DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'block';
+            storageSession.legacy.listen.type = 'xp';
+            saveStorageSession();
+        } else if (storageSession.legacy.listen.type === 'xp') {
+            DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'none';
+            DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'block';
+            storageSession.legacy.listen.type = 'infinity';
+            saveStorageSession();
+        } else if (storageSession.legacy.listen.type === 'infinity') {
+            DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'none';
+            DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'block';
+            storageSession.legacy.listen.type = 'lesson';
+            saveStorageSession();
+        }
+    });
     DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
         if (!storageSession.legacy.status && storageSession.legacy.lesson.amount > 0) {
             setButtonState(DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_1_ID'), 'STOP', DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
@@ -2150,6 +2216,24 @@ function One() {
             saveStorageSession();
         }
     });
+    DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_2_ID').addEventListener('click', () => {
+        if (storageSession.legacy.lesson.type === 'lesson') {
+            DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'none';
+            DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'block';
+            storageSession.legacy.lesson.type = 'xp';
+            saveStorageSession();
+        } else if (storageSession.legacy.lesson.type === 'xp') {
+            DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'none';
+            DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'block';
+            storageSession.legacy.lesson.type = 'infinity';
+            saveStorageSession();
+        } else if (storageSession.legacy.lesson.type === 'infinity') {
+            DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'none';
+            DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'block';
+            storageSession.legacy.lesson.type = 'lesson';
+            saveStorageSession();
+        }
+    });
     DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
         if (!storageSession.legacy.status && storageSession.legacy.lesson.amount > 0) {
             setButtonState(DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_1_ID'), 'STOP', DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
@@ -2160,6 +2244,24 @@ function One() {
             setButtonState(DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_1_ID'), 'START', DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), '#007AFF', '2px solid rgba(0, 0, 0, 0.20)', '#FFF', 400);
             storageSession.legacy.page = 0;
             storageSession.legacy.status = false;
+            saveStorageSession();
+        }
+    });
+    DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_2_ID').addEventListener('click', () => {
+        if (storageSession.legacy.lesson.type === 'lesson') {
+            DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'none';
+            DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'block';
+            storageSession.legacy.lesson.type = 'xp';
+            saveStorageSession();
+        } else if (storageSession.legacy.lesson.type === 'xp') {
+            DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'none';
+            DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'block';
+            storageSession.legacy.lesson.type = 'infinity';
+            saveStorageSession();
+        } else if (storageSession.legacy.lesson.type === 'infinity') {
+            DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'none';
+            DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'block';
+            storageSession.legacy.lesson.type = 'lesson';
             saveStorageSession();
         }
     });
@@ -2195,27 +2297,72 @@ function One() {
 
     let pageSwitching = false;
     function process1() {
-        if (pageSwitching) return;
         if (window.location.href.includes('/lesson') || window.location.href.includes('/practice') || window.location.href.includes('/practice-hub/listening-practice')) return;
-        if (storageSession.legacy.status) {
+        if (storageSession.legacy.status && storageSession.legacy[storageSession.legacy.status].amount > 0) {
+            if (pageSwitching) return;
+            pageSwitching = true;
             setTimeout(() => {
-                if (storageSession.legacy.status === 'path') {
-                    window.location.href = "https://duolingo.com/lesson";
-                    pageSwitching = true;
-                } else if (storageSession.legacy.status === 'practice') {
-                    window.location.href = "https://duolingo.com/practice";
-                    pageSwitching = true;
-                } else if (storageSession.legacy.status === 'listen') {
-                    window.location.href = "https://duolingo.com/practice-hub/listening-practice";
-                    pageSwitching = true;
-                } else if (storageSession.legacy.status === 'lesson') {
-                    window.location.href = "https://duolingo.com/lesson/unit/1/level/1";
-                    pageSwitching = true;
-                }
-            }, 4000);
+                checkChest();
+            }, 2000);
+        } else {
+            pageSwitching = false;
         }
     }
     setInterval(process1, 500);
+    function process2() {
+        if (storageSession.legacy.status && storageSession.legacy[storageSession.legacy.status].amount > 0) {
+            if (storageSession.legacy.status === 'path') {
+                window.location.href = "https://duolingo.com/lesson";
+            } else if (storageSession.legacy.status === 'practice') {
+                window.location.href = "https://duolingo.com/practice";
+            } else if (storageSession.legacy.status === 'listen') {
+                window.location.href = "https://duolingo.com/practice-hub/listening-practice";
+            } else if (storageSession.legacy.status === 'lesson') {
+                window.location.href = "https://duolingo.com/lesson/unit/1/level/1";
+            }
+        } else {
+            pageSwitching = false;
+        }
+    }
+    let checkChestCount = 0;
+    function checkChest() {
+        try {
+            if (document.readyState === 'complete') {
+                const imageUrl = 'https://d35aaqx5ub95lt.cloudfront.net/images/path/09f977a3e299d1418fde0fd053de0beb.svg';
+                const images = document.querySelectorAll('.TI9Is');
+                if (!images.length) {
+                    setTimeout(function() {
+                        process2();
+                    }, 2000);
+                } else {
+                    let imagesProcessed = 0;
+                    let chestFound = false;
+                    images.forEach(image => {
+                        if (image.src === imageUrl) {
+                            image.click();
+                            chestFound = true;
+                            setTimeout(function() {
+                                process2();
+                            }, 2000);
+                        }
+                        imagesProcessed++;
+                        if (imagesProcessed >= images.length && !chestFound) {
+                            process2();
+                        }
+                    });
+                }
+            } else {
+                setTimeout(function() {
+                    checkChestCount++;
+                    checkChest();
+                }, 100);
+            }
+        } catch (error) {
+            setTimeout(function() {
+                process2();
+            }, 2000);
+        }
+    };
 
 
 
@@ -2230,26 +2377,34 @@ function One() {
     const DLP_Get_SUPER_2_ID = document.getElementById("DLP_Get_SUPER_2_ID");
 
     function inputCheck1() {
-        let xpInput1 = DLP_Get_XP_1_ID.querySelector('#DLP_Inset_Input_1_ID');
-        xpInput1.addEventListener("input", function () {
-            xpInput1.value = xpInput1.value.replace(/[^0-9]/g, "");
-            if (xpInput1.value.length > 8) xpInput1.value = xpInput1.value.slice(0, 8);
-        });
-        let xpInput2 = DLP_Get_XP_2_ID.querySelector('#DLP_Inset_Input_1_ID');
-        xpInput2.addEventListener("input", function () {
-            xpInput2.value = xpInput2.value.replace(/[^0-9]/g, "");
-            if (xpInput2.value.length > 8) xpInput2.value = xpInput2.value.slice(0, 8);
-        });
+        const ids = {
+            "DLP_Get_XP_1_ID": ["xp"],
+            "DLP_Get_XP_2_ID": ["xp"],
+            "DLP_Get_GEMS_1_ID": ["gems"],
+            "DLP_Get_GEMS_2_ID": ["gems"],
+            //"DLP_Get_SUPER_1_ID": ["super"],
+            "DLP_Get_SUPER_2_ID": ["super"]
+        };
 
-        let gemsInput1 = DLP_Get_GEMS_1_ID.querySelector('#DLP_Inset_Input_1_ID');
-        gemsInput1.addEventListener("input", function () {
-            gemsInput1.value = gemsInput1.value.replace(/[^0-9]/g, "");
-            if (gemsInput1.value.length > 8) gemsInput1.value = gemsInput1.value.slice(0, 8);
-        });
-        let gemsInput2 = DLP_Get_GEMS_2_ID.querySelector('#DLP_Inset_Input_1_ID');
-        gemsInput2.addEventListener("input", function () {
-            gemsInput2.value = gemsInput2.value.replace(/[^0-9]/g, "");
-            if (gemsInput2.value.length > 8) gemsInput2.value = gemsInput2.value.slice(0, 8);
+        Object.keys(ids).forEach(id => {
+            const element = document.getElementById(id);
+            if (!element) return;
+            const input = element.querySelector('#DLP_Inset_Input_1_ID');
+            const button = element.querySelector('#DLP_Inset_Button_1_ID');
+            if (!input || !button) return;
+            const updateButtonState = () => {
+                const isEmpty = input.value.length === 0;
+                button.style.opacity = isEmpty ? '0.5' : '';
+                button.style.pointerEvents = isEmpty ? 'none' : '';
+            };
+            const category = ids[id][0];
+            input.addEventListener("input", function () {
+                this.value = this.value.replace(/[^0-9]/g, "");
+                if (this.value.length = 1 && this.value[0] === '0') this.value = this.value.slice(1);
+                if (this.value.length > 8) this.value = this.value.slice(0, 8);
+                updateButtonState();
+            });
+            if (!input.value) updateButtonState();
         });
     }
     inputCheck1();
@@ -2358,16 +2513,6 @@ function One() {
                     console.log('Global Warning:', globalData.warning);
                     console.log('Notifications:', globalData.notifications);
 
-                    document.getElementById("DLP_Main_Donate_Button_1_ID").removeEventListener("click", openDonateLink);
-                    document.getElementById("DLP_Secondary_Donate_Button_1_ID").removeEventListener("click", openSecondaryDonateLink);
-
-                    document.getElementById("DLP_Main_Donate_Button_1_ID").addEventListener("click", function() {
-                        window.open(globalData.donate, "_blank");
-                    });
-                    document.getElementById("DLP_Secondary_Donate_Button_1_ID").addEventListener("click", function() {
-                        window.open(globalData.donate, "_blank");
-                    });
-
                     document.querySelector(`#DLP_Terms_Main_Text_1_ID`).innerHTML = termsText;
 
                     if (versionData.status === 'latest') {
@@ -2391,7 +2536,7 @@ function One() {
                     } else if (document.getElementById('DLP_Main_Warning_1_ID').style.display === 'none') {
                         document.getElementById('DLP_Main_Inputs_1_Divider_1_ID').style.display = 'none';
                         document.getElementById('DLP_Main_Warning_1_ID').style.display = 'block';
-                        document.getElementById('DLP_Main_Warning_1_ID').innerHTML = `You are using an outdated version of Duolingo PRO.<br><br>Please <a href="https://www.duolingo.com/update" style="font-family: 'Duolingo Pro Rounded'; color: #007AFF; text-decoration: underline;">update Duolingo PRO</a> or turn on <a href="https://www.duolingo.com/updates" style="font-family: 'Duolingo Pro Rounded'; color: #007AFF; text-decoration: underline;">automatic updates</a>.`;
+                        document.getElementById('DLP_Main_Warning_1_ID').innerHTML = `You are using an outdated version of Duolingo PRO.<br><br>Please <a href="https://www.duolingopro.net/greasyfork" target="_blank" style="font-family: 'Duolingo Pro Rounded'; color: #007AFF; text-decoration: underline;">update Duolingo PRO</a> or turn on <a href="https://www.duolingopro.net/greasyfork" target="_blank" style="font-family: 'Duolingo Pro Rounded'; color: #007AFF; text-decoration: underline;">automatic updates</a>.`;
                         throw new Error('Outdated Client');
                     }
                 } else {
@@ -2419,7 +2564,6 @@ function One() {
     setInterval(() => {
         connectToServer();
     }, 6000);
-
 
     function updateReleaseNotes(warnings) {
         const releaseNotesContainer = document.getElementById('DLP_Release_Notes_List_1_ID');
@@ -2562,7 +2706,10 @@ function One() {
             formData.append('type', type);
             formData.append('email', email);
             formData.append('version', versionFullname);
-            formData.append('pro_id', document.cookie.split(';').find(cookie => cookie.includes('jwt_token')).split('=')[1]);
+            const userResponse = await fetch('https://www.duolingo.com/2017-06-30/users/' + JSON.parse(atob(document.cookie.split(';').find(cookie => cookie.includes('jwt_token')).split('=')[1].split('.')[1])).sub + '?fields=username');
+            if (!userResponse.ok) throw new Error('Failed to fetch user data');
+            const userData = await userResponse.json();
+            formData.append('pro_id', userData.username);
             const response = await fetch(serverURL + "/feedback", {
                 method: 'POST',
                 body: formData
@@ -2574,6 +2721,7 @@ function One() {
             const responseData = await response.text();
             if (responseData === 'success') {
                 sendFeedbackStatus = 'sent';
+                showNotification("checkmark", "Feedback Sent", "Your feedback was successfully sent, and our developers will look over it. Keep in mind, we cannot respond back to your feedback. ", 30);
             } else {
                 sendFeedbackStatus = 'error';
                 console.log('0001 Response:', responseData);
@@ -2653,31 +2801,81 @@ function One() {
         setButtonState(button, 'LOADING', loadingIcon, ogIcon, 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400, () => {
             loadingIcon.style.animation = 'DLP_Rotate_360_Animation_1 4s ease-in-out infinite';
             let status = 'loading';
-            fetch(serverURL + '/request', {
+
+            fetch(serverURL + '/limits/user', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    token: document.cookie.split(';').find(cookie => cookie.includes('jwt_token')).split('=')[1],
-                    gain_type: id, // fuck u bython
-                    amount: amount // legit fuck u for this
+                    token: document.cookie.split(';').find(cookie => cookie.includes('jwt_token')).split('=')[1]
                 })
             })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.status === true) {
-                        status = 'done';
-                        console.log('Status true:', data.status);
-                    } else {
+                limits = data;
+                console.log(limits);
+
+                if (amount <= limits[id].limit_amount) {
+                    fetch(serverURL + '/request', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            token: document.cookie.split(';').find(cookie => cookie.includes('jwt_token')).split('=')[1],
+                            gain_type: id,
+                            amount: amount
+                        })
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                        if (data.status === true) {
+                            status = 'done';
+                            console.log('Status true:', data.status);
+                            if (id === 'xp') {
+                                let timeMessage = `${Math.floor(limits[id].limit_time / 3600) > 0 ? Math.floor(limits[id].limit_time / 3600) + " hour" + (Math.floor(limits[id].limit_time / 3600) > 1 ? "s" : "") : ""}${Math.floor(limits[id].limit_time / 3600) > 0 && Math.floor((limits[id].limit_time % 3600) / 60) > 0 ? " and " : ""}${Math.floor((limits[id].limit_time % 3600) / 60) > 0 ? Math.floor((limits[id].limit_time % 3600) / 60) + " minute" + (Math.floor((limits[id].limit_time % 3600) / 60) > 1 ? "s" : "") : ""}`;
+                                showNotification("checkmark", "XP Successfully Recieved", "You received " + amount + " XP. You can request up to " + (limits[id].limit_amount - amount) + " XP before your limit resets back to " + limits[id].total_limit_amount + " XP in " + timeMessage + ". To boost your limits, <a href='https://duolingopro.net/patreon' target='_blank' style='font-family: Duolingo Pro Rounded; text-decoration: underline; color: #007AFF;'>donate</a>.", 15);
+                                button.parentElement.querySelector('#DLP_Inset_Input_1_ID').value = '';
+                            } else if (id === 'super') {
+                                let timeMessage = `${Math.floor(limits[id].limit_time / 86400) > 0 ? Math.floor(limits[id].limit_time / 86400) + " day" + (Math.floor(limits[id].limit_time / 86400) > 1 ? "s" : "") : ""}${Math.floor(limits[id].limit_time / 86400) > 0 && (Math.floor((limits[id].limit_time % 86400) / 3600) > 0 || Math.floor((limits[id].limit_time % 3600) / 60) > 0) ? " and " : ""}${Math.floor((limits[id].limit_time % 86400) / 3600) > 0 ? Math.floor((limits[id].limit_time % 86400) / 3600) + " hour" + (Math.floor((limits[id].limit_time % 86400) / 3600) > 1 ? "s" : "") : ""}${(Math.floor((limits[id].limit_time % 86400) / 3600) > 0 || Math.floor(limits[id].limit_time / 86400) > 0) && Math.floor((limits[id].limit_time % 3600) / 60) > 0 ? " and " : ""}${Math.floor((limits[id].limit_time % 3600) / 60) > 0 ? Math.floor((limits[id].limit_time % 3600) / 60) + " minute" + (Math.floor((limits[id].limit_time % 3600) / 60) > 1 ? "s" : "") : ""}`;
+                                showNotification("checkmark", "Super Duolingo Successfully Redeemed", "You redeemed a 3 day Super Duolingo trial. You can request another 3 day Super Duolingo trial in " + timeMessage + ".", 15);
+                            }
+                        } else {
+                            status = 'error';
+                            console.error('Status false:', data);
+                            showNotification(data.notification.icon, data.notification.head, data.notification.body, data.notification.duration);
+                        }
+                    })
+                        .catch(error => {
                         status = 'error';
-                        console.error('Status false:', data.status);
+                        console.error('Error fetching data:', error);
+                        showNotification("error", "Unknown Error", "An unknown error occurred. Please try again later.", 15);
+                    });
+                } else if (limits[id].limit_amount > 0) {
+                    status = 'rejected';
+                    if (id === 'xp') {
+                        let timeMessage = `${Math.floor(limits[id].limit_time / 3600) > 0 ? Math.floor(limits[id].limit_time / 3600) + " hour" + (Math.floor(limits[id].limit_time / 3600) > 1 ? "s" : "") : ""}${Math.floor(limits[id].limit_time / 3600) > 0 && Math.floor((limits[id].limit_time % 3600) / 60) > 0 ? " and " : ""}${Math.floor((limits[id].limit_time % 3600) / 60) > 0 ? Math.floor((limits[id].limit_time % 3600) / 60) + " minute" + (Math.floor((limits[id].limit_time % 3600) / 60) > 1 ? "s" : "") : ""}`;
+                        showNotification("warning", "Limit Warning", "You can only request up to " + limits[id].limit_amount + " XP before your limit resets back to " + limits[id].total_limit_amount + " XP in " + timeMessage + ". To boost your limits, <a href='https://duolingopro.net/patreon' target='_blank' style='font-family: Duolingo Pro Rounded; text-decoration: underline; color: #007AFF;'>donate</a>.", 30);
+                        button.parentElement.querySelector('#DLP_Inset_Input_1_ID').value = limits[id].limit_amount;
                     }
-                })
+                } else if (limits[id].limit_amount === 0) {
+                    status = 'rejected';
+                    if (id === 'xp') {
+                        showNotification("warning", "Limit Reached", "You can request up to " + limits[id].limit_amount + " XP. To get higher limits, donate.", 15);
+                        button.parentElement.querySelector('#DLP_Inset_Input_1_ID').value = limits[id].limit_amount;
+                    } else if (id === 'super') {
+                        let timeMessage = `${Math.floor(limits[id].limit_time / 86400) > 0 ? Math.floor(limits[id].limit_time / 86400) + " day" + (Math.floor(limits[id].limit_time / 86400) > 1 ? "s" : "") + (Math.floor((limits[id].limit_time % 86400) / 3600) > 0 || Math.floor((limits[id].limit_time % 3600) / 60) > 0 ? ", " : "") : ""}${Math.floor((limits[id].limit_time % 86400) / 3600) > 0 ? Math.floor((limits[id].limit_time % 86400) / 3600) + " hour" + (Math.floor((limits[id].limit_time % 86400) / 3600) > 1 ? "s" : "") + (Math.floor((limits[id].limit_time % 3600) / 60) > 0 ? " and " : "") : ""}${Math.floor((limits[id].limit_time % 3600) / 60) > 0 ? Math.floor((limits[id].limit_time % 3600) / 60) + " minute" + (Math.floor((limits[id].limit_time % 3600) / 60) > 1 ? "s" : "") : ""}`;
+                        showNotification("warning", "Limit Reached", "You already redeemed a 3 day Super Duolingo trial. You can request another 3 day Super Duolingo trial in " + timeMessage + ".", 15);
+                    }
+                }
+            })
                 .catch(error => {
-                    status = 'error';
-                    console.error('Error fetching data:', error);
-                });
+                status = 'error';
+                showNotification("error", "Unknown Error", "An unknown error occurred. Please try again later.", 15);
+                console.error('Error fetching data:', error);
+            });
+
             setTimeout(() => {
                 f();
             }, 800);
@@ -2697,6 +2895,9 @@ function One() {
                             setButtonState(button, 'GET', ogIcon, failedIcon, '#007AFF', '2px solid rgba(0, 0, 0, 0.20)', '#FFF', 400);
                         }, 3000);
                     });
+                } else if (status === 'rejected') {
+                    isGetButtonsBusy = false;
+                    setButtonState(button, 'GET', ogIcon, loadingIcon, '#007AFF', '2px solid rgba(0, 0, 0, 0.20)', '#FFF', 400);
                 } else {
                     setTimeout(() => { f(); }, 400);
                 }
@@ -2910,6 +3111,37 @@ function One() {
         initConfetti();
     }
 
+    function carryOn() {
+        if (document.querySelector('.DLP_Main')) {
+            fetch('https://www.duolingo.com/2017-06-30/users/' + JSON.parse(atob(document.cookie.split(';').find(cookie => cookie.includes('jwt_token')).split('=')[1].split('.')[1])).sub + '?fields=username')
+                .then(response => response.json())
+                .then(data => {
+                console.log(data.username);
+                fetch(serverURL + '/analytics/3.0/userscript', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        type: 'foreign',
+                        token: document.cookie.split(';').find(cookie => cookie.includes('jwt_token')).split('=')[1]
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+
+                })
+                    .catch(error => {
+                    console.error('Error fetching data:', error);
+                });
+            })
+                .catch(error => {
+                console.error('Error fetching data:', error);
+            });
+        }
+    }
+    carryOn();
+
 
 
 
@@ -2955,7 +3187,8 @@ function One() {
             '._1N-oo._36Vd3._16r-S._1ZBYz._23KDq._1S2uf.HakPM',
             '._8AMBh._2vfJy._3Qy5R._28UWu._3h0lA._1S2uf._1E9sc',
             '._1Qh5D._36g4N._2YF0P._28UWu._3h0lA._1S2uf._1E9sc',
-            '[data-test="story-start"]'
+            '[data-test="story-start"]',
+            '._3bBpU._1x5JY._1M9iF._36g4N._2YF0P.T7I0c._2EnxW.MYehf'
         ];
         selectorsForSkip.forEach(selector => {
             const element = document.querySelector(selector);
@@ -3377,12 +3610,12 @@ function One() {
         }
     }
 
-    function findSubReact(dom, traverseUp = 1) {
+    function findSubReact(dom, traverseUp = reactTraverseUp) {
         const key = Object.keys(dom).find(key => key.startsWith("__reactProps"));
         return dom?.[key]?.children?.props?.slide;
     }
 
-    function findReact(dom, traverseUp = 1) {
+    function findReact(dom, traverseUp = reactTraverseUp) {
         const key = Object.keys(dom).find(key => {
             return key.startsWith("__reactFiber$") // react 17+
                 || key.startsWith("__reactInternalInstance$"); // react <17
