@@ -1,12 +1,12 @@
 ## Table of Contents
-- [Duolingo Pro BETA](#duolingo-pro-beta)
+- [About Duolingo PRO](#about-duolingo-pro)
 - [Features](#features)
-- [If you run into a major issue](#if-you-run-into-a-major-issue)
-- [Images of Demonstration](#images-of-demonstration)
+- [If You Run Into An Issue, Try...](#if-you-run-into-an-issue,-try...)
+- [Images](#images)
 - [Repository Activity](#repository-activity)
 
-## Duolingo PRO
-Duolingo PRO 3.0, an auto solver user-script for farming XP, completing quests, leveling up on the leaderboard, extending your streak, and more, all with extensive automation features, for Duolingo. 
+## About Duolingo PRO
+Duolingo PRO 3.0 is an auto-solver user-script for gaining XP instantly, farming XP automatically, completing quests, leveling up on the leaderboard, extending your streak, and more, for Duolingo. 
 Working as of November 2024. 
 Join our [Discord server](https://discord.gg/r8xQ7K59Mt) to get the latest news, talk with the developers, report bugs, and do much more.
 
@@ -23,7 +23,7 @@ Join our [Discord server](https://discord.gg/r8xQ7K59Mt) to get the latest news,
 2) Ensure you are using Tampermonkey, other userscript managers are not verified to work.
 3) If you are using Chrome, ensure you have Developer Mode ON under Chrome Settings > Extensions.
 4) Try using Chrome or at the very least a Chromium browser.
-5) Join our [discord server](https://discord.gg/r8xQ7K59Mt) for further support.
+5) Join our [Discord server](https://discord.gg/r8xQ7K59Mt) for further support.
 
 ## Images
 ![Duolingo Pro - In the Learn Tab](./assets/readme/example1.jpeg)
