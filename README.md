@@ -1,7 +1,7 @@
 ## Table of Contents
 - [About Duolingo PRO](#about-duolingo-pro)
 - [Features](#features)
-- [If You Run Into An Issue, Try...](#if-you-run-into-an-issue,-try...)
+- [If You Run Into An Issue, Try...](#if-you-run-into-an-issue-try)
 - [Images](#images)
 - [Repository Activity](#repository-activity)
 
