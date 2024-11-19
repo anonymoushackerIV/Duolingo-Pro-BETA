@@ -8,23 +8,24 @@
 ## Duolingo PRO
 Duolingo PRO 3.0, an auto solver user-script for farming XP, completing quests, leveling up on the leaderboard, extending your streak, and more, all with extensive automation features, for Duolingo. 
 Working as of November 2024. 
-Join our [discord server](https://discord.gg/r8xQ7K59Mt) to get the latest news, talk with the developers, report bugs, and do much more.
+Join our [Discord server](https://discord.gg/r8xQ7K59Mt) to get the latest news, talk with the developers, report bugs, and do much more.
+*/
 
 ## Features
-Features:
 - Instantly get the amount of XP you want.
 - Automatically solve questions.
 - Solve a set or infinite number of lessons and practices, all automatically.
 - Hide/Show Duolingo PRO.
 - Send feedback.
 - More coming soon! (AutoServer, Gems, Streak Edit, other features)
+*/
 
 ## If You Run Into An Issue, Try...
 1) Ensure you are using the latest version of Duolingo PRO.
 2) Ensure you are using Tampermonkey, other userscript managers are not verified to work.
 3) If you are using Chrome, ensure you have Developer Mode ON under Chrome Settings > Extensions.
 4) Try using Chrome or at the very least a Chromium browser.
-5) Join our Discord Server for further support https://discord.gg/r8xQ7K59Mt
+5) Join our [discord server](https://discord.gg/r8xQ7K59Mt) for further support.
 */
 
 ## Images
@@ -39,15 +40,7 @@ Features:
 ![Duolingo Pro - Solving a story](./assets/readme/example8.jpeg)
 ![Duolingo Pro - Solving a story](./assets/readme/example9.jpeg)
 ![Duolingo Pro - Send Feedback](./assets/readme/example11.jpeg)
+*/
 
 ## Repository Activity
-
-### Repository Activity Beta
-Repository Activity (BETA):
-
 ![Alt](https://repobeats.axiom.co/api/embed/18df6f0efd89438636279250bade347d1deb8055.svg "Repobeats analytics image")
-
-### Repository Activity DAWN
-Repository Activity (DAWN):
-
-![Alt](https://repobeats.axiom.co/api/embed/4c2dc0aef3008be1782e983680a0b2234f991e2f.svg "Repobeats analytics image")
