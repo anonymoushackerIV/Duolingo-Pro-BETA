@@ -4,34 +4,30 @@
 - [If you run into a major issue](#if-you-run-into-a-major-issue)
 - [Images of Demonstration](#images-of-demonstration)
 - [Repository Activity](#repository-activity)
-  - [Repository Activity Beta](#repository-activity-beta)
-  - [Repository Activity DAWN](#repository-activity-dawn)
 
-## Duolingo Pro BETA
-Duolingo Pro 2.0 BETA, an auto solver user-script tool for farming XP, completing quests, leveling up on the leaderboard, extending your streak, and more, all with extensive automation features, for Duolingo. 
-Working as of June 2024. 
-Join our [discord server](https://discord.gg/r8xQ7K59Mt) to get the latest news, talk with the devs, report bugs, and do much more.
+## Duolingo PRO
+Duolingo PRO 3.0, an auto solver user-script for farming XP, completing quests, leveling up on the leaderboard, extending your streak, and more, all with extensive automation features, for Duolingo. 
+Working as of November 2024. 
+Join our [discord server](https://discord.gg/r8xQ7K59Mt) to get the latest news, talk with the developers, report bugs, and do much more.
 
 ## Features
 Features:
-- Automatically solving questions,
-- Automatically solving set amount or infinite lessons, practices, listening practices,
-- Hide/show automation box,
-- See issues & fixes,
-- Send feedback,
-- Settings for custom automatic question solve delay, the question stuck protection, shade (less power, less lag, full speed performance), stats,
-- More coming soon (AutoServer, Duolingo Pro 3.0, other features)
+- Instantly get the amount of XP you want.
+- Automatically solve questions.
+- Solve a set or infinite number of lessons and practices, all automatically.
+- Hide/Show Duolingo PRO.
+- Send feedback.
+- More coming soon! (AutoServer, Gems, Streak Edit, other features)
 
-## If you run into a major issue
-If you run into a major issue, try doing the following:
-1) Make sure you are using Tampermonkey, other userscript managers are not supported. 
-2) Update to the latest version of Duolingo Pro.
-3) Use Chrome or at the very least a Chromium browser.
-4) If you have less than 8GBs of RAM, turn ON the Memory Saver option in the Duolingo Pro Settings.
-5) Join our Discord Server for further support https://discord.gg/r8xQ7K59Mt.
+## If You Run Into An Issue, Try...
+1) Ensure you are using the latest version of Duolingo PRO.
+2) Ensure you are using Tampermonkey, other userscript managers are not verified to work.
+3) If you are using Chrome, ensure you have Developer Mode ON under Chrome Settings > Extensions.
+4) Try using Chrome or at the very least a Chromium browser.
+5) Join our Discord Server for further support https://discord.gg/r8xQ7K59Mt
 */
 
-## Images of Demonstration
+## Images
 ![Duolingo Pro - In the Learn Tab](./assets/readme/example1.jpeg)
 ![Duolingo Pro - Settings](./assets/readme/example10.jpeg)
 ![Duolingo Pro - Solving a question](./assets/readme/example2.jpeg)
