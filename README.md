@@ -9,7 +9,6 @@
 Duolingo PRO 3.0, an auto solver user-script for farming XP, completing quests, leveling up on the leaderboard, extending your streak, and more, all with extensive automation features, for Duolingo. 
 Working as of November 2024. 
 Join our [Discord server](https://discord.gg/r8xQ7K59Mt) to get the latest news, talk with the developers, report bugs, and do much more.
-*/
 
 ## Features
 - Instantly get the amount of XP you want.
@@ -18,7 +17,6 @@ Join our [Discord server](https://discord.gg/r8xQ7K59Mt) to get the latest news,
 - Hide/Show Duolingo PRO.
 - Send feedback.
 - More coming soon! (AutoServer, Gems, Streak Edit, other features)
-*/
 
 ## If You Run Into An Issue, Try...
 1) Ensure you are using the latest version of Duolingo PRO.
@@ -26,7 +24,6 @@ Join our [Discord server](https://discord.gg/r8xQ7K59Mt) to get the latest news,
 3) If you are using Chrome, ensure you have Developer Mode ON under Chrome Settings > Extensions.
 4) Try using Chrome or at the very least a Chromium browser.
 5) Join our [discord server](https://discord.gg/r8xQ7K59Mt) for further support.
-*/
 
 ## Images
 ![Duolingo Pro - In the Learn Tab](./assets/readme/example1.jpeg)
@@ -40,7 +37,6 @@ Join our [Discord server](https://discord.gg/r8xQ7K59Mt) to get the latest news,
 ![Duolingo Pro - Solving a story](./assets/readme/example8.jpeg)
 ![Duolingo Pro - Solving a story](./assets/readme/example9.jpeg)
 ![Duolingo Pro - Send Feedback](./assets/readme/example11.jpeg)
-*/
 
 ## Repository Activity
 ![Alt](https://repobeats.axiom.co/api/embed/18df6f0efd89438636279250bade347d1deb8055.svg "Repobeats analytics image")
