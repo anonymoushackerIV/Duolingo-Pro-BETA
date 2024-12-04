@@ -3395,6 +3395,8 @@ function One() {
                         return 'Tokens Run';
                     } else if (window.sol.correctIndices !== undefined) {
                         return 'Indices Run';
+                    } else if (window.sol.correctIndex !== undefined) {
+                        return 'Index Tap';
                     }
                 } else if (document.querySelectorAll('[data-test="challenge-tap-token-text"]').length > 0) {
                     hcwNIIOdaQqCZRDL = false;
@@ -3503,6 +3505,10 @@ function One() {
 
         } else if (challengeType === 'Indices Run') {
             correctIndicesRun();
+
+        } else if (challengeType === 'Index Tap') {
+            let choices = document.querySelectorAll('[data-test="challenge-tap-token-text"]');
+            choices[window.sol.correctIndex+2].parentElement.parentElement.click();
 
         } else if (challengeType === 'Fill in the Gap') {
             correctIndicesRun();
