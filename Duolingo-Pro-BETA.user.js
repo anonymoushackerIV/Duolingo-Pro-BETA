@@ -3397,6 +3397,8 @@ function One() {
                         return 'Indices Run';
                     } else if (window.sol.correctIndex !== undefined) {
                         return 'Index Tap';
+                    } else if (window.sol.type === 'orderTapComplete') {
+                        return 'Order Tap Complete';
                     }
                 } else if (document.querySelectorAll('[data-test="challenge-tap-token-text"]').length > 0) {
                     hcwNIIOdaQqCZRDL = false;
@@ -3509,6 +3511,24 @@ function One() {
         } else if (challengeType === 'Index Tap') {
             let choices = document.querySelectorAll('[data-test="challenge-tap-token-text"]');
             choices[window.sol.correctIndex+2].parentElement.parentElement.click();
+
+        } else if (challengeType === 'Order Tap Complete') { 
+            const correct_tokens = window.sol.metadata.display_tokens.filter(token => token.is_blank).map(token => token.text);
+            const all_tokens = ((els) => Array.from(els).slice(Math.floor(els.length / 2)))(document.querySelectorAll('[data-test$="challenge-tap-token"]'));
+            const clicked_tokens = [];
+
+            correct_tokens.forEach(correct_token => {
+                const matching_elements = Array.from(all_tokens).filter(element => element.textContent.trim() === correct_token.trim());
+                if (matching_elements.length > 0) {
+                    const match_index = clicked_tokens.filter(token => token.textContent.trim() === correct_token.trim()).length;
+                    if (match_index < matching_elements.length) {
+                        matching_elements[match_index].click();
+                        clicked_tokens.push(matching_elements[match_index]);
+                    } else {
+                        clicked_tokens.push(matching_elements[0]);
+                    }
+                }
+            });
 
         } else if (challengeType === 'Fill in the Gap') {
             correctIndicesRun();
