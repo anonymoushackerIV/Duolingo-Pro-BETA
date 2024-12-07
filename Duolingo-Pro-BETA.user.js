@@ -3539,6 +3539,7 @@ function One() {
         } else if (challengeType === 'Challenge Text Input') {
             let elm = document.querySelectorAll('[data-test="challenge-text-input"]')[0];
             let nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+            nativeInputValueSetter.call(elm, window.sol.correctSolutions ? window.sol.correctSolutions[0] : (window.sol.displayTokens ? window.sol.displayTokens.find(t => t.isBlank).text : window.sol.prompt));
             let inputEvent = new Event('input', {
                 bubbles: true
             });
