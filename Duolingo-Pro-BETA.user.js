@@ -3406,6 +3406,9 @@ function One() {
                 } else if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0) {
                     hcwNIIOdaQqCZRDL = false;
                     return 'Challenge Text Input';
+                } else if (document.querySelectorAll('[data-test="challenge challenge-typeComplete"]').length > 0) {
+                    hcwNIIOdaQqCZRDL = false;
+                    return 'Type Complete';
                 } else if (document.querySelectorAll('[data-test*="challenge-partialReverseTranslate"]').length > 0) {
                     hcwNIIOdaQqCZRDL = false;
                     return 'Partial Reverse';
@@ -3536,7 +3539,16 @@ function One() {
         } else if (challengeType === 'Challenge Text Input') {
             let elm = document.querySelectorAll('[data-test="challenge-text-input"]')[0];
             let nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
-            nativeInputValueSetter.call(elm, window.sol.correctSolutions ? window.sol.correctSolutions[0] : (window.sol.displayTokens ? window.sol.displayTokens.find(t => t.isBlank).text : window.sol.prompt));
+            let inputEvent = new Event('input', {
+                bubbles: true
+            });
+
+            elm.dispatchEvent(inputEvent);
+
+        } else if (challengeType === 'Type Complete') {
+            let elm = document.querySelectorAll('[data-test$="challenge-typeComplete"] input')[0];
+            let nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+            nativeInputValueSetter.call(elm, window.sol.correctSolutions.length > 0 ? window.sol.correctSolutions[0] : (window.sol.displayTokens ? window.sol.displayTokens.find(t => t.isBlank).text.replace(new RegExp(window.sol.assistedText), "") : window.sol.prompt.replace(new RegExp(window.sol.assistedText), "")));
             let inputEvent = new Event('input', {
                 bubbles: true
             });
