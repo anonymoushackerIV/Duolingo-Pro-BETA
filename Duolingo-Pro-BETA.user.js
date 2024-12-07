@@ -3409,6 +3409,9 @@ function One() {
                 } else if (document.querySelectorAll('[data-test="challenge challenge-typeComplete"]').length > 0) {
                     hcwNIIOdaQqCZRDL = false;
                     return 'Type Complete';
+                } else if (document.querySelectorAll('[data-test="challenge challenge-typeCloze"]').length > 0) {
+                    hcwNIIOdaQqCZRDL = false;
+                    return 'Type Cloze';
                 } else if (document.querySelectorAll('[data-test*="challenge-partialReverseTranslate"]').length > 0) {
                     hcwNIIOdaQqCZRDL = false;
                     return 'Partial Reverse';
@@ -3550,6 +3553,18 @@ function One() {
             let elm = document.querySelectorAll('[data-test$="challenge-typeComplete"] input')[0];
             let nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
             nativeInputValueSetter.call(elm, window.sol.correctSolutions.length > 0 ? window.sol.correctSolutions[0] : (window.sol.displayTokens ? window.sol.displayTokens.find(t => t.isBlank).text.replace(new RegExp(window.sol.assistedText), "") : window.sol.prompt.replace(new RegExp(window.sol.assistedText), "")));
+            let inputEvent = new Event('input', {
+                bubbles: true
+            });
+
+            elm.dispatchEvent(inputEvent);
+
+        } else if (challengeType === 'Type Cloze') {
+            let token = window.sol.displayTokens.find(t => t.hasOwnProperty("damageStart"))
+
+            let elm = document.querySelectorAll('[data-test$="challenge-typeCloze"] input')[0];
+            let nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+            nativeInputValueSetter.call(elm, token.text.substring(token.damageStart));
             let inputEvent = new Event('input', {
                 bubbles: true
             });
