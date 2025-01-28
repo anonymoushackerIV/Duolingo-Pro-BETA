@@ -2858,7 +2858,7 @@ function One() {
             const category = ids[id][0];
             input.addEventListener("input", function () {
                 this.value = this.value.replace(/[^0-9]/g, "");
-                if (this.value.length = 1 && this.value[0] === '0') this.value = this.value.slice(1);
+                if (this.value.length === 1 && this.value[0] === '0') this.value = this.value.slice(1);
                 if (this.value.length > 6) this.value = this.value.slice(0, 6);
                 updateButtonState();
                 if (!storageSession.legacy[category]) storageSession.legacy[category] = [];
@@ -3333,7 +3333,7 @@ function One() {
             const category = ids[id][0];
             input.addEventListener("input", function () {
                 this.value = this.value.replace(/[^0-9]/g, "");
-                if (this.value.length = 1 && this.value[0] === '0') this.value = this.value.slice(1);
+                if (this.value.length === 1 && this.value[0] === '0') this.value = this.value.slice(1);
                 if (this.value.length > 8) this.value = this.value.slice(0, 8);
                 updateButtonState();
             });
