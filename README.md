@@ -26,17 +26,17 @@ Join our [Discord server](https://discord.gg/r8xQ7K59Mt) to get the latest news,
 5) Join our [Discord server](https://discord.gg/r8xQ7K59Mt) for further support.
 
 ## Images
-![Duolingo Pro - In the Learn Tab](./assets/readme/example1.jpeg)
-![Duolingo Pro - Settings](./assets/readme/example10.jpeg)
-![Duolingo Pro - Solving a question](./assets/readme/example2.jpeg)
-![Duolingo Pro - Solving a question](./assets/readme/example3.jpeg)
-![Duolingo Pro - Solving a question](./assets/readme/example4.jpeg)
-![Duolingo Pro - Solving a question](./assets/readme/example5.jpeg)
-![Duolingo Pro - Solving a question](./assets/readme/example6.jpeg)
-![Duolingo Pro - Solving a question](./assets/readme/example7.jpeg)
-![Duolingo Pro - Solving a story](./assets/readme/example8.jpeg)
-![Duolingo Pro - Solving a story](./assets/readme/example9.jpeg)
-![Duolingo Pro - Send Feedback](./assets/readme/example11.jpeg)
+![Duolingo Pro - ](./assets/readme/1.jpeg)
+![Duolingo Pro - ](./assets/readme/2.jpeg)
+![Duolingo Pro - ](./assets/readme/3.jpeg)
+![Duolingo Pro - ](./assets/readme/4.jpeg)
+![Duolingo Pro - ](./assets/readme/5.jpeg)
+![Duolingo Pro - Solving a question](./assets/readme/11.jpeg)
+![Duolingo Pro - Solving a question](./assets/readme/12.jpeg)
+![Duolingo Pro - Solving a question](./assets/readme/13.jpeg)
+![Duolingo Pro - Solving a question](./assets/readme/14.jpeg)
+![Duolingo Pro - Solving a question](./assets/readme/15.jpeg)
+![Duolingo Pro - Solving a question](./assets/readme/16.jpeg)
 
 ## Repository Activity
 ![Alt](https://repobeats.axiom.co/api/embed/18df6f0efd89438636279250bade347d1deb8055.svg "Repobeats analytics image")
