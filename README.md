@@ -7,8 +7,9 @@
 
 ## About Duolingo PRO
 Duolingo PRO 3.0 is an auto-solver user-script for gaining XP instantly, farming XP automatically, completing quests, leveling up on the leaderboard, extending your streak, and more, for Duolingo. 
-Working as of November 2024. 
+Working as of February 2025. 
 Join our [Discord server](https://discord.gg/r8xQ7K59Mt) to get the latest news, talk with the developers, report bugs, and do much more.
+Subscribe to our [Youtube channel](https://www.youtube.com/@DuolingoPROscript) for the latest updates.
 
 ## Features
 - Instantly get the amount of XP you want.
@@ -24,6 +25,7 @@ Join our [Discord server](https://discord.gg/r8xQ7K59Mt) to get the latest news,
 3) If you are using Chrome, ensure you have Developer Mode ON under Chrome Settings > Extensions.
 4) Try using Chrome or at the very least a Chromium browser.
 5) Join our [Discord server](https://discord.gg/r8xQ7K59Mt) for further support.
+Additionally, you can find tutorials in our [Youtube channel](https://www.youtube.com/@DuolingoPROscript).
 
 ## Images
 ![Duolingo Pro - ](./assets/readme/1.jpeg)
