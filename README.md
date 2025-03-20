@@ -6,7 +6,7 @@
 - [Repository Activity](#repository-activity)
 
 ## About Duolingo PRO
-Duolingo PRO 3.0 is an auto-solver user-script for gaining XP instantly, farming XP automatically, completing quests, leveling up on the leaderboard, extending your streak, and more, for Duolingo. 
+Duolingo PRO 3.0 is an auto-solver userscript for gaining XP instantly, farming XP automatically, completing quests, leveling up on the leaderboard, extending your streak, and more, for Duolingo. 
 Working as of February 2025. 
 Join our [Discord server](https://discord.gg/r8xQ7K59Mt) to get the latest news, talk with the developers, report bugs, and do much more.
 Subscribe to our [Youtube channel](https://www.youtube.com/@DuolingoPROscript) for the latest updates.
@@ -17,6 +17,8 @@ Subscribe to our [Youtube channel](https://www.youtube.com/@DuolingoPROscript) f
 - Solve a set or infinite number of lessons and practices, all automatically.
 - Hide/Show Duolingo PRO.
 - Send feedback.
+- Streak Edit.
+- Gems (under construction)
 - More coming soon! (AutoServer, Gems, Streak Edit, other features)
 
 ## If You Run Into An Issue, Try...
