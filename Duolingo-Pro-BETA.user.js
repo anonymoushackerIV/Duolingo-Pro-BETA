@@ -1,31 +1,32 @@
 // ==UserScript==
 // @name         Duolingo PRO
-// @namespace    http://tampermonkey.net/
-// @version      3.0BETA.03
-// @description  The fastest Duolingo XP farmer, working as of January 2025.
+// @namespace    http://duolingopro.net
+// @version      3.0BETA.04
+// @description  The fastest Duolingo XP gainer, working as of March 2025.
 // @author       anonymousHackerIV
 // @match        https://*.duolingo.com/*
+// @match        https://*.duolingo.cn/*
 // @icon         https://www.duolingopro.net/static/favicons/duo/128/light/primary.png
 // @grant        GM_log
 // ==/UserScript==
 
 let storageLocal;
 let storageSession;
-let limits;
-let versionNumber = "03";
-let storageLocalVersion = "03";
-let storageSessionVersion = "03";
-let versionName = "BETA.03";
-let versionFull = "3.0BETA.03";
-let versionFormal = "3.0 BETA.03";
+let versionNumber = "04";
+let storageLocalVersion = "04";
+let storageSessionVersion = "04";
+let versionName = "BETA.04";
+let versionFull = "3.0BETA.04";
+let versionFormal = "3.0 BETA.04";
 let serverURL = "https://www.duolingopro.net";
 let apiURL = "https://api.duolingopro.net";
 let greasyfork = true;
+let alpha = false;
 
 let hidden = false;
 let lastPage;
 let currentPage = 1;
-let legacyMode = false;
+let windowBlurState = true;
 
 let solvingIntervalId;
 let isAutoMode;
@@ -45,12 +46,11 @@ if (localStorage.getItem("DLP_Local_Storage") == null || JSON.parse(localStorage
             "home": ["DLP_Get_XP_1_ID", "DLP_Get_GEMS_1_ID"],
             "legacy": ["DLP_Get_PATH_1_ID", "DLP_Get_PRACTICE_1_ID"]
         },
-        "legacy": {
-            "solveSpeed": 0.9
-        },
         "settings": {
             "autoUpdate": !greasyfork,
             "showSolveButtons": true,
+            "showAutoServerButton": alpha,
+            "muteLessons": false,
             "solveSpeed": 0.9
         },
         "notifications": [
@@ -91,8 +91,9 @@ if (sessionStorage.getItem("DLP_Session_Storage") == null || JSON.parse(sessionS
                 "amount": 0
             },
             "lesson": {
+                "section": 1,
                 "unit": 1,
-                "lesson": 1,
+                "level": 1,
                 "type": "lesson",
                 "amount": 0
             }
@@ -176,11 +177,11 @@ let systemText = {
         113: "LOADING",
         114: "DONE",
         115: "FAILED",
-        116: "SAVED",
+        116: "SAVING AND APPLYING",
         200: "Under Construction",
         201: "The Gems function is currently under construction. We plan to make it accessible to everyone soon.",
         202: "Update Available",
-        203: "You are using an outdated version of Duolingo PRO.<br><br>Please <a href='https://www.duolingopro.net/greasyfork' target='_blank' style='font-family: Duolingo Pro Rounded; color: #007AFF; text-decoration: underline;'>update Duolingo PRO</a> or turn on <a href='https://www.duolingopro.net/greasyfork' target='_blank' style='font-family: Duolingo Pro Rounded; color: #007AFF; text-decoration: underline;'>automatic updates</a>.",
+        203: "You are using an outdated version of Duolingo PRO.<br><br>Please <a href='https://www.duolingopro.net/greasyfork' target='_blank' style='font-family: Duolingo Pro Rounded; color: #007AFF; text-decoration: underline;'>update Duolingo PRO</a> or turn on automatic updates.",
         204: "Feedback Sent",
         205: "Your feedback was successfully sent, and our developers will look over it. Keep in mind, we cannot respond back to your feedback.",
         206: "Error Sending Feedback",
@@ -207,7 +208,7 @@ let systemText = {
         229: "GEMS testing",
         230: "GEMS testing",
         231: "Error Connecting",
-        232: "Duolingo PRO was unable to connect to our servers. This may be because you are using an outdated version or our servers are temporarily unavailable. Check for <a href='https://duolingopro.net/greasyfork' target='_blank' style='font-family: Duolingo Pro Rounded; text-decoration: underline; color: #007AFF;'>updates</a> or <a href='https://duolingo-pro.betteruptime.com' target='_blank' style='font-family: Duolingo Pro Rounded; text-decoration: underline; color: #007AFF;'>server status</a>.",
+        232: "Duolingo PRO was unable to connect to our servers. This may be because our servers are temporarily unavailable or you are using an outdated version. Check for <a href='https://status.duolingopro.net' target='_blank' style='font-family: Duolingo Pro Rounded; text-decoration: underline; color: #007AFF;'>server status</a> or <a href='https://duolingopro.net/greasyfork' target='_blank' style='font-family: Duolingo Pro Rounded; text-decoration: underline; color: #007AFF;'>updates</a>.",
     },
 };
 
@@ -218,6 +219,10 @@ let HTML3;
 let HTML4;
 let HTML5;
 let CSS5;
+let HTML6;
+let CSS6;
+let HTML7;
+let CSS7;
 
 function Two() {
 CSS1 = `
@@ -405,7 +410,7 @@ HTML2 = `
                         </div>
                     </div>
                     <div class="DLP_VStack_8" id="DLP_Get_DOUBLE_XP_BOOST_1_ID" style="display: none;">
-                        <p class="DLP_Text_Style_1 DLP_NoSelect" style="align-self: stretch; opacity: 0.5;">Would you like to redeem a 15 minute 2 times XP Boost?</p>
+                        <p class="DLP_Text_Style_1 DLP_NoSelect" style="align-self: stretch; opacity: 0.5;">Would you like to redeem an XP Boost?</p>
                         <div class="DLP_HStack_8">
                             <div class="DLP_Input_Button_Style_1_Active DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Inset_Button_1_ID" style="flex: 1 0 0;">
                                 <p id="DLP_Inset_Text_1_ID" class="DLP_Text_Style_1" style="color: #FFF;">${systemText[systemLanguage][13]}</p>
@@ -511,9 +516,6 @@ HTML2 = `
                     </div>
                     <div class="DLP_HStack_4 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Main_Whats_New_1_Button_1_ID" style="align-items: center;">
                         <p class="DLP_Text_Style_1" style="color: #007AFF;">${systemText[systemLanguage][7]}</p>
-                        <svg width="9" height="15" viewBox="0 0 9 15" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M8.57031 7.35938C8.57031 7.74219 8.4375 8.0625 8.10938 8.375L2.20312 14.1641C1.96875 14.3984 1.67969 14.5156 1.33594 14.5156C0.648438 14.5156 0.0859375 13.9609 0.0859375 13.2734C0.0859375 12.9219 0.226562 12.6094 0.484375 12.3516L5.63281 7.35156L0.484375 2.35938C0.226562 2.10938 0.0859375 1.78906 0.0859375 1.44531C0.0859375 0.765625 0.648438 0.203125 1.33594 0.203125C1.67969 0.203125 1.96875 0.320312 2.20312 0.554688L8.10938 6.34375C8.42969 6.64844 8.57031 6.96875 8.57031 7.35938Z"/>
-                        </svg>
                     </div>
                 </div>
             </div>
@@ -523,7 +525,10 @@ HTML2 = `
         <div class="DLP_Main_Box_Divider" id="DLP_Main_Box_Divider_2_ID" style="display: none;">
             <div class="DLP_VStack_8">
                 <div class="DLP_HStack_Auto_Top DLP_NoSelect">
-                    <div class="DLP_HStack_4">
+                    <div class="DLP_HStack_4" id="DLP_Universal_Back_1_Button_1_ID">
+                        <svg class="DLP_Magnetic_Hover_1" width="11" height="19" fill="rgb(var(--color-black-text))" viewBox="0 0 11 19" xmlns="http://www.w3.org/2000/svg" style="transform: translate(0px, 0px) scale(1); z-index: 0;">
+                            <path d="M0.171875 9.44922C0.181641 9.04883 0.318359 8.7168 0.640625 8.4043L8.16016 1.05078C8.4043 0.796875 8.70703 0.679688 9.07812 0.679688C9.81055 0.679688 10.3965 1.25586 10.3965 1.98828C10.3965 2.34961 10.25 2.68164 9.98633 2.94531L3.30664 9.43945L9.98633 15.9531C10.25 16.2168 10.3965 16.5391 10.3965 16.9102C10.3965 17.6426 9.81055 18.2285 9.07812 18.2285C8.7168 18.2285 8.4043 18.1016 8.16016 17.8477L0.640625 10.4941C0.318359 10.1816 0.171875 9.84961 0.171875 9.44922Z"/>
+                        </svg>
                         <p class="DLP_Text_Style_2">Duolingo</p>
                         <p class="DLP_Text_Style_2" style="background: url(${serverURL}/static/images/flow/primary/512/light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PRO 3.0</p>
                     </div>
@@ -640,7 +645,7 @@ HTML2 = `
                             <svg id="DLP_Inset_Icon_2_ID" class="DLP_Magnetic_Hover_1 DLP_NoSelect" width="13" height="20" viewBox="0 0 13 20" fill="rgb(var(--color-eel))" xmlns="http://www.w3.org/2000/svg">
                                 <path opacity="0.5" d="M1.48438 13.5547C0.679688 13.5547 0.140625 13.0312 0.140625 12.25C0.140625 10.5156 1.50781 8.85156 3.55469 8.01562L3.80469 4.25781C2.77344 3.57031 1.86719 2.85156 1.47656 2.34375C1.24219 2.05469 1.13281 1.74219 1.13281 1.46094C1.13281 0.875 1.57812 0.453125 2.22656 0.453125H10.7578C11.4062 0.453125 11.8516 0.875 11.8516 1.46094C11.8516 1.74219 11.7422 2.05469 11.5078 2.34375C11.1172 2.85156 10.2188 3.57031 9.17969 4.25781L9.42969 8.01562C11.4766 8.85156 12.8438 10.5156 12.8438 12.25C12.8438 13.0312 12.3047 13.5547 11.5 13.5547H7.40625V17.3203C7.40625 18.2578 6.74219 19.5703 6.49219 19.5703C6.24219 19.5703 5.57812 18.2578 5.57812 17.3203V13.5547H1.48438ZM6.49219 7.44531C6.92969 7.44531 7.35156 7.47656 7.75781 7.54688L7.53125 3.55469C7.52344 3.38281 7.5625 3.29688 7.69531 3.21875C8.5625 2.76562 9.23438 2.28125 9.46094 2.07812C9.53125 2.00781 9.49219 1.92969 9.41406 1.92969H3.57812C3.5 1.92969 3.45312 2.00781 3.52344 2.07812C3.75 2.28125 4.42188 2.76562 5.28906 3.21875C5.42188 3.29688 5.46094 3.38281 5.45312 3.55469L5.22656 7.54688C5.63281 7.47656 6.05469 7.44531 6.49219 7.44531ZM1.92188 11.9844H11.0625C11.1797 11.9844 11.2344 11.9141 11.2109 11.7734C10.9922 10.3906 9.08594 8.96875 6.49219 8.96875C3.89844 8.96875 1.99219 10.3906 1.77344 11.7734C1.75 11.9141 1.80469 11.9844 1.92188 11.9844Z"/>
                             </svg>
-                            <p class="DLP_Text_Style_1 DLP_NoSelect" style="align-self: stretch; opacity: 0.5;">Would you like to redeem a 15 minute 2 times XP Boost?</p>
+                            <p class="DLP_Text_Style_1 DLP_NoSelect" style="align-self: stretch; opacity: 0.5;">Would you like to redeem an XP Boost?</p>
                         </div>
                         <div class="DLP_HStack_8">
                             <div class="DLP_Input_Button_Style_1_Active DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Inset_Button_1_ID" style="flex: 1 0 0;">
@@ -801,18 +806,6 @@ HTML2 = `
                     </div>
                     </div>
                     </div>
-
-                    <div class="DLP_HStack_Auto" style="padding-top: 4px;">
-                        <div class="DLP_HStack_4 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Universal_Back_1_Button_1_ID" style="align-items: center;">
-                            <svg width="10" height="15" viewBox="0 0 10 15" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M0.90625 7.35938C0.914062 6.96875 1.04688 6.64844 1.36719 6.34375L7.27344 0.554688C7.51562 0.320312 7.79688 0.203125 8.14062 0.203125C8.82812 0.203125 9.39844 0.765625 9.39844 1.44531C9.39844 1.78906 9.25 2.10938 8.99219 2.35938L3.84375 7.35156L8.99219 12.3516C9.25 12.6094 9.39844 12.9219 9.39844 13.2734C9.39844 13.9609 8.82812 14.5156 8.14062 14.5156C7.79688 14.5156 7.51562 14.3984 7.27344 14.1641L1.36719 8.375C1.04688 8.0625 0.90625 7.74219 0.90625 7.35938Z"/>
-                            </svg>
-                            <p class="DLP_Text_Style_1" style="color: #007AFF;">${systemText[systemLanguage][16]}</p>
-                        </div>
-                        <div class="DLP_HStack_4 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Main_2_Terms_1_Button_1_ID" style="align-items: center;"">
-                            <p class="DLP_Text_Style_1" style="color: #007AFF; opacity: 0.5;">${systemText[systemLanguage][14]}</p>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -822,7 +815,7 @@ HTML2 = `
             <div class="DLP_VStack_8">
                 <div class="DLP_VStack_8">
                     <div class="DLP_HStack_8">
-                        <div id="DLP_Secondary_1_Server_Connection_Button_1_ID" class="DLP_Button_Style_1 DLP_Magnetic_Hover_1 DLP_NoSelect" style="outline: 2px solid rgb(var(--color-eel), 0.20); outline-offset: -2px; background: rgb(var(--color-eel), 0.10); transition: opacity 0.8s cubic-bezier(0.16, 1, 0.32, 1), background 0.8s cubic-bezier(0.16, 1, 0.32, 1), outline 0.8s cubic-bezier(0.16, 1, 0.32, 1), filter 0.4s cubic-bezier(0.16, 1, 0.32, 1), transform 0.4s cubic-bezier(0.16, 1, 0.32, 1); padding: 10px 0px 10px 10px; opacity: 0.25;">
+                        <div id="DLP_Secondary_1_Server_Connection_Button_1_ID" class="DLP_Button_Style_1 DLP_Magnetic_Hover_1 DLP_NoSelect" style="outline: 2px solid rgb(var(--color-eel), 0.20); outline-offset: -2px; background: rgb(var(--color-eel), 0.10); transition: opacity 0.8s cubic-bezier(0.16, 1, 0.32, 1), background 0.8s cubic-bezier(0.16, 1, 0.32, 1), outline 0.8s cubic-bezier(0.16, 1, 0.32, 1), filter 0.4s cubic-bezier(0.16, 1, 0.32, 1), transform 0.4s cubic-bezier(0.16, 1, 0.32, 1); padding: 10px 0px 10px 10px; opacity: 0.25; pointer-events: none;">
                             <svg id="DLP_Inset_Icon_1_ID" width="17" height="18" viewBox="0 0 17 18" fill="(var(--color-eel))" xmlns="http://www.w3.org/2000/svg" style="transition: 0.4s;">
                                 <path d="M8.64844 2.66406C8.03125 2.66406 7.4375 2.75 6.875 2.92188L6.07812 1.02344C6.89062 0.757812 7.75781 0.609375 8.64844 0.609375C9.53906 0.609375 10.3984 0.757812 11.2031 1.02344L10.4219 2.92188C9.85938 2.75781 9.26562 2.66406 8.64844 2.66406ZM14.1016 5.91406C13.5312 4.84375 12.6562 3.96875 11.5859 3.39844L12.375 1.50781C13.9297 2.30469 15.2031 3.57812 16 5.125L14.1016 5.91406ZM5.70312 3.39844C4.63281 3.97656 3.75781 4.85156 3.19531 5.92188L1.29688 5.125C2.09375 3.57812 3.36719 2.30469 4.91406 1.50781L5.70312 3.39844ZM14.8438 8.85938C14.8438 8.24219 14.7578 7.64844 14.5859 7.08594L16.4844 6.29688C16.7578 7.10156 16.8984 7.96875 16.8984 8.85938C16.8984 9.75 16.7578 10.6172 16.4844 11.4219L14.5938 10.6328C14.75 10.0703 14.8438 9.47656 14.8438 8.85938ZM2.46094 8.85938C2.46094 9.47656 2.54688 10.0703 2.71094 10.625L0.8125 11.4219C0.546875 10.6094 0.398438 9.75 0.398438 8.85938C0.398438 7.96875 0.546875 7.10938 0.8125 6.29688L2.71094 7.08594C2.54688 7.64844 2.46094 8.24219 2.46094 8.85938ZM11.5859 14.3125C12.6562 13.7422 13.5391 12.875 14.1094 11.8047L16 12.5938C15.2031 14.1406 13.9297 15.4141 12.375 16.2109L11.5859 14.3125ZM3.19531 11.8047C3.76562 12.8672 4.63281 13.7422 5.70312 14.3125L4.91406 16.2031C3.36719 15.4141 2.09375 14.1406 1.29688 12.5938L3.19531 11.8047ZM8.64844 15.0547C9.26562 15.0547 9.85938 14.9609 10.4141 14.7969L11.2109 16.6953C10.3984 16.9609 9.53906 17.1094 8.64844 17.1094C7.75781 17.1094 6.89062 16.9609 6.08594 16.6953L6.875 14.7969C7.4375 14.9609 8.03125 15.0547 8.64844 15.0547Z"/>
                             </svg>
@@ -1014,9 +1007,9 @@ HTML2 = `
                                 </svg>
                                 <div style="display: flex; align-items: center; gap: 8px; width: 100%; justify-content: flex-end;">
                                     <p class="DLP_Text_Style_1 DLP_NoSelect" style="color: #007AFF; opacity: 0.5;">Unit:</p>
-                                    <input type="text" value="1" placeholder="0" id="DLP_Get_GEMS_Input_1_ID" class="DLP_Input_Input_Style_1" style="width: 30px;">
+                                    <input type="text" value="1" placeholder="1" id="DLP_Inset_Input_3_ID" class="DLP_Input_Input_Style_1" style="width: 30px;">
                                     <p class="DLP_Text_Style_1 DLP_NoSelect" style="color: #007AFF; opacity: 0.5;">Lesson:</p>
-                                    <input type="text" value="1" placeholder="0" id="DLP_Get_GEMS_Input_1_ID" class="DLP_Input_Input_Style_1" style="width: 30px;">
+                                    <input type="text" value="1" placeholder="1" id="DLP_Inset_Input_4_ID" class="DLP_Input_Input_Style_1" style="width: 30px;">
                                 </div>
                             </div>
                         </div>
@@ -1068,9 +1061,6 @@ HTML2 = `
                         </div>
                         <div class="DLP_HStack_4 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Secondary_Whats_New_1_Button_1_ID" style="align-items: center;">
                             <p class="DLP_Text_Style_1" style="color: #007AFF;">${systemText[systemLanguage][7]}</p>
-                            <svg width="9" height="15" viewBox="0 0 9 15" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M8.57031 7.35938C8.57031 7.74219 8.4375 8.0625 8.10938 8.375L2.20312 14.1641C1.96875 14.3984 1.67969 14.5156 1.33594 14.5156C0.648438 14.5156 0.0859375 13.9609 0.0859375 13.2734C0.0859375 12.9219 0.226562 12.6094 0.484375 12.3516L5.63281 7.35156L0.484375 2.35938C0.226562 2.10938 0.0859375 1.78906 0.0859375 1.44531C0.0859375 0.765625 0.648438 0.203125 1.33594 0.203125C1.67969 0.203125 1.96875 0.320312 2.20312 0.554688L8.10938 6.34375C8.42969 6.64844 8.57031 6.96875 8.57031 7.35938Z"/>
-                            </svg>
                         </div>
                     </div>
                 </div>
@@ -1081,7 +1071,10 @@ HTML2 = `
         <div class="DLP_Main_Box_Divider" id="DLP_Main_Box_Divider_4_ID" style="display: none;">
             <div class="DLP_VStack_8">
                 <div class="DLP_HStack_Auto_Top DLP_NoSelect">
-                    <div class="DLP_HStack_4">
+                    <div class="DLP_HStack_4" id="DLP_Universal_Back_1_Button_1_ID">
+                        <svg class="DLP_Magnetic_Hover_1" width="11" height="19" fill="rgb(var(--color-black-text))" viewBox="0 0 11 19" xmlns="http://www.w3.org/2000/svg" style="transform: translate(0px, 0px) scale(1); z-index: 0;">
+                            <path d="M0.171875 9.44922C0.181641 9.04883 0.318359 8.7168 0.640625 8.4043L8.16016 1.05078C8.4043 0.796875 8.70703 0.679688 9.07812 0.679688C9.81055 0.679688 10.3965 1.25586 10.3965 1.98828C10.3965 2.34961 10.25 2.68164 9.98633 2.94531L3.30664 9.43945L9.98633 15.9531C10.25 16.2168 10.3965 16.5391 10.3965 16.9102C10.3965 17.6426 9.81055 18.2285 9.07812 18.2285C8.7168 18.2285 8.4043 18.1016 8.16016 17.8477L0.640625 10.4941C0.318359 10.1816 0.171875 9.84961 0.171875 9.44922Z"/>
+                        </svg>
                         <p class="DLP_Text_Style_2">Duolingo</p>
                         <p class="DLP_Text_Style_2" style="background: url(${serverURL}/static/images/flow/primary/512/light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PRO LE</p>
                     </div>
@@ -1244,9 +1237,9 @@ HTML2 = `
                                 </svg>
                                 <div style="display: flex; align-items: center; gap: 8px; width: 100%; justify-content: flex-end;">
                                     <p class="DLP_Text_Style_1 DLP_NoSelect" style="color: #007AFF; opacity: 0.5;">Unit:</p>
-                                    <input type="text" value="1" placeholder="0" id="DLP_Get_GEMS_Input_1_ID" class="DLP_Input_Input_Style_1" style="width: 30px;">
+                                    <input type="text" value="1" placeholder="1" id="DLP_Inset_Input_3_ID" class="DLP_Input_Input_Style_1" style="width: 30px;">
                                     <p class="DLP_Text_Style_1 DLP_NoSelect" style="color: #007AFF; opacity: 0.5;">Lesson:</p>
-                                    <input type="text" value="1" placeholder="0" id="DLP_Get_GEMS_Input_1_ID" class="DLP_Input_Input_Style_1" style="width: 30px;">
+                                    <input type="text" value="1" placeholder="1" id="DLP_Inset_Input_4_ID" class="DLP_Input_Input_Style_1" style="width: 30px;">
                                 </div>
                             </div>
                         </div>
@@ -1284,17 +1277,6 @@ HTML2 = `
                                     <path d="M2.96094 15.5469C1.53125 15.5469 0.59375 14.4688 0.59375 13.1797C0.59375 12.7812 0.695312 12.375 0.914062 11.9922L6.92969 1.47656C7.38281 0.695312 8.17188 0.289062 8.97656 0.289062C9.77344 0.289062 10.5547 0.6875 11.0156 1.47656L17.0312 11.9844C17.25 12.3672 17.3516 12.7812 17.3516 13.1797C17.3516 14.4688 16.4141 15.5469 14.9844 15.5469H2.96094ZM8.98438 9.96094C9.52344 9.96094 9.83594 9.65625 9.86719 9.09375L9.99219 5.72656C10.0234 5.14062 9.59375 4.73438 8.97656 4.73438C8.35156 4.73438 7.92969 5.13281 7.96094 5.72656L8.08594 9.10156C8.10938 9.65625 8.42969 9.96094 8.98438 9.96094ZM8.98438 12.7812C9.60156 12.7812 10.0859 12.3906 10.0859 11.7891C10.0859 11.2031 9.60938 10.8047 8.98438 10.8047C8.35938 10.8047 7.875 11.2031 7.875 11.7891C7.875 12.3906 8.35938 12.7812 8.98438 12.7812Z"/>
                                 </svg>
                             </div>
-                        </div>
-                    </div>
-                    <div class="DLP_HStack_Auto" style="padding-top: 4px;">
-                        <div class="DLP_HStack_4 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Universal_Back_1_Button_1_ID" style="align-items: center;">
-                            <svg width="10" height="15" viewBox="0 0 10 15" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M0.90625 7.35938C0.914062 6.96875 1.04688 6.64844 1.36719 6.34375L7.27344 0.554688C7.51562 0.320312 7.79688 0.203125 8.14062 0.203125C8.82812 0.203125 9.39844 0.765625 9.39844 1.44531C9.39844 1.78906 9.25 2.10938 8.99219 2.35938L3.84375 7.35156L8.99219 12.3516C9.25 12.6094 9.39844 12.9219 9.39844 13.2734C9.39844 13.9609 8.82812 14.5156 8.14062 14.5156C7.79688 14.5156 7.51562 14.3984 7.27344 14.1641L1.36719 8.375C1.04688 8.0625 0.90625 7.74219 0.90625 7.35938Z"/>
-                            </svg>
-                            <p class="DLP_Text_Style_1" style="color: #007AFF;">${systemText[systemLanguage][16]}</p>
-                        </div>
-                        <div class="DLP_HStack_4 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Secondary_2_Terms_1_Button_1_ID"style="align-items: center;">
-                            <p class="DLP_Text_Style_1" style="color: #007AFF; opacity: 0.5;">${systemText[systemLanguage][14]}</p>
                         </div>
                     </div>
                 </div>
@@ -1394,6 +1376,33 @@ HTML2 = `
                         </svg>
                     </div>
                 </div>
+                <div id="DLP_Settings_Show_AutoServer_Button_1_ID" class="DLP_HStack_8" style="justify-content: center; align-items: center;">
+                    <div class="DLP_VStack_0" style="align-items: flex-start; flex: 1 0 0;">
+                        <p class="DLP_Text_Style_1 DLP_NoSelect" style="opacity: 0.5;">Show AutoServer Button</p>
+                        <p class="DLP_Text_Style_1 DLP_NoSelect" style="opacity: 0.25;">See the AutoServer by Duolingo PRO button in your Duolingo menubar.</p>
+                    </div>
+                    <div id="DLP_Inset_Toggle_1_ID" class="DLP_Toggle_Style_1 DLP_Magnetic_Hover_1 DLP_NoSelect">
+                        <svg id="DLP_Inset_Icon_1_ID" width="18" height="18" viewBox="0 0 18 18" fill="#FFF" xmlns="http://www.w3.org/2000/svg" display="none">
+                            <path d="M9 17.1094C4.44531 17.1094 0.75 13.4141 0.75 8.85938C0.75 4.30469 4.44531 0.609375 9 0.609375C13.5547 0.609375 17.25 4.30469 17.25 8.85938C17.25 13.4141 13.5547 17.1094 9 17.1094ZM8.14062 12.7812C8.47656 12.7812 8.78125 12.6094 8.98438 12.3125L12.6094 6.76562C12.75 6.5625 12.8281 6.35156 12.8281 6.15625C12.8281 5.67188 12.3984 5.32812 11.9297 5.32812C11.625 5.32812 11.3672 5.49219 11.1641 5.82031L8.11719 10.6641L6.75781 8.98438C6.54688 8.73438 6.32812 8.625 6.04688 8.625C5.57031 8.625 5.17969 9.00781 5.17969 9.49219C5.17969 9.71875 5.25 9.91406 5.42969 10.1328L7.26562 12.3203C7.51562 12.625 7.78906 12.7812 8.14062 12.7812Z"/>
+                        </svg>
+                        <svg id="DLP_Inset_Icon_2_ID" width="18" height="18" viewBox="0 0 18 18" fill="#FFF" xmlns="http://www.w3.org/2000/svg" display="none">
+                            <path d="M9 17.1094C4.44531 17.1094 0.75 13.4141 0.75 8.85938C0.75 4.30469 4.44531 0.609375 9 0.609375C13.5547 0.609375 17.25 4.30469 17.25 8.85938C17.25 13.4141 13.5547 17.1094 9 17.1094ZM6.53906 12.2188C6.8125 12.2188 7.03125 12.125 7.20312 11.9531L9 10.1484L10.8047 11.9531C10.9766 12.125 11.2031 12.2188 11.4688 12.2188C11.9766 12.2188 12.3672 11.8203 12.3672 11.3125C12.3672 11.0781 12.2734 10.8594 12.0938 10.6875L10.2812 8.875L12.1016 7.04688C12.2812 6.875 12.3672 6.65625 12.3672 6.42188C12.3672 5.92188 11.9766 5.53125 11.4766 5.53125C11.2109 5.53125 11.0078 5.60938 10.8203 5.79688L9 7.60156L7.19531 5.79688C7.01562 5.625 6.8125 5.53906 6.53906 5.53906C6.03906 5.53906 5.64844 5.92188 5.64844 6.4375C5.64844 6.66406 5.74219 6.88281 5.91406 7.05469L7.73438 8.875L5.91406 10.6953C5.74219 10.8594 5.64844 11.0859 5.64844 11.3125C5.64844 11.8203 6.03906 12.2188 6.53906 12.2188Z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div id="DLP_Settings_Legacy_Solve_Speed_1_ID" class="DLP_HStack_8" style="justify-content: center; align-items: center;">
+                    <div class="DLP_VStack_0" style="align-items: flex-start; flex: 1 0 0;">
+                        <p class="DLP_Text_Style_1 DLP_NoSelect" style="opacity: 0.5;">Legacy Solve Speed</p>
+                        <p class="DLP_Text_Style_1 DLP_NoSelect" style="opacity: 0.25;">Legacy will solve each question every this amount of seconds. The lower speed you set, the more mistakes Legacy can make.</p>
+                    </div>
+                    <div class="DLP_Input_Style_1_Active" style="flex: none; width: 72px;">
+                        <p class="DLP_Text_Style_1 DLP_NoSelect" style="color: #007AFF; opacity: 0.5; display: none;">GEMS</p>
+                        <svg width="15" height="16" viewBox="0 0 15 16" fill="#007AFF" opacity="0.5" xmlns="http://www.w3.org/2000/svg" style="display: none;">
+                            <path d="M1.39844 11.3594C0.78125 11.3594 0.398438 11 0.398438 10.4297C0.398438 9.72656 0.867188 9.25 1.625 9.25H3.46875L4.07812 6.17969H2.40625C1.78906 6.17969 1.39844 5.80469 1.39844 5.24219C1.39844 4.53125 1.875 4.05469 2.63281 4.05469H4.5L5.07812 1.17188C5.21094 0.507812 5.58594 0.15625 6.26562 0.15625C6.88281 0.15625 7.26562 0.507812 7.26562 1.07031C7.26562 1.19531 7.24219 1.35938 7.22656 1.45312L6.70312 4.05469H9.61719L10.1953 1.17188C10.3281 0.507812 10.6953 0.15625 11.375 0.15625C11.9844 0.15625 12.3672 0.507812 12.3672 1.07031C12.3672 1.19531 12.3516 1.35938 12.3359 1.45312L11.8125 4.05469H13.5938C14.2109 4.05469 14.5938 4.4375 14.5938 4.99219C14.5938 5.70312 14.125 6.17969 13.3672 6.17969H11.3906L10.7812 9.25H12.5859C13.2031 9.25 13.5859 9.64062 13.5859 10.1953C13.5859 10.8984 13.1172 11.3594 12.3516 11.3594H10.3594L9.72656 14.5469C9.59375 15.2266 9.17969 15.5547 8.52344 15.5547C7.91406 15.5547 7.53906 15.2109 7.53906 14.6406C7.53906 14.5391 7.55469 14.375 7.57812 14.2656L8.15625 11.3594H5.25L4.61719 14.5469C4.48438 15.2266 4.0625 15.5547 3.42188 15.5547C2.8125 15.5547 2.42969 15.2109 2.42969 14.6406C2.42969 14.5391 2.44531 14.375 2.46875 14.2656L3.04688 11.3594H1.39844ZM5.67188 9.25H8.57812L9.19531 6.17969H6.28125L5.67188 9.25Z"/>
+                        </svg>
+                        <input type="text" placeholder="0" id="DLP_Inset_Input_1_ID" class="DLP_Input_Input_Style_1" style="text-align: center;">
+                    </div>
+                </div>
                 <div id="DLP_Settings_Auto_Update_Toggle_1_ID" class="DLP_HStack_8" style="justify-content: center; align-items: center; opacity: 0.5; pointer-events: none; cursor: not-allowed;">
                     <div class="DLP_VStack_0" style="align-items: flex-start; flex: 1 0 0;">
                         <p class="DLP_Text_Style_1 DLP_NoSelect" style="opacity: 0.5;">${systemText[systemLanguage][34]}</p>
@@ -1439,8 +1448,17 @@ HTML2 = `
                     </div>
                     <p class="DLP_Text_Style_1" style="font-size: 14px; background: url(${serverURL}/static/images/flow/secondary/512/light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${versionName}</p>
                 </div>
+                <div class="DLP_VStack_4" style="padding: 16px; border-radius: 8px; outline: 2px solid rgba(0, 122, 255, 0.20); outline-offset: -2px; background: rgba(0, 122, 255, 0.10); box-sizing: border-box;">
+                    <div class="DLP_HStack_4">
+                        <svg width="17" height="17" viewBox="0 0 17 17" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8.54688 16.5078C4.04688 16.5078 0.398438 12.8594 0.398438 8.35938C0.398438 3.85938 4.04688 0.210938 8.54688 0.210938C13.0469 0.210938 16.6953 3.85938 16.6953 8.35938C16.6953 12.8594 13.0469 16.5078 8.54688 16.5078ZM8.54688 14.7188C12.0625 14.7188 14.9062 11.875 14.9062 8.35938C14.9062 4.84375 12.0625 2 8.54688 2C5.03125 2 2.1875 4.84375 2.1875 8.35938C2.1875 11.875 5.03125 14.7188 8.54688 14.7188ZM8.35938 9.875C7.82812 9.875 7.53125 9.63281 7.53125 9.16406V9.08594C7.53125 8.42188 7.92969 8.03125 8.47656 7.64844C9.125 7.19531 9.45312 6.96875 9.45312 6.5C9.45312 6.01562 9.0625 5.67188 8.48438 5.67188C8.05469 5.67188 7.71094 5.86719 7.45312 6.27344L7.34375 6.41406C7.17969 6.63281 6.96875 6.75 6.67188 6.75C6.3125 6.75 6 6.48438 6 6.09375C6 5.9375 6.03125 5.80469 6.08594 5.66406C6.34375 4.92188 7.27344 4.33594 8.60938 4.33594C10.0391 4.33594 11.2188 5.10938 11.2188 6.40625C11.2188 7.29688 10.7578 7.74219 9.96875 8.24219C9.49219 8.55469 9.19531 8.82031 9.16406 9.20312C9.15625 9.22656 9.15625 9.26562 9.14844 9.29688C9.11719 9.625 8.8125 9.875 8.35938 9.875ZM8.35156 12.3125C7.8125 12.3125 7.38281 11.9453 7.38281 11.4219C7.38281 10.9062 7.8125 10.5312 8.35156 10.5312C8.89062 10.5312 9.3125 10.8984 9.3125 11.4219C9.3125 11.9453 8.89062 12.3125 8.35156 12.3125Z"/>
+                        </svg>
+                        <p class="DLP_Text_Style_1 DLP_NoSelect" style="align-self: stretch; color: #007AFF;">Need Support?</p>
+                    </div>
+                    <p class="DLP_Text_Style_1 DLP_NoSelect" style="align-self: stretch; color: #007AFF; opacity: 0.5;">Get help from our <a href='https://www.duolingopro.net/faq' target='_blank' style='font-family: Duolingo Pro Rounded; color: #007AFF; text-decoration: underline;'>FAQ page</a>, enhanced with AI, or join our <a href='https://www.duolingopro.net/discord' target='_blank' style='font-family: Duolingo Pro Rounded; color: #007AFF; text-decoration: underline;'>Discord server</a> and talk with the devs.</p>
+                </div>
                 <p class="DLP_Text_Style_1 DLP_NoSelect" style="opacity: 0.5; align-self: stretch;">${systemText[systemLanguage][39]}</p>
-                <textarea id="DLP_Feedback_Text_Input_1_ID" class="DLP_Large_Input_Box_Style_1" style="height: 128px; max-height: 256px; width: 100%;" placeholder="${systemText[systemLanguage][40]}"/></textarea>
+                <textarea id="DLP_Feedback_Text_Input_1_ID" class="DLP_Large_Input_Box_Style_1" style="height: 128px; max-height: 256px;" placeholder="${systemText[systemLanguage][40]}"/></textarea>
                 <p class="DLP_Text_Style_1 DLP_NoSelect" style="opacity: 0.5; align-self: stretch;">${systemText[systemLanguage][41]}</p>
                 <div class="DLP_HStack_8">
                     <div id="DLP_Feedback_Type_Bug_Report_Button_1_ID" class="DLP_Button_Style_2 DLP_Magnetic_Hover_1 DLP_NoSelect DLP_Feedback_Type_Button_Style_1_OFF" style="transition: background 0.4s, outline 0.4s, filter 0.4s cubic-bezier(0.16, 1, 0.32, 1), transform 0.4s cubic-bezier(0.16, 1, 0.32, 1);">
@@ -1638,6 +1656,21 @@ CSS2 = `
     bottom: 16px;
     z-index: 2;
 }
+@media (max-width: 699px) {
+    .DLP_Main {
+        display: inline-flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        align-items: flex-end;
+        gap: 8px;
+
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 2;
+        margin-bottom: 80px;
+    }
+}
 .DLP_Main_Box {
     display: flex;
     width: 312px;
@@ -1710,6 +1743,14 @@ svg {
     justify-content: center;
     align-items: center;
     gap: 0;
+    align-self: stretch;
+}
+.DLP_VStack_4 {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
     align-self: stretch;
 }
 .DLP_VStack_6 {
@@ -1985,10 +2026,12 @@ svg {
     align-items: center;
 
     transition: 0.8s cubic-bezier(0.16, 1, 0.32, 1);
-    width: 100%;
+    width: 300px;
     position: fixed;
-    left: 16px;
+    left: calc(50% - (300px / 2));
     z-index: 210;
+    bottom: 16px;
+    border-radius: 16px;
 }
 .DLP_Notification_Box {
     display: flex;
@@ -2010,6 +2053,13 @@ svg {
     filter: blur(16px);
     opacity: 0;
 }
+._2V6ug._1ursp._7jW2t._3dDzz._1wiIJ {
+    width: 36px !important;
+    height: 38px !important;
+}
+._2V6ug._1ursp._7jW2t._3dDzz._1wiIJ::before {
+    border-radius: 20px !important;
+}
 `;
 
 HTML3 = `
@@ -2026,7 +2076,7 @@ HTML3 = `
         </svg>
 
         <p id="DLP_Inset_Text_1_ID" class="DLP_Text_Style_1" style="opacity: 0.5; flex: 1 0 0;"></p>
-        <svg id="DLP_Notification_Dismiss_Button_1_ID" width="15" height="14" viewBox="0 0 15 14" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+        <svg id="DLP_Notification_Dismiss_Button_1_ID" class="DLP_Magnetic_Hover_1" width="15" height="14" viewBox="0 0 15 14" fill="rgb(var(--color-eel), 0.5)" xmlns="http://www.w3.org/2000/svg">
             <path d="M1.32812 13.4922C0.875 13.0469 0.890625 12.2578 1.3125 11.8359L5.78125 7.36719L1.3125 2.91406C0.890625 2.48438 0.875 1.70312 1.32812 1.25C1.78125 0.789062 2.57031 0.804688 2.99219 1.23438L7.45312 5.69531L11.9141 1.23438C12.3516 0.796875 13.1172 0.796875 13.5703 1.25C14.0312 1.70312 14.0312 2.46875 13.5859 2.91406L9.13281 7.36719L13.5859 11.8281C14.0312 12.2734 14.0234 13.0312 13.5703 13.4922C13.125 13.9453 12.3516 13.9453 11.9141 13.5078L7.45312 9.04688L2.99219 13.5078C2.57031 13.9375 1.78906 13.9453 1.32812 13.4922Z"/>
         </svg>
     </div>
@@ -2074,16 +2124,18 @@ HTML4 = `
     top: 4px;
 }
 `;
+
 HTML5 = `
-<div class="DLP_AutoServer_Mother_Box">
+<div class="DLP_AutoServer_Mother_Box" style="display: none; opacity: 0; filter: blur(8px);">
     <div class="DLP_AutoServer_Box">
         <div class="DLP_AutoServer_Menu_Bar">
             <div style="display: flex; justify-content: center; align-items: center; gap: 6px; opacity: 0.5;">
-                <svg class="DLP_Magnetic_Hover_1" width="14" height="14" viewBox="0 0 14 14" fill="rgb(var(--color-black-text))" xmlns="http://www.w3.org/2000/svg">
+                <svg id="DLP_AutoServer_Close_Button_1_ID" class="DLP_Magnetic_Hover_1" width="14" height="14" viewBox="0 0 14 14" fill="rgb(var(--color-black-text))" xmlns="http://www.w3.org/2000/svg">
                     <path d="M1.24219 12.9062C0.90625 12.5781 0.914062 12 1.24219 11.6797L6.04688 6.86719L1.24219 2.0625C0.914062 1.74219 0.90625 1.17188 1.24219 0.828125C1.57812 0.492188 2.14844 0.5 2.47656 0.828125L7.28125 5.63281L12.0859 0.828125C12.4219 0.5 12.9766 0.5 13.3203 0.835938C13.6641 1.16406 13.6562 1.73438 13.3281 2.0625L8.52344 6.86719L13.3281 11.6797C13.6562 12.0078 13.6562 12.5703 13.3203 12.9062C12.9844 13.25 12.4219 13.2422 12.0859 12.9141L7.28125 8.10938L2.47656 12.9141C2.14844 13.2422 1.58594 13.2422 1.24219 12.9062Z"/>
                 </svg>
             </div>
             <div style="display: flex; justify-content: center; align-items: center; gap: 6px; opacity: 0.5;">
+                <p class="DLP_AutoServer_Text_Style_1 DLP_NoSelect" style="color: #34C759;">Error</p>
                 <svg width="21" height="15" viewBox="0 0 21 15" fill="#34C759" xmlns="http://www.w3.org/2000/svg">
                     <path d="M16 14.0781L5.20312 14.0703C2.47656 14.0703 0.398438 12.0938 0.398438 9.71875C0.398438 7.76562 1.5 6.16406 3.28906 5.85156C3.35938 3.64844 5.44531 2.17188 7.42188 2.70312C8.40625 1.28906 9.95312 0.210938 12.0391 0.210938C15.3125 0.210938 17.8516 2.75781 17.8438 6.28906C19.3906 6.9375 20.3359 8.40625 20.3359 10.0625C20.3359 12.2891 18.4219 14.0781 16 14.0781ZM9.80469 10.875C10.0781 10.875 10.3203 10.7422 10.4688 10.4922L13.5391 5.57812C13.625 5.4375 13.7188 5.25 13.7188 5.07031C13.7188 4.69531 13.3906 4.41406 13 4.41406C12.7578 4.41406 12.5391 4.55469 12.3906 4.80469L9.77344 9.14844L8.44531 7.44531C8.28906 7.24219 8.09375 7.13281 7.85156 7.13281C7.46875 7.13281 7.15625 7.42969 7.15625 7.82812C7.15625 8 7.21875 8.17188 7.35156 8.34375L9.10156 10.5078C9.29688 10.7578 9.52344 10.875 9.80469 10.875Z"/>
                 </svg>
@@ -2103,7 +2155,7 @@ HTML5 = `
             </div>
 
             <div class="DLP_AutoServer_Default_Box" style="background: linear-gradient(rgba(var(--color-snow), 0.8), rgba(var(--color-snow), 0.8)), url(${serverURL}/static/images/flow/primary/512/light.png); background-position: center; background-size: cover; background-repeat: no-repeat;">
-                <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 6px; align-self: stretch; width: 100%;">
+                <div style="display: flex; display: none; flex-direction: column; align-items: flex-start; gap: 6px; align-self: stretch; width: 100%;">
                     <div class="DLP_HStack_Auto">
                         <p class="DLP_AutoServer_Text_Style_1 DLP_NoSelect">Settings</p>
                         <svg width="18" height="19" viewBox="0 0 18 19" fill="rgb(var(--color-black-text))" xmlns="http://www.w3.org/2000/svg">
@@ -2119,6 +2171,15 @@ HTML5 = `
                         </div>
                         <p class="DLP_AutoServer_Text_Style_1">America/NewYork - 11:45 PM</p>
                     </div>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 6px; align-self: stretch; width: 100%;">
+                    <div class="DLP_HStack_Auto" style="align-items: center; width: 100%;">
+                        <p class="DLP_AutoServer_Text_Style_1">Under Construction</p>
+                        <svg id="DLP_Inset_Icon_3_ID" width="18" height="17" viewBox="0 0 18 17" fill="rgb(var(--color-black-text))" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M2.98438 16.0469C1.55469 16.0469 0.617188 14.9688 0.617188 13.6797C0.617188 13.2812 0.71875 12.875 0.9375 12.4922L6.95312 1.97656C7.40625 1.19531 8.19531 0.789062 9 0.789062C9.79688 0.789062 10.5781 1.1875 11.0391 1.97656L17.0547 12.4844C17.2734 12.8672 17.375 13.2812 17.375 13.6797C17.375 14.9688 16.4375 16.0469 15.0078 16.0469H2.98438ZM9.00781 10.4609C9.54688 10.4609 9.85938 10.1562 9.89062 9.59375L10.0156 6.22656C10.0469 5.64062 9.61719 5.23438 9 5.23438C8.375 5.23438 7.95312 5.63281 7.98438 6.22656L8.10938 9.60156C8.13281 10.1562 8.45312 10.4609 9.00781 10.4609ZM9.00781 13.2812C9.625 13.2812 10.1094 12.8906 10.1094 12.2891C10.1094 11.7031 9.63281 11.3047 9.00781 11.3047C8.38281 11.3047 7.89844 11.7031 7.89844 12.2891C7.89844 12.8906 8.38281 13.2812 9.00781 13.2812Z"/>
+                        </svg>
+                    </div>
+                    <p class="DLP_AutoServer_Text_Style_1" style="opacity: 0.5;">AutoServer is currently under construction and unavailable. We appreciate your patience and will provide updates as progress continues.</p>
                 </div>
             </div>
 
@@ -2144,24 +2205,41 @@ HTML5 = `
                             </div>
                         </div>
                     </div>
-                    <div class="DLP_VStack_6">
-                        <div class="DLP_HStack_Auto">
-                            <p class="DLP_AutoServer_Text_Style_1 DLP_NoSelect" style="color: #FFF; opacity: 0.5;">Protecting:</p>
-                            <p class="DLP_AutoServer_Text_Style_1 DLP_NoSelect" style="color: #FFF; opacity: 0;">BETA</p>
+                    <div class="DLP_VStack_12">
+                        <div class="DLP_VStack_6">
+                            <div class="DLP_HStack_Auto">
+                                <p class="DLP_AutoServer_Text_Style_1 DLP_NoSelect" style="color: #FFF; opacity: 0.5;">Protecting:</p>
+                                <p class="DLP_AutoServer_Text_Style_1 DLP_NoSelect" style="color: #FFF; opacity: 0;">BETA</p>
+                            </div>
+                            <div class="DLP_HStack_Auto">
+                                <svg class="DLP_Magnetic_Hover_1" width="15" height="15" viewBox="0 0 15 15" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2.76562 14.6562C1.07812 14.6562 0.203125 13.7891 0.203125 12.1172V2.60938C0.203125 0.9375 1.07812 0.0703125 2.76562 0.0703125H12.2266C13.9141 0.0703125 14.7891 0.945312 14.7891 2.60938V12.1172C14.7891 13.7891 13.9141 14.6562 12.2266 14.6562H2.76562ZM4.44531 8.13281H10.5938C11.0859 8.13281 11.4219 7.85156 11.4219 7.375C11.4219 6.89844 11.1016 6.60156 10.5938 6.60156H4.44531C3.9375 6.60156 3.60938 6.89844 3.60938 7.375C3.60938 7.85156 3.95312 8.13281 4.44531 8.13281Z"/>
+                                </svg>
+                                <p class="DLP_AutoServer_Text_Style_1 DLP_NoSelect" style="color: #FFF;">2 Days</p>
+                                <svg class="DLP_Magnetic_Hover_1" width="15" height="15" viewBox="0 0 15 15" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M13.8281 1.03125C14.6328 1.83594 14.7812 2.9375 14.7812 4.35938V10.3516C14.7812 11.7812 14.6328 12.8828 13.8281 13.6875C13.0234 14.4844 11.9141 14.6406 10.4922 14.6406H4.5C3.07812 14.6406 1.96875 14.4844 1.15625 13.6875C0.359375 12.8828 0.210938 11.7812 0.210938 10.3516V4.34375C0.210938 2.9375 0.359375 1.83594 1.16406 1.03125C1.96094 0.234375 3.07812 0.078125 4.47656 0.078125H10.4922C11.9141 0.078125 13.0234 0.226562 13.8281 1.03125ZM3.66406 7.35938C3.66406 7.80469 3.98438 8.11719 4.4375 8.11719H6.71875V10.4141C6.71875 10.8516 7.03125 11.1797 7.47656 11.1797C7.92969 11.1797 8.25 10.8594 8.25 10.4141V8.11719H10.5469C10.9844 8.11719 11.3047 7.80469 11.3047 7.35938C11.3047 6.90625 10.9844 6.58594 10.5469 6.58594H8.25V4.30469C8.25 3.85156 7.92969 3.53125 7.47656 3.53125C7.03125 3.53125 6.71875 3.85938 6.71875 4.30469V6.58594H4.4375C3.98438 6.58594 3.66406 6.90625 3.66406 7.35938Z"/>
+                                </svg>
+                            </div>
                         </div>
-                        <div class="DLP_HStack_Auto">
-                            <svg class="DLP_Magnetic_Hover_1" width="15" height="15" viewBox="0 0 15 15" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M2.76562 14.6562C1.07812 14.6562 0.203125 13.7891 0.203125 12.1172V2.60938C0.203125 0.9375 1.07812 0.0703125 2.76562 0.0703125H12.2266C13.9141 0.0703125 14.7891 0.945312 14.7891 2.60938V12.1172C14.7891 13.7891 13.9141 14.6562 12.2266 14.6562H2.76562ZM4.44531 8.13281H10.5938C11.0859 8.13281 11.4219 7.85156 11.4219 7.375C11.4219 6.89844 11.1016 6.60156 10.5938 6.60156H4.44531C3.9375 6.60156 3.60938 6.89844 3.60938 7.375C3.60938 7.85156 3.95312 8.13281 4.44531 8.13281Z"/>
-                            </svg>
-                            <p class="DLP_AutoServer_Text_Style_1 DLP_NoSelect" style="color: #FFF;">2 Days</p>
-                            <svg class="DLP_Magnetic_Hover_1" width="15" height="15" viewBox="0 0 15 15" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M13.8281 1.03125C14.6328 1.83594 14.7812 2.9375 14.7812 4.35938V10.3516C14.7812 11.7812 14.6328 12.8828 13.8281 13.6875C13.0234 14.4844 11.9141 14.6406 10.4922 14.6406H4.5C3.07812 14.6406 1.96875 14.4844 1.15625 13.6875C0.359375 12.8828 0.210938 11.7812 0.210938 10.3516V4.34375C0.210938 2.9375 0.359375 1.83594 1.16406 1.03125C1.96094 0.234375 3.07812 0.078125 4.47656 0.078125H10.4922C11.9141 0.078125 13.0234 0.226562 13.8281 1.03125ZM3.66406 7.35938C3.66406 7.80469 3.98438 8.11719 4.4375 8.11719H6.71875V10.4141C6.71875 10.8516 7.03125 11.1797 7.47656 11.1797C7.92969 11.1797 8.25 10.8594 8.25 10.4141V8.11719H10.5469C10.9844 8.11719 11.3047 7.80469 11.3047 7.35938C11.3047 6.90625 10.9844 6.58594 10.5469 6.58594H8.25V4.30469C8.25 3.85156 7.92969 3.53125 7.47656 3.53125C7.03125 3.53125 6.71875 3.85938 6.71875 4.30469V6.58594H4.4375C3.98438 6.58594 3.66406 6.90625 3.66406 7.35938Z"/>
-                            </svg>
+                        <div class="DLP_VStack_6">
+                            <div class="DLP_HStack_Auto">
+                                <p class="DLP_AutoServer_Text_Style_1 DLP_NoSelect" style="color: #FFF; opacity: 0.5;">Protecting Time:</p>
+                                <p class="DLP_AutoServer_Text_Style_1 DLP_NoSelect" style="color: #FFF; opacity: 0;">BETA</p>
+                            </div>
+                            <div class="DLP_HStack_Auto">
+                                <svg class="DLP_Magnetic_Hover_1" width="15" height="15" viewBox="0 0 15 15" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2.76562 14.6562C1.07812 14.6562 0.203125 13.7891 0.203125 12.1172V2.60938C0.203125 0.9375 1.07812 0.0703125 2.76562 0.0703125H12.2266C13.9141 0.0703125 14.7891 0.945312 14.7891 2.60938V12.1172C14.7891 13.7891 13.9141 14.6562 12.2266 14.6562H2.76562ZM9.09375 11.2578C9.375 10.9844 9.35938 10.5547 9.10156 10.3047L5.96875 7.35938L9.10156 4.42969C9.36719 4.17969 9.35938 3.73438 9.08594 3.47656C8.83594 3.23438 8.42188 3.24219 8.14844 3.5L4.92969 6.53125C4.44531 6.97656 4.45312 7.75781 4.92969 8.20312L8.14844 11.2344C8.39844 11.4688 8.86719 11.4844 9.09375 11.2578Z"/>
+                                </svg>
+                                <p class="DLP_AutoServer_Text_Style_1 DLP_NoSelect" style="color: #FFF;">Morning</p>
+                                <svg class="DLP_Magnetic_Hover_1" width="15" height="15" viewBox="0 0 15 15" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2.76562 14.6562C1.07812 14.6562 0.203125 13.7891 0.203125 12.1172V2.60938C0.203125 0.9375 1.07812 0.0703125 2.76562 0.0703125H12.2266C13.9141 0.0703125 14.7891 0.945312 14.7891 2.60938V12.1172C14.7891 13.7891 13.9141 14.6562 12.2266 14.6562H2.76562ZM5.67188 11.3672C5.91406 11.5938 6.39062 11.5781 6.64062 11.3359L9.95312 8.23438C10.4453 7.77344 10.4453 6.96875 9.95312 6.50781L6.64062 3.40625C6.36719 3.14062 5.94531 3.13281 5.6875 3.375C5.39844 3.64062 5.39844 4.09375 5.67188 4.35156L8.88281 7.36719L5.67188 10.3906C5.40625 10.6484 5.39062 11.0781 5.67188 11.3672Z"/>
+                                </svg>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 6px; flex: 1 0 0; align-self: stretch;">
-                    <div class="DLP_VStack_6">
+                    <div class="DLP_VStack_6" style="height: 100%; justify-content: flex-start;">
                         <div class="DLP_HStack_Auto">
                             <div class="DLP_HStack_4">
                                 <svg width="17" height="17" viewBox="0 0 17 17" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
@@ -2171,8 +2249,11 @@ HTML5 = `
                             </div>
                             <p class="DLP_AutoServer_Text_Style_1 DLP_NoSelect" style="color: #FFF; opacity: 0.5;">This function is in BETA</p>
                         </div>
-                        <p class="DLP_AutoServer_Text_Style_1 DLP_NoSelect" style="color: #FFF; opacity: 0.5;">Streak Protector protects your streak by completing a lesson in our servers.</p>
+                        <p class="DLP_AutoServer_Text_Style_1 DLP_NoSelect" style="color: #FFF; opacity: 0.5;">Streak Protector extends your streak by completing a lesson in our servers.</p>
                         <p class="DLP_AutoServer_Text_Style_1 DLP_NoSelect" style="color: #FFF; opacity: 0.5;">You can only protect your streak for up to 7 days. Donate to protect longer.</p>
+                        <div style="display: flex; justify-content: flex-end; align-items: flex-end; gap: 6px; flex: 1 0 0; align-self: stretch;">
+                            <p class="DLP_AutoServer_Text_Style_1 DLP_Magnetic_Hover_1 DLP_NoSelect" style="color: #FFF; opacity: 0.5;">Learn More</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2233,7 +2314,7 @@ HTML5 = `
                     </div>
                 </div>
                 <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 6px; flex: 1 0 0; align-self: stretch;">
-                    <div class="DLP_VStack_6">
+                    <div class="DLP_VStack_6" style="height: 100%; justify-content: flex-start;">
                         <div class="DLP_HStack_Auto">
                             <div class="DLP_HStack_4">
                                 <svg width="17" height="17" viewBox="0 0 17 17" fill="#FFF" xmlns="http://www.w3.org/2000/svg">
@@ -2246,7 +2327,7 @@ HTML5 = `
                         <p class="DLP_AutoServer_Text_Style_1 DLP_NoSelect" style="color: #FFF; opacity: 0.5;">League Protector protects your league position by completing lessons in our servers.</p>
                         <p class="DLP_AutoServer_Text_Style_1 DLP_NoSelect" style="color: #FFF; opacity: 0.5;">You only have access to Chill and Standard Mode with up to 7 days of protection. Donate to get access to Aggressive Mode and longer protection.</p>
                         <div style="display: flex; justify-content: flex-end; align-items: flex-end; gap: 6px; flex: 1 0 0; align-self: stretch;">
-                            <p class="DLP_AutoServer_Text_Style_1 DLP_NoSelect" style="color: #FFF; opacity: 0.5;">Learn More</p>
+                            <p class="DLP_AutoServer_Text_Style_1 DLP_Magnetic_Hover_1 DLP_NoSelect" style="color: #FFF; opacity: 0.5;">Learn More</p>
                         </div>
                     </div>
                 </div>
@@ -2290,6 +2371,7 @@ CSS5 = `
     align-items: center;
     flex-shrink: 0;
     z-index: 210;
+    transition: filter 0.4s cubic-bezier(0.16, 1, 0.32, 1), opacity 0.4s cubic-bezier(0.16, 1, 0.32, 1);
 
     background: rgba(var(--color-snow), 0.50);
     backdrop-filter: blur(16px);
@@ -2358,6 +2440,116 @@ CSS5 = `
     outline-offset: -2px;
 }
 `;
+
+HTML6 = `
+<div class="DPAutoServerButtonMainMenu">
+    <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_952_270)">
+            <rect width="30" height="30" rx="15" fill="#007AFF"/>
+            <path d="M19.9424 20.5947H10.4404C7.96582 20.5947 6.04492 18.7764 6.04492 16.582C6.04492 14.8115 7.02246 13.3623 8.61523 13.0342C8.73145 11.0859 10.5361 9.77344 12.3545 10.1904C13.2773 8.88477 14.7061 8.02344 16.4766 8.02344C19.4502 8.02344 21.7334 10.2998 21.7402 13.458C23.1279 14.0322 23.9551 15.3926 23.9551 16.876C23.9551 18.9404 22.1777 20.5947 19.9424 20.5947ZM10.6318 16.1445C10.2285 16.6504 10.6934 17.1904 11.2539 16.9102L13.4688 15.7549L16.1006 17.2109C16.2578 17.2998 16.4082 17.3477 16.5586 17.3477C16.7705 17.3477 16.9688 17.2383 17.1465 17.0195L19.3818 14.1963C19.7646 13.7109 19.3203 13.1641 18.7598 13.4443L16.5312 14.5928L13.9062 13.1436C13.7422 13.0547 13.5986 13.0068 13.4414 13.0068C13.2363 13.0068 13.0381 13.1094 12.8535 13.335L10.6318 16.1445Z" fill="white"/>
+        </g>
+        <defs>
+            <clipPath id="clip0_952_270">
+                <rect width="30" height="30" rx="15" fill="#FFF"/>
+            </clipPath>
+        </defs>
+    </svg>
+    <p class="DPAutoServerElementsMenu DLP_NoSelect" style="flex: 1 0 0; color: #007AFF; font-size: 16px; font-style: normal; font-weight: 700; line-height: normal; margin: 0px;">AutoServer</p>
+    <svg class="DPAutoServerElementsMenu" style="opacity: 0;" width="9" height="16" viewBox="0 0 9 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8.57031 7.85938C8.57031 8.24219 8.4375 8.5625 8.10938 8.875L2.20312 14.6641C1.96875 14.8984 1.67969 15.0156 1.33594 15.0156C0.648438 15.0156 0.0859375 14.4609 0.0859375 13.7734C0.0859375 13.4219 0.226562 13.1094 0.484375 12.8516L5.63281 7.85156L0.484375 2.85938C0.226562 2.60938 0.0859375 2.28906 0.0859375 1.94531C0.0859375 1.26562 0.648438 0.703125 1.33594 0.703125C1.67969 0.703125 1.96875 0.820312 2.20312 1.05469L8.10938 6.84375C8.42969 7.14844 8.57031 7.46875 8.57031 7.85938Z" fill="#007AFF"/>
+    </svg>
+</div>
+`;
+CSS6 = `
+.DPAutoServerButtonMainMenu {
+	display: flex;
+	box-sizing: border-box;
+	justify-content: center;
+	align-items: center;
+	gap: 16px;
+	flex-shrink: 0;
+
+	border-radius: 12px;
+
+	cursor: pointer;
+}
+.DPAutoServerButtonMainMenu:hover {
+	background: rgba(0, 122, 255, 0.10);
+}
+.DPAutoServerButtonMainMenu:active {
+	filter: brightness(.9);
+
+}
+
+.DPAutoServerButtonMainMenu:hover .DPAutoServerElementsMenu {
+	opacity: 1 !important;
+}
+
+.DPAutoServerButtonMainMenuMedium {
+	width: 56px;
+	height: 52px;
+	padding: 8px;
+}
+
+.DPAutoServerButtonMainMenuLarge {
+	width: 222px;
+	height: 52px;
+	padding: 16px 17px;
+}
+`;
+HTML7 = `
+<div id="DLP_The_Bar_Thing_Box" class="DuolingoProCounterBoxOneClass" style="display: inline-flex; justify-content: center; flex-direction: row-reverse; align-items: center; gap: 4px;">
+    <div class="vCIrKKxykXwXyUza DLP_Magnetic_Hover_1" id="DLP_Inset_Button_1_ID">
+        <svg id="DLP_Inset_Icon_1_ID" style="display: none;" width="20" height="10" viewBox="0 0 20 10" fill="rgb(var(--color-eel))" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0.223633 5.06445C0.223633 2.2959 2.01465 0.470703 4.66699 0.470703C6.02734 0.470703 7.20312 1.04492 8.41309 2.2207L9.91016 3.66309L11.4004 2.2207C12.6104 1.04492 13.7861 0.470703 15.1465 0.470703C17.7988 0.470703 19.5898 2.2959 19.5898 5.06445C19.5898 7.82617 17.7988 9.65137 15.1465 9.65137C13.7861 9.65137 12.6104 9.08398 11.4004 7.9082L9.91016 6.45898L8.41309 7.9082C7.20312 9.08398 6.02734 9.65137 4.66699 9.65137C2.01465 9.65137 0.223633 7.82617 0.223633 5.06445ZM2.25391 5.06445C2.25391 6.61621 3.21777 7.62109 4.66699 7.62109C5.45312 7.62109 6.17773 7.23828 6.99121 6.46582L8.47461 5.06445L6.99121 3.66309C6.17773 2.89062 5.45312 2.50098 4.66699 2.50098C3.21777 2.50098 2.25391 3.50586 2.25391 5.06445ZM11.3389 5.06445L12.8223 6.46582C13.6426 7.23828 14.3604 7.62109 15.1465 7.62109C16.5957 7.62109 17.5596 6.61621 17.5596 5.06445C17.5596 3.50586 16.5957 2.50098 15.1465 2.50098C14.3604 2.50098 13.6357 2.89062 12.8223 3.66309L11.3389 5.06445Z"/>
+        </svg>
+        <p id="DLP_Inset_Text_1_ID" class="DLP_Text_Style_1 DLP_NoSelect"></p>
+    </div>
+    <div class="vCIrKKxykXwXyUza DLP_Magnetic_Hover_1" id="DLP_Inset_Button_2_ID">
+        <svg id="DLP_Inset_Icon_1_ID" style="" width="15" height="15" viewBox="0 0 15 15" fill="rgb(var(--color-eel))" xmlns="http://www.w3.org/2000/svg">
+            <path d="M13.3916 13.9004L0.991211 1.51367C0.772461 1.29492 0.772461 0.918945 0.991211 0.700195C1.2168 0.474609 1.58594 0.474609 1.81152 0.700195L14.2051 13.0869C14.4307 13.3125 14.4238 13.6748 14.2051 13.9004C13.9863 14.126 13.6172 14.126 13.3916 13.9004ZM10.958 8.54785L6.09766 3.70117H6.2002C6.23438 3.69434 6.26172 3.68066 6.28223 3.66016L8.76367 1.35645C9.18066 0.966797 9.48828 0.802734 9.87793 0.802734C10.5 0.802734 10.958 1.28809 10.958 1.89648V8.54785ZM3.94434 10.1611C2.80957 10.1611 2.21484 9.5459 2.21484 8.35645V5.79297C2.21484 5.21191 2.36523 4.76074 2.64551 4.4668L10.8691 12.6768C10.6982 13.1006 10.3359 13.3398 9.88477 13.3398C9.47461 13.3398 9.15332 13.1758 8.76367 12.8066L5.96777 10.209C5.93359 10.1748 5.88574 10.1611 5.83789 10.1611H3.94434Z"/>
+        </svg>
+        <svg id="DLP_Inset_Icon_2_ID" style="display: none;" width="18" height="14" viewBox="0 0 18 14" fill="rgb(var(--color-eel))" xmlns="http://www.w3.org/2000/svg">
+            <path d="M7.88477 13.3398C7.47461 13.3398 7.15332 13.1758 6.76367 12.8066L3.98828 10.209C3.9541 10.1748 3.90625 10.1611 3.8584 10.1611H1.95801C0.830078 10.1611 0.214844 9.52539 0.214844 8.34277V5.81348C0.214844 4.63086 0.830078 3.98828 1.95801 3.98828H3.8584C3.91309 3.98828 3.9541 3.96777 3.99512 3.93359L6.76367 1.35645C7.1875 0.966797 7.48145 0.802734 7.87793 0.802734C8.5 0.802734 8.95801 1.28809 8.95801 1.89648V12.2666C8.95801 12.875 8.5 13.3398 7.88477 13.3398ZM14.4609 12.2119C14.0166 11.9521 13.9619 11.4121 14.2627 10.9268C14.96 9.84668 15.3633 8.48633 15.3633 7.06445C15.3633 5.64258 14.9668 4.27539 14.2627 3.20215C13.9619 2.7168 14.0166 2.17676 14.4609 1.91016C14.8643 1.67773 15.3564 1.77344 15.6162 2.16992C16.5391 3.5166 17.0586 5.25977 17.0586 7.06445C17.0586 8.86914 16.5322 10.5986 15.6162 11.959C15.3564 12.3555 14.8643 12.4512 14.4609 12.2119ZM11.3848 10.3115C10.9609 10.0449 10.8652 9.53906 11.2139 8.97168C11.5557 8.44531 11.7471 7.76855 11.7471 7.06445C11.7471 6.35352 11.5625 5.67676 11.2139 5.15723C10.8652 4.59668 10.9609 4.08398 11.3848 3.81738C11.7676 3.57129 12.2529 3.66699 12.5059 4.01562C13.1006 4.83594 13.4492 5.92285 13.4492 7.06445C13.4492 8.20605 13.1006 9.29297 12.5059 10.1064C12.2529 10.4619 11.7676 10.5508 11.3848 10.3115Z"/>
+        </svg>
+        <p id="DLP_Inset_Text_1_ID" class="DLP_Text_Style_1 DLP_NoSelect">Mute</p>
+    </div>
+    <div class="vCIrKKxykXwXyUza DLP_Magnetic_Hover_1" id="DLP_Inset_Button_3_ID" style="width: 40px; padding: 0;">
+        <svg id="DLP_Inset_Icon_1_ID" style="transition: all 0.8s cubic-bezier(0.16, 1, 0.32, 1);" width="15" height="16" viewBox="0 0 15 16" fill="rgb(var(--color-eel))" xmlns="http://www.w3.org/2000/svg">
+            <path d="M7.44238 15.29C3.48438 15.29 0.223633 12.0293 0.223633 8.06445C0.223633 4.10645 3.47754 0.845703 7.44238 0.845703C11.4004 0.845703 14.6611 4.10645 14.6611 8.06445C14.6611 12.0293 11.4072 15.29 7.44238 15.29ZM8.87793 11.5303C9.17188 11.2363 9.15137 10.7783 8.87793 10.5117L6.2666 8.07129L8.87793 5.63086C9.1582 5.36426 9.1582 4.88574 8.85742 4.6123C8.59082 4.36621 8.16016 4.35938 7.87305 4.63281L5.09766 7.23047C4.61914 7.68164 4.61914 8.46777 5.09766 8.91895L7.87305 11.5166C8.13281 11.7627 8.63184 11.7695 8.87793 11.5303Z"/>
+        </svg>
+    </div>
+</div>
+`;
+CSS7 = `
+.vCIrKKxykXwXyUza {
+    outline: 2px solid rgb(var(--color-swan));
+    outline-offset: -2px;
+    height: 40px;
+    width: auto;
+    padding: 0 16px;
+    gap: 6px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+
+    border-radius: 32px;
+    background: rgb(var(--color-snow), 0.84);
+    backdrop-filter: blur(16px);
+    overflow: hidden;
+
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.32, 1);
+    cursor: pointer;
+}
+.vCIrKKxykXwXyUza p {
+    white-space: nowrap;
+}
+.vCIrKKxykXwXyUza svg {
+    flex-shrink: 0;
+}
+`;
 }
 
 function One() {
@@ -2367,24 +2559,298 @@ function One() {
     document.body.insertAdjacentHTML('beforeend', HTML2);
     document.head.appendChild(Object.assign(document.createElement('style'), { type: 'text/css', textContent: CSS2 }));
 
-    //setTimeout(() => {
-    //    document.body.insertAdjacentHTML('beforeend', HTML5);
-    //    document.head.appendChild(Object.assign(document.createElement('style'), { type: 'text/css', textContent: CSS5 }));
-    //}, 1000);
+    document.body.insertAdjacentHTML('beforeend', HTML5);
+    document.head.appendChild(Object.assign(document.createElement('style'), { type: 'text/css', textContent: CSS5 }));
 
-    if (storageSession.legacy.page === 1) {
-        setTimeout(() => {
-            goToPage(3);
-            let button = document.querySelector('#DLP_Switch_Legacy_Button_1_ID');
-            setButtonState(button, systemText[systemLanguage][105], button.querySelector('#DLP_Inset_Icon_2_ID'), button.querySelector('#DLP_Inset_Icon_1_ID'), 'linear-gradient(0deg, rgba(0, 122, 255, 0.10) 0%, rgba(0, 122, 255, 0.10) 100%), rgba(var(--color-snow), 0.80)', '2px solid rgba(0, 122, 255, 0.20', '#007AFF', 400);
-        }, 1000);
-    } else if (storageSession.legacy.page === 2) {
-        setTimeout(() => {
-            goToPage(4);
-            let button = document.querySelector('#DLP_Switch_Legacy_Button_1_ID');
-            setButtonState(button, systemText[systemLanguage][105], button.querySelector('#DLP_Inset_Icon_2_ID'), button.querySelector('#DLP_Inset_Icon_1_ID'), 'linear-gradient(0deg, rgba(0, 122, 255, 0.10) 0%, rgba(0, 122, 255, 0.10) 100%), rgba(var(--color-snow), 0.80)', '2px solid rgba(0, 122, 255, 0.20', '#007AFF', 400);
-        }, 1000);
+    let DPAutoServerButtonMainMenuElement = null;
+    let DPAutoServerButtonMainMenuStyle = null;
+
+    function DPAutoServerButtonMainMenuFunction() {
+        try {
+            if (storageLocal.settings.showAutoServerButton && alpha) {
+                let targetElement = document.querySelector('._2uLXp');
+                if (!targetElement || document.querySelector('.DPAutoServerButtonMainMenu')) return;
+
+                DPAutoServerButtonMainMenuStyle = document.createElement('style');
+                DPAutoServerButtonMainMenuStyle.type = 'text/css';
+                DPAutoServerButtonMainMenuStyle.innerHTML = CSS6;
+                document.head.appendChild(DPAutoServerButtonMainMenuStyle);
+
+                let targetDivLast = document.querySelector('[data-test="profile-tab"]');
+
+                if (targetElement && targetDivLast) {
+                    targetElement.lastChild.insertAdjacentHTML('beforebegin', HTML6);
+
+                    let otherTargetDiv = document.querySelector('.DPAutoServerButtonMainMenu');
+                    otherTargetDiv.addEventListener('click', () => {
+                        manageAutoServerWindowVisibility(true);
+                    });
+
+                    let lastWidth = targetElement.offsetWidth;
+                    const resizeObserver = new ResizeObserver(entries => {
+                        for (let entry of entries) {
+                            if (entry.target.offsetWidth !== lastWidth) {
+                                otherTargetDiv.remove();
+                                DPAutoServerButtonMainMenuFunction();
+                                lastWidth = entry.target.offsetWidth;
+                            }
+                        }
+                    });
+                    resizeObserver.observe(targetElement);
+
+                    if (targetElement.offsetWidth < 100) {
+                        otherTargetDiv.classList.add('DPAutoServerButtonMainMenuMedium');
+                        document.querySelectorAll('.DPAutoServerElementsMenu').forEach(function(element) {
+                            element.remove();
+                        });
+                    } else {
+                        otherTargetDiv.classList.add('DPAutoServerButtonMainMenuLarge');
+                    }
+                }
+            }
+        } catch(error) {}
     }
+    setInterval(DPAutoServerButtonMainMenuFunction, 500);
+
+    document.querySelector('.DLP_AutoServer_Mother_Box').querySelector('#DLP_AutoServer_Close_Button_1_ID').addEventListener('click', () => {
+        manageAutoServerWindowVisibility(false);
+    });
+    document.querySelector('.DLP_AutoServer_Mother_Box').addEventListener('click', (event) => {
+        if (event.target === event.currentTarget) {
+            manageAutoServerWindowVisibility(false);
+        }
+    });
+    function manageAutoServerWindowVisibility(state) {
+        if (state) {
+            document.querySelector('.DLP_AutoServer_Mother_Box').style.display = "";
+            document.querySelector('.DLP_AutoServer_Mother_Box').offsetHeight;
+            document.querySelector('.DLP_AutoServer_Mother_Box').style.opacity = "1";
+            document.querySelector('.DLP_AutoServer_Mother_Box').style.filter = "blur(0px)";
+        } else {
+            document.querySelector('.DLP_AutoServer_Mother_Box').style.opacity = "0";
+            document.querySelector('.DLP_AutoServer_Mother_Box').style.filter = "blur(8px)";
+            setTimeout(() => {
+                document.querySelector('.DLP_AutoServer_Mother_Box').style.display = "none";
+            }, 400);
+        }
+    }
+
+    let counterPaused = false;
+    function DuolingoProCounterOneFunction() {
+        function handleMuteTab(value) {
+            if (isBusySwitchingPages) return;
+            isBusySwitchingPages = true;
+            muteTab(value);
+            let button = document.querySelector('#DLP_Inset_Button_2_ID');
+            let icon1 = button.querySelector('#DLP_Inset_Icon_1_ID');
+            let icon2 = button.querySelector('#DLP_Inset_Icon_2_ID');
+            let text = button.querySelector('#DLP_Inset_Text_1_ID');
+            if (value) {
+                setButtonState(button, "Muted", icon1, icon2, 'rgb(var(--color-snow), 0.84)', '2px solid rgb(var(--color-swan))', 'rgb(var(--color-black-text))', 400, () => {
+                    setTimeout(() => {
+                        isBusySwitchingPages = false;
+                    }, 400);
+                });
+            } else {
+                setButtonState(button, "Mute", icon2, icon1, 'rgb(var(--color-snow), 0.84)', '2px solid rgb(var(--color-swan))', 'rgb(var(--color-black-text))', 400, () => {
+                    setTimeout(() => {
+                        isBusySwitchingPages = false;
+                    }, 400);
+                });
+            }
+        }
+
+        if ((window.location.pathname.includes('/lesson') || window.location.pathname.includes('/practice')) && storageSession.legacy.status) {
+            let theBarThing = document.querySelector('#DLP_The_Bar_Thing_Box');
+            if (!theBarThing) {
+                document.head.appendChild(Object.assign(document.createElement('style'), { type: 'text/css', textContent: CSS7 }));
+                //const targetElement1 = document.querySelector('.I-Avc._1zcW8');
+                const targetElement1 = document.querySelector('._1zcW8');
+                const targetElement2 = document.querySelector('.mAxZF');
+                if (targetElement1) {
+                    targetElement1.insertAdjacentHTML('beforeend', HTML7);
+                    theBarThing = document.querySelector('#DLP_The_Bar_Thing_Box');
+                    targetElement1.style.display = "flex";
+                    document.querySelector('[role="progressbar"]').style.width = "100%";
+                } else if (targetElement2) {
+                    targetElement2.insertAdjacentHTML('beforeend', HTML7);
+                    theBarThing = document.querySelector('#DLP_The_Bar_Thing_Box');
+                    theBarThing.style.marginLeft = '24px';
+                    document.querySelector('._15ch1').style.pointerEvents = 'all';
+                }
+                else if (debug) console.log('Element with class ._1zcW8 or .mAxZF not found');
+
+                let muteButton = theBarThing.querySelector('#DLP_Inset_Button_2_ID');
+                let expandButton = theBarThing.querySelector('#DLP_Inset_Button_3_ID');
+                let expandButtonIcon = expandButton.querySelector('#DLP_Inset_Icon_1_ID');
+                let theBarThingExtended = false;
+                function theBarThingExtend(button, visibility, noAnimation) {
+                    if (visibility) {
+                        button.style.display = "";
+                        button.style.width = "";
+                        button.style.padding = "";
+                        button.style.transition = '';
+                        let remember0010 = button.offsetWidth;
+                        button.style.width = "0px";
+                        requestAnimationFrame(() => {
+                            button.style.width = remember0010 + "px";
+                            button.style.padding = "";
+                            button.style.filter = "blur(0px)";
+                            button.style.opacity = "1";
+                            button.style.margin = "";
+                        });
+                    } else {
+                        button.style.transition = '';
+                        button.style.width = button.offsetWidth + "px";
+                        requestAnimationFrame(() => {
+                            button.style.width = "4px";
+                            button.style.padding = "0";
+                            button.style.filter = "blur(8px)";
+                            button.style.margin = "0 -4px";
+                            button.style.opacity = "0";
+                        });
+                        if (!noAnimation) {
+                            setTimeout(function() {
+                                button.style.display = "none";
+                            }, 400);
+                        } else {
+                            button.style.display = "none";
+                        }
+                    }
+                }
+                theBarThingExtend(muteButton, false, true);
+                expandButton.addEventListener('click', () => {
+                    if (theBarThingExtended) {
+                        expandButtonIcon.style.transform = "rotate(0deg)";
+                        theBarThingExtended = false;
+                        theBarThingExtend(muteButton, false);
+                    } else {
+                        expandButtonIcon.style.transform = "rotate(180deg)";
+                        theBarThingExtended = true;
+                        theBarThingExtend(muteButton, true);
+                    }
+                });
+
+                let counterButton = theBarThing.querySelector('#DLP_Inset_Button_1_ID');
+                let counterButtonText = counterButton.querySelector('#DLP_Inset_Text_1_ID');
+                let counterButtonIcon = counterButton.querySelector('#DLP_Inset_Icon_1_ID');
+                counterButton.addEventListener('click', () => {
+                    if (isBusySwitchingPages) return;
+                    isBusySwitchingPages = true;
+                    if (theBarThing.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Text_1_ID').innerHTML === 'Click Again to Stop Legacy') {
+                        setButtonState(counterButton, "Stopping", undefined, counterButtonIcon.style.display !== 'none' ? counterButtonIcon : undefined, 'rgb(var(--color-snow), 0.84)', '2px solid rgb(var(--color-swan))', 'rgb(var(--color-black-text))', 400, () => {
+                            storageSession.legacy.status = false;
+                            saveStorageSession();
+                            setTimeout(() => {
+                                isBusySwitchingPages = false;
+                                window.location.href = "https://duolingo.com";
+                            }, 400);
+                        });
+                    } else {
+                        counterPaused = true;
+                        setButtonState(counterButton, "Click Again to Stop Legacy", undefined, counterButtonIcon.style.display !== 'none' ? counterButtonIcon : undefined, 'rgb(var(--color-snow), 0.84)', '2px solid rgb(var(--color-swan))', 'rgb(var(--color-black-text))', 400, () => {
+                            setTimeout(() => {
+                                isBusySwitchingPages = false;
+                                setTimeout(() => {
+                                    if (storageSession.legacy.status) counterPaused = false;
+                                }, 4000);
+                            }, 400);
+                        });
+                    }
+                });
+
+                if (storageLocal.settings.muteLessons) {
+                    handleMuteTab(true);
+                }
+
+                document.querySelector('#DLP_Inset_Button_2_ID').addEventListener('click', () => {
+                    storageLocal.settings.muteLessons = !storageLocal.settings.muteLessons;
+                    saveStorageLocal();
+                    handleMuteTab(storageLocal.settings.muteLessons);
+                });
+            }
+
+            function updateCounter() {
+                let button = theBarThing.querySelector('#DLP_Inset_Button_1_ID');
+                let text = button.querySelector('#DLP_Inset_Text_1_ID');
+                let icon = button.querySelector('#DLP_Inset_Icon_1_ID');
+
+                if (storageSession.legacy[storageSession.legacy.status].type === 'infinity' && text.textContent !== 'Infinity') {
+                    isBusySwitchingPages = true;
+                    setButtonState(button, "Infinity", icon, undefined, 'rgb(var(--color-snow), 0.84)', '2px solid rgb(var(--color-swan))', 'rgb(var(--color-black-text))', 400, () => {
+                        setTimeout(() => {
+                            isBusySwitchingPages = false;
+                        }, 400);
+                    });
+                } else if (storageSession.legacy[storageSession.legacy.status].type === 'xp' && text.textContent !== String(storageSession.legacy[storageSession.legacy.status].amount + ' XP Left')) {
+                    isBusySwitchingPages = true;
+                    setButtonState(button, String(storageSession.legacy[storageSession.legacy.status].amount + ' XP Left'), undefined, icon.style.display !== 'none' ? icon : undefined, 'rgb(var(--color-snow), 0.84)', '2px solid rgb(var(--color-swan))', 'rgb(var(--color-black-text))', 400, () => {
+                        setTimeout(() => {
+                            isBusySwitchingPages = false;
+                        }, 400);
+                    });
+                } else if (window.location.pathname === '/practice') {
+                    if (storageSession.legacy[storageSession.legacy.status].amount === 1 && text.textContent !== 'Last Practice') {
+                        isBusySwitchingPages = true;
+                        setButtonState(button, 'Last Practice', undefined, icon.style.display !== 'none' ? icon : undefined, 'rgb(var(--color-snow), 0.84)', '2px solid rgb(var(--color-swan))', 'rgb(var(--color-black-text))', 400, () => {
+                            setTimeout(() => {
+                                isBusySwitchingPages = false;
+                            }, 400);
+                        });
+                    } else if (storageSession.legacy[storageSession.legacy.status].amount === 0 && text.textContent !== 'Finishing Up') {
+                        isBusySwitchingPages = true;
+                        setButtonState(button, 'Finishing Up', undefined, icon.style.display !== 'none' ? icon : undefined, 'rgb(var(--color-snow), 0.84)', '2px solid rgb(var(--color-swan))', 'rgb(var(--color-black-text))', 400, () => {
+                            setTimeout(() => {
+                                isBusySwitchingPages = false;
+                            }, 400);
+                        });
+                    } else if (storageSession.legacy[storageSession.legacy.status].amount > 1 && text.textContent !== String(storageSession.legacy[storageSession.legacy.status].amount + ' Practices Left')) {
+                        isBusySwitchingPages = true;
+                        setButtonState(button, String(storageSession.legacy[storageSession.legacy.status].amount + ' Practices Left'), undefined, icon.style.display !== 'none' ? icon : undefined, 'rgb(var(--color-snow), 0.84)', '2px solid rgb(var(--color-swan))', 'rgb(var(--color-black-text))', 400, () => {
+                            setTimeout(() => {
+                                isBusySwitchingPages = false;
+                            }, 400);
+                        });
+                    }
+                } else if (storageSession.legacy[storageSession.legacy.status].type === 'lesson') {
+                    if (storageSession.legacy[storageSession.legacy.status].amount === 1 && text.textContent !== 'Last Lesson') {
+                        isBusySwitchingPages = true;
+                        setButtonState(button, 'Last Lesson', undefined, icon.style.display !== 'none' ? icon : undefined, 'rgb(var(--color-snow), 0.84)', '2px solid rgb(var(--color-swan))', 'rgb(var(--color-black-text))', 400, () => {
+                            setTimeout(() => {
+                                isBusySwitchingPages = false;
+                            }, 400);
+                        });
+                    } else if (storageSession.legacy[storageSession.legacy.status].amount === 0 && text.textContent !== 'Finishing Up') {
+                        isBusySwitchingPages = true;
+                        setButtonState(button, 'Finishing Up', undefined, icon.style.display !== 'none' ? icon : undefined, 'rgb(var(--color-snow), 0.84)', '2px solid rgb(var(--color-swan))', 'rgb(var(--color-black-text))', 400, () => {
+                            setTimeout(() => {
+                                isBusySwitchingPages = false;
+                            }, 400);
+                        });
+                    } else if (storageSession.legacy[storageSession.legacy.status].amount > 1 && text.textContent !== String(storageSession.legacy[storageSession.legacy.status].amount + ' Lessons Left')) {
+                        isBusySwitchingPages = true;
+                        setButtonState(button, String(storageSession.legacy[storageSession.legacy.status].amount + ' Lessons Left'), undefined, icon.style.display !== 'none' ? icon : undefined, 'rgb(var(--color-snow), 0.84)', '2px solid rgb(var(--color-swan))', 'rgb(var(--color-black-text))', 400, () => {
+                            setTimeout(() => {
+                                isBusySwitchingPages = false;
+                            }, 400);
+                        });
+                    }
+                }
+            }
+
+            if (!counterPaused) updateCounter();
+        }
+    }
+    setInterval(DuolingoProCounterOneFunction, 500);
+
+
+    window.onfocus = () => {
+        windowBlurState = true;
+    };
+    window.onblur = () => {
+        windowBlurState = false;
+    };
+
     document.querySelector('#DLP_Get_GEMS_1_ID').addEventListener('click', () => {
         showNotification("warning", systemText[systemLanguage][200], systemText[systemLanguage][201], 6);
     });
@@ -2396,6 +2862,12 @@ function One() {
         if (!storageLocal.settings.showSolveButtons) return;
         if (window.location.pathname === '/learn' && document.querySelector('a[data-test="global-practice"]')) return;
         if (document.querySelector("#solveAllButton")) return;
+
+        document.querySelector('[data-test="quit-button"]')?.addEventListener('click', function() {
+            solving("stop");
+            //storageSession.legacy.status = false;
+            //saveStorageSession();
+        });
 
         function createButton(id, text, styleClass, eventHandlers) {
             const button = document.createElement('button');
@@ -2502,25 +2974,49 @@ function One() {
 
     let notificationCount = 0;
     let currentNotification = [];
+    let notificationsHovered = false;
+
+    const notificationMain = document.querySelector('.DLP_Notification_Main');
+    notificationMain.addEventListener('mouseenter', () => {
+        notificationsHovered = true;
+    });
+    notificationMain.addEventListener('mouseleave', () => {
+        notificationsHovered = false;
+    });
+
     function showNotification(icon, head, body, time) {
         notificationCount++;
         let notificationID = notificationCount;
         currentNotification.push(notificationID);
 
-        let notificationMain = document.querySelector('.DLP_Notification_Main');
-        let element = new DOMParser().parseFromString(HTML3, 'text/html').body.firstChild;
+        let element = new DOMParser()
+        .parseFromString(HTML3, 'text/html')
+        .body.firstChild;
         element.id = 'DLP_Notification_Box_' + notificationID + '_ID';
         notificationMain.appendChild(element);
-        if (icon === "") element.querySelector('#DLP_Inset_Icon_1_ID').remove();
-        else if (icon === "checkmark") element.querySelector('#DLP_Inset_Icon_1_ID').style.display = 'block';
-        else if (icon === "warning") element.querySelector('#DLP_Inset_Icon_2_ID').style.display = 'block';
-        else if (icon === "error") element.querySelector('#DLP_Inset_Icon_3_ID').style.display = 'block';
+        initializeMagneticHover(
+            element.querySelector('#DLP_Notification_Dismiss_Button_1_ID')
+        );
+
+        if (icon === "") {
+            element.querySelector('#DLP_Inset_Icon_1_ID').remove();
+        } else if (icon === "checkmark") {
+            element.querySelector('#DLP_Inset_Icon_1_ID').style.display = 'block';
+        } else if (icon === "warning") {
+            element.querySelector('#DLP_Inset_Icon_2_ID').style.display = 'block';
+        } else if (icon === "error") {
+            element.querySelector('#DLP_Inset_Icon_3_ID').style.display = 'block';
+        }
         element.querySelector('#DLP_Inset_Text_1_ID').innerHTML = head;
-        element.querySelector('#DLP_Inset_Text_2_ID').innerHTML = body;
+        if (body && body !== "") {
+            element.querySelector('#DLP_Inset_Text_2_ID').innerHTML = body;
+        } else {
+            element.querySelector('#DLP_Inset_Text_2_ID').style.display = "none";
+        }
 
-        //document.head.appendChild(Object.assign(document.createElement('style'), { type: 'text/css', textContent: CSS4 }));
-
-        let notification = document.querySelector('#DLP_Notification_Box_' + notificationID + '_ID');
+        let notification = document.querySelector(
+            '#DLP_Notification_Box_' + notificationID + '_ID'
+        );
         let notificationHeight = notification.offsetHeight;
         notification.style.bottom = '-' + notificationHeight + 'px';
 
@@ -2534,7 +3030,18 @@ function One() {
 
         let isBusyDisappearing = false;
 
-        function repeat() {
+        let timerData = null;
+        if (time !== 0) {
+            timerData = {
+                remaining: time * 1000,
+                lastTimestamp: Date.now(),
+                timeoutHandle: null,
+                paused: false,
+            };
+            timerData.timeoutHandle = setTimeout(internalDisappear, timerData.remaining);
+        }
+
+        let repeatInterval = setInterval(() => {
             if (document.body.offsetWidth <= 963) {
                 requestAnimationFrame(() => {
                     notificationMain.style.width = "300px";
@@ -2548,59 +3055,111 @@ function One() {
                     notificationMain.style.left = "";
                 });
             }
-            if (isBusyDisappearing) return;
-            if (currentNotification[currentNotification.length - 1] !== notificationID) {
-                notification.style.height = notificationHeight + 'px';
-                requestAnimationFrame(() => {
-                    //console.log('#DLP_Notification_Box_' + String(currentNotification.pop()) + '_ID');
-                    //console.log(notificationID, currentNotification[currentNotification.length - 1], currentNotification);
-                    notification.style.height = document.querySelector('#DLP_Notification_Box_' + String(currentNotification[currentNotification.length - 1]) + '_ID').offsetHeight + 'px';
-                    notification.style.width = "284px";
-                    notification.style.transform = "translateY(-8px)";
-                });
-            } else {
-                requestAnimationFrame(() => {
-                    notification.style.height = notificationHeight + "px";
-                    notification.style.width = "";
-                    notification.style.transform = "";
-                });
-            }
-        }
-        let repeatInterval = setInterval(repeat, 100);
 
-        function disappear() {
+            if (isBusyDisappearing) return;
+
+            if (timerData) {
+                if (notificationsHovered && !timerData.paused) {
+                    clearTimeout(timerData.timeoutHandle);
+                    let elapsed = Date.now() - timerData.lastTimestamp;
+                    timerData.remaining -= elapsed;
+                    timerData.paused = true;
+                }
+                if (!notificationsHovered && timerData.paused) {
+                    timerData.paused = false;
+                    timerData.lastTimestamp = Date.now();
+                    timerData.timeoutHandle = setTimeout(internalDisappear, timerData.remaining);
+                }
+            }
+
+            if (notificationsHovered) {
+                let allIDs = currentNotification.slice();
+                let bottoms = {};
+                let currentBottom = 16;
+                for (let i = allIDs.length - 1; i >= 0; i--) {
+                    let notifEl = document.querySelector(
+                        '#DLP_Notification_Box_' + allIDs[i] + '_ID'
+                    );
+                    if (!notifEl) continue;
+                    notifEl.style.width = "";
+                    notifEl.style.height = "";
+                    notifEl.style.transform = "";
+                    bottoms[allIDs[i]] = currentBottom;
+                    currentBottom += notifEl.offsetHeight + 8;
+                }
+                notification.style.bottom = bottoms[notificationID] + "px";
+
+                let totalHeight = 0;
+                for (let i = 0; i < allIDs.length; i++) {
+                    let notifEl = document.querySelector(
+                        '#DLP_Notification_Box_' + allIDs[i] + '_ID'
+                    );
+                    if (notifEl) {
+                        totalHeight += notifEl.offsetHeight;
+                    }
+                }
+                if (allIDs.length > 1) {
+                    totalHeight += (allIDs.length - 1) * 8;
+                }
+                notificationMain.style.height = totalHeight + "px";
+            } else {
+                notificationMain.style.height = '';
+                notification.style.bottom = "16px";
+                if (currentNotification[currentNotification.length - 1] !== notificationID) {
+                    notification.style.height = notificationHeight + 'px';
+                    requestAnimationFrame(() => {
+                        let latestNotif = document.querySelector(
+                            '#DLP_Notification_Box_' +
+                            String(currentNotification[currentNotification.length - 1]) +
+                            '_ID'
+                        );
+                        if (latestNotif) {
+                            notification.style.height = latestNotif.offsetHeight + 'px';
+                        }
+                        notification.style.width = "284px";
+                        notification.style.transform = "translateY(-8px)";
+                    });
+                } else {
+                    requestAnimationFrame(() => {
+                        notification.style.height = notificationHeight + "px";
+                        notification.style.width = "";
+                        notification.style.transform = "";
+                    });
+                }
+            }
+        }, 20);
+
+        function internalDisappear() {
+            if (timerData && timerData.timeoutHandle) {
+                clearTimeout(timerData.timeoutHandle);
+            }
             if (isBusyDisappearing) return;
             isBusyDisappearing = true;
-            if (currentNotification[currentNotification.length - 1] === notificationID) {
-                currentNotification.splice(currentNotification.indexOf(notificationID), 1);
-                requestAnimationFrame(() => {
-                    notification.style.bottom = "-" + notificationHeight + "px";
-                    notification.style.filter = "blur(16px)";
-                    notification.style.opacity = "0";
-                });
-                clearInterval(repeatInterval);
-                setTimeout(() => {
-                    notification.remove();
-                }, 800);
-            } else if (currentNotification[currentNotification.length - 2] === notificationID) {
-                currentNotification.splice(currentNotification.indexOf(notificationID), 1);
-                requestAnimationFrame(() => {
-                    notification.style.transform = "";
-                    notification.style.filter = "blur(16px)";
-                    notification.style.opacity = "0";
-                });
-                clearInterval(repeatInterval);
-                setTimeout(() => {
-                    notification.remove();
-                }, 800);
-            } else {
-                currentNotification.splice(currentNotification.indexOf(notificationID), 1);
+            currentNotification.splice(currentNotification.indexOf(notificationID), 1);
+
+            requestAnimationFrame(() => {
+                notification.style.bottom = "-" + notificationHeight + "px";
+                notification.style.filter = "blur(16px)";
+                notification.style.opacity = "0";
+            });
+            clearInterval(repeatInterval);
+            setTimeout(() => {
                 notification.remove();
-                clearInterval(repeatInterval);
-            }
+                if (currentNotification.length === 0) {
+                    notificationMain.style.height = '';
+                }
+            }, 800);
         }
+
+        function disappear() {
+            internalDisappear();
+        }
+
         notification.querySelector('#DLP_Notification_Dismiss_Button_1_ID').addEventListener("click", disappear);
-        if (time !== 0) setTimeout(disappear, time * 1000);
+
+        return {
+            close: disappear
+        };
     }
 
 
@@ -2617,15 +3176,11 @@ function One() {
         "DLP_Main_See_More_1_Button_1_ID": [2],
         "DLP_Main_Terms_1_Button_1_ID": [5],
 
-        "DLP_Main_2_Terms_1_Button_1_ID": [5],
-
         "DLP_Secondary_Settings_1_Button_1_ID": [7],
         "DLP_Secondary_Feedback_1_Button_1_ID": [8],
         "DLP_Secondary_Whats_New_1_Button_1_ID": [9],
         "DLP_Secondary_See_More_1_Button_1_ID": [4],
         "DLP_Secondary_Terms_1_Button_1_ID": [5],
-
-        "DLP_Secondary_2_Terms_1_Button_1_ID": [5],
 
         "DLP_Terms_Back_Button_1_ID": [1],
         "DLP_Terms_Accept_Button_1_ID": [1],
@@ -2643,7 +3198,7 @@ function One() {
 
         let mainBoxNewToBeWidth = mainBox.offsetWidth;
 
-        if (buttonID === 'DLP_Main_Terms_1_Button_1_ID' || buttonID === 'DLP_Main_2_Terms_1_Button_1_ID' || buttonID === 'DLP_Secondary_Terms_1_Button_1_ID' || buttonID === 'DLP_Secondary_2_Terms_1_Button_1_ID') {
+        if (buttonID === 'DLP_Main_Terms_1_Button_1_ID' || buttonID === 'DLP_Secondary_Terms_1_Button_1_ID') {
             document.querySelector(`#DLP_Terms_1_Text_1_ID`).style.display = 'none';
             document.querySelector(`#DLP_Terms_1_Button_1_ID`).style.display = 'none';
             document.querySelector(`#DLP_Terms_1_Text_2_ID`).style.display = 'block';
@@ -2657,12 +3212,13 @@ function One() {
                 document.querySelector(`#DLP_Terms_1_Text_2_ID`).style.display = 'none';
                 document.querySelector(`#DLP_Terms_1_Button_2_ID`).style.display = 'none';
             }, 400);
-        } else if (buttonID === 'DLP_Universal_Back_1_Button_1_ID') {
+        } else if (buttonID === 'DLP_Universal_Back_1_Button_1_ID' || to === -1) {
             toNumber = lastPage;
             toPage = document.querySelector(`#DLP_Main_Box_Divider_${toNumber}_ID`);
         } else if (buttonID === 'DLP_Switch_Legacy_Button_1_ID') {
             let button = document.querySelector('#DLP_Switch_Legacy_Button_1_ID');
-            if (legacyMode) {
+            console.log(storageSession.legacy.page);
+            if (storageSession.legacy.page !== 0) {
                 toNumber = 1;
                 toPage = document.querySelector(`#DLP_Main_Box_Divider_${toNumber}_ID`);
                 setButtonState(button, systemText[systemLanguage][106], button.querySelector('#DLP_Inset_Icon_1_ID'), button.querySelector('#DLP_Inset_Icon_2_ID'), 'linear-gradient(0deg, rgba(0, 122, 255, 0.10) 0%, rgba(0, 122, 255, 0.10) 100%), rgba(var(--color-snow), 0.80)', '2px solid rgba(0, 122, 255, 0.20', '#007AFF', 400);
@@ -2675,10 +3231,10 @@ function One() {
                 storageSession.legacy.page = 1;
                 saveStorageSession();
             }
-            legacyMode = !legacyMode;
         } else if (buttonID === 'DLP_Terms_Accept_Button_1_ID') {
             storageLocal.terms = newTermID;
             saveStorageLocal();
+            connectToServer();
         } else if (buttonID === 'DLP_Onboarding_Start_Button_1_ID') {
             storageLocal.onboarding = true;
             saveStorageLocal();
@@ -2688,20 +3244,36 @@ function One() {
         if (toNumber === 2) mainBoxNewToBeWidth = "600";
         else if (toNumber === 5) mainBoxNewToBeWidth = "400";
         else if (toNumber === 7) mainBoxNewToBeWidth = "400";
+        else if (toNumber === 8) mainBoxNewToBeWidth = "400";
         else if (toNumber === 9) mainBoxNewToBeWidth = "400";
         else mainBoxNewToBeWidth = "312";
 
         if ([1, 2, 3, 4].includes(toNumber)) legacyButtonVisibility(true);
         else legacyButtonVisibility(false);
 
+        if (toNumber === 3) {
+            storageSession.legacy.page = 1;
+            saveStorageSession();
+        } else if (toNumber === 4) {
+            storageSession.legacy.page = 2;
+            saveStorageSession();
+        }
+
         let mainBoxOldWidth = mainBox.offsetWidth;
         let mainBoxOldHeight = mainBox.offsetHeight;
+        let fromBoxOldWidth = fromPage.offsetWidth;
+        let fromBoxOldHeight = fromPage.offsetHeight;
+        console.log(fromBoxOldWidth, fromBoxOldHeight);
         mainBox.style.transition = "";
         fromPage.style.display = "none";
         toPage.style.display = "block";
         mainBox.offsetHeight;
         mainBox.style.width = `${mainBoxNewToBeWidth}px`;
+        let mainBoxNewWidth = mainBoxNewToBeWidth;
         let mainBoxNewHeight = mainBox.offsetHeight;
+        let toBoxOldWidth = toPage.offsetWidth;
+        let toBoxOldHeight = toPage.offsetHeight;
+        console.log(toBoxOldWidth, toBoxOldHeight);
         fromPage.style.display = "block";
         toPage.style.display = "none";
         mainBox.style.width = `${mainBoxOldWidth}px`;
@@ -2713,18 +3285,34 @@ function One() {
         mainBox.style.width = `${mainBoxNewToBeWidth}px`;
         mainBox.style.height = `${mainBoxNewHeight}px`;
 
-        fromPage.style.transition = "0.4s cubic-bezier(0.16, 1, 0.32, 1)";
+        fromPage.style.transform = `scaleX(1) scaleY(1)`;
+        fromPage.style.width = `${fromBoxOldWidth}px`;
+        fromPage.style.height = `${fromBoxOldHeight}px`;
+
+        fromPage.style.transition = "opacity 0.4s cubic-bezier(0.16, 1, 0.32, 1), filter 0.4s cubic-bezier(0.16, 1, 0.32, 1), transform 0.8s cubic-bezier(0.16, 1, 0.32, 1)";
+        fromPage.offsetHeight;
         fromPage.style.opacity = "0";
         fromPage.style.filter = "blur(4px)";
+        fromPage.style.transform = `scaleX(${toBoxOldWidth / fromBoxOldWidth}) scaleY(${toBoxOldHeight / fromBoxOldHeight})`;
 
+        toPage.style.width = `${toBoxOldWidth}px`;
+        toPage.style.height = `${toBoxOldHeight}px`;
         toPage.style.opacity = "0";
         toPage.style.filter = "blur(4px)";
+        toPage.style.transform = `scaleX(${fromBoxOldWidth / toBoxOldWidth}) scaleY(${fromBoxOldHeight / toBoxOldHeight})`;
+
+        toPage.style.transition = "opacity 0.4s cubic-bezier(0.16, 1, 0.32, 1), filter 0.4s cubic-bezier(0.16, 1, 0.32, 1), transform 0.8s cubic-bezier(0.16, 1, 0.32, 1)";
+        toPage.offsetHeight;
+        toPage.style.transform = `scaleX(1) scaleY(1)`;
 
         setTimeout(() => {
             fromPage.style.display = "none";
-            toPage.style.display = "block";
 
-            toPage.style.transition = "0.4s cubic-bezier(0.16, 1, 0.32, 1)";
+            fromPage.style.width = ``;
+            fromPage.style.height = ``;
+            fromPage.style.transform = ``;
+
+            toPage.style.display = "block";
             toPage.offsetHeight;
             toPage.style.opacity = "1";
             toPage.style.filter = "blur(0px)";
@@ -2738,6 +3326,10 @@ function One() {
                 toPage.style.filter = "";
 
                 mainBox.style.height = "";
+
+                toPage.style.width = ``;
+                toPage.style.height = ``;
+                toPage.style.transform = ``;
 
                 lastPage = currentPage;
                 currentPage = toNumber;
@@ -2820,6 +3412,65 @@ function One() {
     }
     setInterval(handleVisibility, 200);
 
+    let isGetButtonsBusy = false;
+    function setButtonState(button, text, iconToShow, iconToHide, bgColor, outlineColor, textColor, delay, callback) {
+        const textElement = button.querySelector('#DLP_Inset_Text_1_ID');
+        const icons = [1, 2, 3, 4].map(num => button.querySelector(`#DLP_Inset_Icon_${num}_ID`));
+
+        let previousText = textElement.textContent;
+        textElement.textContent = text;
+        if (iconToShow) iconToShow.style.display = 'block';
+        if (iconToHide) iconToHide.style.display = 'none';
+        let buttonNewWidth = button.offsetWidth;
+        textElement.textContent = previousText;
+        if (iconToShow) iconToShow.style.display = 'none';
+        if (iconToHide) iconToHide.style.display = 'block';
+
+        button.style.transition = 'width 0.8s cubic-bezier(0.77,0,0.18,1), background 0.8s cubic-bezier(0.16, 1, 0.32, 1), outline 0.8s cubic-bezier(0.16, 1, 0.32, 1), filter 0.4s cubic-bezier(0.16, 1, 0.32, 1), transform 0.4s cubic-bezier(0.16, 1, 0.32, 1)';
+        button.style.width = `${button.offsetWidth}px`;
+
+        requestAnimationFrame(() => {
+            textElement.style.transition = '0.4s';
+            if (iconToShow) iconToShow.style.transition = '0.4s';
+            if (iconToHide) iconToHide.style.transition = '0.4s';
+
+            textElement.style.filter = 'blur(4px)';
+            textElement.style.opacity = '0';
+            if (iconToHide) iconToHide.style.filter = 'blur(4px)';
+            if (iconToHide) iconToHide.style.opacity = '0';
+            button.style.width = `${buttonNewWidth}px`;
+
+            button.style.background = bgColor;
+            button.style.outline = outlineColor;
+        });
+
+        setTimeout(() => {
+            textElement.style.transition = '0s';
+            textElement.style.color = textColor;
+            textElement.offsetWidth;
+            textElement.style.transition = '0.4s';
+
+            if (iconToShow) iconToShow.style.display = 'block';
+            if (iconToHide) iconToHide.style.display = 'none';
+            if (iconToShow) iconToShow.style.filter = 'blur(4px)';
+            if (iconToShow) iconToShow.style.opacity = '0';
+
+            textElement.textContent = text;
+
+            requestAnimationFrame(() => {
+                textElement.style.filter = '';
+                textElement.style.opacity = '';
+                if (iconToShow) iconToShow.style.filter = '';
+                if (iconToShow) iconToShow.style.opacity = '1';
+            });
+
+            setTimeout(() => {
+                button.style.width = '';
+            }, 400);
+
+            if (callback) callback();
+        }, delay);
+    }
 
 
 
@@ -2850,7 +3501,67 @@ function One() {
             const input = element.querySelector('#DLP_Inset_Input_1_ID');
             const button = element.querySelector('#DLP_Inset_Button_1_ID');
             if (!input || !button) return;
-            const updateButtonState = () => {
+            function updateButtonState() {
+                const isEmpty = input.value.length === 0;
+                button.style.opacity = isEmpty ? '0.5' : '';
+                button.style.pointerEvents = isEmpty ? 'none' : '';
+            };
+            const category = ids[id][0];
+            input.addEventListener("input", function () {
+                this.value = this.value.replace(/[^0-9]/g, "");
+                if (this.value.length === 1 && this.value[0] === '0') this.value = this.value.slice(1);
+                if (this.value.length > 6) this.value = this.value.slice(0, 6);
+                updateButtonState();
+                //if (!storageSession.legacy[category]) storageSession.legacy[category] = [];
+                storageSession.legacy[category].amount = Number(this.value);
+                saveStorageSession();
+            });
+            if (['DLP_Get_LESSON_1_ID', 'DLP_Get_LESSON_2_ID'].includes(id)) {
+                const input3 = element.querySelector('#DLP_Inset_Input_3_ID');
+                const input4 = element.querySelector('#DLP_Inset_Input_4_ID');
+
+                input3.addEventListener("input", function () {
+                    this.value = this.value.replace(/[^0-9]/g, "");
+                    if (this.value.length === 1 && this.value[0] === '0') this.value = this.value.slice(1);
+                    if (this.value.length > 2) this.value = this.value.slice(0, 2);
+                    //if (!storageSession.legacy[category]) storageSession.legacy[category] = [];
+                    storageSession.legacy[category].unit = Number(this.value);
+                    saveStorageSession();
+                });
+                input3.addEventListener("blur", function () {
+                    if (this.value.trim() === "") {
+                        this.value = "1";
+                        storageSession.legacy[category].unit = 1;
+                        saveStorageSession();
+                    }
+                });
+
+                input4.addEventListener("input", function () {
+                    this.value = this.value.replace(/[^0-9]/g, "");
+                    if (this.value.length === 1 && this.value[0] === '0') this.value = this.value.slice(1);
+                    if (this.value.length > 2) this.value = this.value.slice(0, 2);
+                    //if (!storageSession.legacy[category]) storageSession.legacy[category] = [];
+                    storageSession.legacy[category].level = Number(this.value);
+                    saveStorageSession();
+                });
+                input4.addEventListener("blur", function () {
+                    if (this.value.trim() === "") {
+                        this.value = "1";
+                        storageSession.legacy[category].level = 1;
+                        saveStorageSession();
+                    }
+                });
+            }
+            if (storageSession.legacy[category].amount !== 0) input.value = storageSession.legacy[category].amount; updateButtonState();
+        });
+
+        Object.keys(ids).forEach(id => {
+            const element = document.getElementById(id);
+            if (!element) return;
+            const input = element.querySelector('#DLP_Inset_Input_1_ID');
+            const button = element.querySelector('#DLP_Inset_Button_1_ID');
+            if (!input || !button) return;
+            function updateButtonState() {
                 const isEmpty = input.value.length === 0;
                 button.style.opacity = isEmpty ? '0.5' : '';
                 button.style.pointerEvents = isEmpty ? 'none' : '';
@@ -2928,284 +3639,220 @@ function One() {
 
     inputCheck2();
 
-    DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
-        if (!storageSession.legacy.status && storageSession.legacy.path.amount > 0) {
-            setButtonState(DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][107], DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
-            storageSession.legacy.page = 1;
-            storageSession.legacy.status = 'path';
-            saveStorageSession();
-        } else if (storageSession.legacy.status === 'path') {
-            setButtonState(DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][18], DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), '#007AFF', '2px solid rgba(0, 0, 0, 0.20)', '#FFF', 400);
-            storageSession.legacy.page = 0;
-            storageSession.legacy.status = false;
-            saveStorageSession();
-        }
-    });
-    DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_2_ID').addEventListener('click', () => {
-        if (storageSession.legacy.path.type === 'lesson') {
-            DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'none';
-            DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'block';
-            storageSession.legacy.path.type = 'xp';
-            saveStorageSession();
-        } else if (storageSession.legacy.path.type === 'xp') {
-            DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'none';
-            DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'block';
-            storageSession.legacy.path.type = 'infinity';
-            saveStorageSession();
-        } else if (storageSession.legacy.path.type === 'infinity') {
-            DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'none';
-            DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'block';
-            storageSession.legacy.path.type = 'lesson';
-            saveStorageSession();
-        }
-    });
+    function setupButton1Events(baseId, page, type) {
+        const button1 = document.querySelector(`#${baseId}_ID`).querySelector('#DLP_Inset_Button_1_ID');
+        const input1 = document.querySelector(`#${baseId}_ID`).querySelector('#DLP_Inset_Input_1_ID');
 
-    DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
-        if (!storageSession.legacy.status && storageSession.legacy.path.amount > 0) {
-            setButtonState(DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][107], DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
-            storageSession.legacy.page = 2;
-            storageSession.legacy.status = 'path';
-            saveStorageSession();
-        } else if (storageSession.legacy.status === 'path') {
-            setButtonState(DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][18], DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), '#007AFF', '2px solid rgba(0, 0, 0, 0.20)', '#FFF', 400);
-            storageSession.legacy.page = 0;
-            storageSession.legacy.status = false;
-            saveStorageSession();
-        }
-    });
-    DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_2_ID').addEventListener('click', () => {
-        if (storageSession.legacy.path.type === 'lesson') {
-            DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'none';
-            DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'block';
-            storageSession.legacy.path.type = 'xp';
-            saveStorageSession();
-        } else if (storageSession.legacy.path.type === 'xp') {
-            DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'none';
-            DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'block';
-            storageSession.legacy.path.type = 'infinity';
-            saveStorageSession();
-        } else if (storageSession.legacy.path.type === 'infinity') {
-            DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'none';
-            DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'block';
-            storageSession.legacy.path.type = 'lesson';
-            saveStorageSession();
-        }
-    });
-    DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
-        if (!storageSession.legacy.status && storageSession.legacy.practice.amount > 0) {
-            setButtonState(DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][107], DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
-            storageSession.legacy.page = 1;
-            storageSession.legacy.status = 'practice';
-            saveStorageSession();
-        } else if (storageSession.legacy.status === 'practice') {
-            setButtonState(DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][18], DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), '#007AFF', '2px solid rgba(0, 0, 0, 0.20)', '#FFF', 400);
-            storageSession.legacy.page = 0;
-            storageSession.legacy.status = false;
-            saveStorageSession();
-        }
-    });
-    DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_2_ID').addEventListener('click', () => {
-        if (storageSession.legacy.practice.type === 'lesson') {
-            DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'none';
-            DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'block';
-            storageSession.legacy.practice.type = 'xp';
-            saveStorageSession();
-        } else if (storageSession.legacy.practice.type === 'xp') {
-            DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'none';
-            DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'block';
-            storageSession.legacy.practice.type = 'infinity';
-            saveStorageSession();
-        } else if (storageSession.legacy.practice.type === 'infinity') {
-            DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'none';
-            DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'block';
-            storageSession.legacy.practice.type = 'lesson';
-            saveStorageSession();
-        }
-    });
-    DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
-        if (!storageSession.legacy.status && storageSession.legacy.practice.amount > 0) {
-            setButtonState(DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][107], DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
-            storageSession.legacy.page = 2;
-            storageSession.legacy.status = 'practice';
-            saveStorageSession();
-        } else if (storageSession.legacy.status === 'practice') {
-            setButtonState(DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][18], DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), '#007AFF', '2px solid rgba(0, 0, 0, 0.20)', '#FFF', 400);
-            storageSession.legacy.page = 0;
-            storageSession.legacy.status = false;
-            saveStorageSession();
-        }
-    });
-    DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_2_ID').addEventListener('click', () => {
-        if (storageSession.legacy.practice.type === 'lesson') {
-            DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'none';
-            DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'block';
-            storageSession.legacy.practice.type = 'xp';
-            saveStorageSession();
-        } else if (storageSession.legacy.practice.type === 'xp') {
-            DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'none';
-            DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'block';
-            storageSession.legacy.practice.type = 'infinity';
-            saveStorageSession();
-        } else if (storageSession.legacy.practice.type === 'infinity') {
-            DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'none';
-            DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'block';
-            storageSession.legacy.practice.type = 'lesson';
-            saveStorageSession();
-        }
-    });
-    DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
-        if (!storageSession.legacy.status && storageSession.legacy.listen.amount > 0) {
-            setButtonState(DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][107], DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
-            storageSession.legacy.page = 1;
-            storageSession.legacy.status = 'listen';
-            saveStorageSession();
-        } else if (storageSession.legacy.status === 'listen') {
-            setButtonState(DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][18], DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), '#007AFF', '2px solid rgba(0, 0, 0, 0.20)', '#FFF', 400);
-            storageSession.legacy.page = 0;
-            storageSession.legacy.status = false;
-            saveStorageSession();
-        }
-    });
-    DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_2_ID').addEventListener('click', () => {
-        if (storageSession.legacy.listen.type === 'lesson') {
-            DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'none';
-            DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'block';
-            storageSession.legacy.listen.type = 'xp';
-            saveStorageSession();
-        } else if (storageSession.legacy.listen.type === 'xp') {
-            DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'none';
-            DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'block';
-            storageSession.legacy.listen.type = 'infinity';
-            saveStorageSession();
-        } else if (storageSession.legacy.listen.type === 'infinity') {
-            DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'none';
-            DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'block';
-            storageSession.legacy.listen.type = 'lesson';
-            saveStorageSession();
-        }
-    });
-    DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
-        if (!storageSession.legacy.status && storageSession.legacy.listen.amount > 0) {
-            setButtonState(DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][107], DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
-            storageSession.legacy.page = 2;
-            storageSession.legacy.status = 'listen';
-            saveStorageSession();
-        } else if (storageSession.legacy.status === 'listen') {
-            setButtonState(DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][18], DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), '#007AFF', '2px solid rgba(0, 0, 0, 0.20)', '#FFF', 400);
-            storageSession.legacy.page = 0;
-            storageSession.legacy.status = false;
-            saveStorageSession();
-        }
-    });
-    DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_2_ID').addEventListener('click', () => {
-        if (storageSession.legacy.listen.type === 'lesson') {
-            DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'none';
-            DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'block';
-            storageSession.legacy.listen.type = 'xp';
-            saveStorageSession();
-        } else if (storageSession.legacy.listen.type === 'xp') {
-            DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'none';
-            DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'block';
-            storageSession.legacy.listen.type = 'infinity';
-            saveStorageSession();
-        } else if (storageSession.legacy.listen.type === 'infinity') {
-            DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'none';
-            DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'block';
-            storageSession.legacy.listen.type = 'lesson';
-            saveStorageSession();
-        }
-    });
-    DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
-        if (!storageSession.legacy.status && storageSession.legacy.lesson.amount > 0) {
-            setButtonState(DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][107], DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
-            storageSession.legacy.page = 1;
-            storageSession.legacy.status = 'listen';
-            saveStorageSession();
-        } else if (storageSession.legacy.status === 'listen') {
-            setButtonState(DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][18], DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), '#007AFF', '2px solid rgba(0, 0, 0, 0.20)', '#FFF', 400);
-            storageSession.legacy.page = 0;
-            storageSession.legacy.status = false;
-            saveStorageSession();
-        }
-    });
-    DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_2_ID').addEventListener('click', () => {
-        if (storageSession.legacy.lesson.type === 'lesson') {
-            DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'none';
-            DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'block';
-            storageSession.legacy.lesson.type = 'xp';
-            saveStorageSession();
-        } else if (storageSession.legacy.lesson.type === 'xp') {
-            DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'none';
-            DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'block';
-            storageSession.legacy.lesson.type = 'infinity';
-            saveStorageSession();
-        } else if (storageSession.legacy.lesson.type === 'infinity') {
-            DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'none';
-            DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'block';
-            storageSession.legacy.lesson.type = 'lesson';
-            saveStorageSession();
-        }
-    });
-    DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
-        if (!storageSession.legacy.status && storageSession.legacy.lesson.amount > 0) {
-            setButtonState(DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][107], DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
-            storageSession.legacy.page = 2;
-            storageSession.legacy.status = 'listen';
-            saveStorageSession();
-        } else if (storageSession.legacy.status === 'listen') {
-            setButtonState(DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][18], DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), '#007AFF', '2px solid rgba(0, 0, 0, 0.20)', '#FFF', 400);
-            storageSession.legacy.page = 0;
-            storageSession.legacy.status = false;
-            saveStorageSession();
-        }
-    });
-    DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_2_ID').addEventListener('click', () => {
-        if (storageSession.legacy.lesson.type === 'lesson') {
-            DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'none';
-            DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'block';
-            storageSession.legacy.lesson.type = 'xp';
-            saveStorageSession();
-        } else if (storageSession.legacy.lesson.type === 'xp') {
-            DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_2_ID').style.display = 'none';
-            DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'block';
-            storageSession.legacy.lesson.type = 'infinity';
-            saveStorageSession();
-        } else if (storageSession.legacy.lesson.type === 'infinity') {
-            DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_3_ID').style.display = 'none';
-            DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_2_ID').querySelector('#DLP_Inset_Icon_1_ID').style.display = 'block';
-            storageSession.legacy.lesson.type = 'lesson';
-            saveStorageSession();
-        }
-    });
+        function clickHandler() {
+            if (isGetButtonsBusy) return;
+            isGetButtonsBusy = true;
 
-    function restoreClick2() {
-        if (storageSession.legacy.status === 'path' && storageSession.legacy.path.amount > 0) {
-            if (storageSession.legacy.page === 1) {
-                setButtonState(DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][107], DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
-            } else if (storageSession.legacy.page === 2) {
-                setButtonState(DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][107], DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
+            const buttonElement = document.querySelector(`#${baseId}_ID`).querySelector('#DLP_Inset_Button_1_ID');
+            const icon1 = buttonElement.querySelector('#DLP_Inset_Icon_1_ID');
+            const icon2 = buttonElement.querySelector('#DLP_Inset_Icon_2_ID');
+
+            if (!storageSession.legacy.status && storageSession.legacy[type].amount > 0) {
+                setButtonState(buttonElement, systemText[systemLanguage][107], icon2, icon1, 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
+                storageSession.legacy.page = page;
+                storageSession.legacy.status = type;
+                saveStorageSession();
+            } else if (storageSession.legacy.status === type) {
+                setButtonState(buttonElement, systemText[systemLanguage][18], icon1, icon2, '#007AFF', '2px solid rgba(0, 0, 0, 0.20)', '#FFF', 400);
+                storageSession.legacy.status = false;
+                saveStorageSession();
             }
-        } else if (storageSession.legacy.status === 'practice' && storageSession.legacy.practice.amount > 0) {
-            if (storageSession.legacy.page === 1) {
-                setButtonState(DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][107], DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
-            } else if (storageSession.legacy.page === 2) {
-                setButtonState(DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][107], DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
+            setTimeout(() => {
+                isGetButtonsBusy = false;
+            }, 800);
+        };
+
+        button1.addEventListener('click', clickHandler);
+
+        input1.onkeyup = function (event) {
+            if (event.keyCode === 13) {
+                if (isGetButtonsBusy) return;
+                isGetButtonsBusy = true;
+
+                const buttonElement = document.querySelector(`#${baseId}_ID`).querySelector('#DLP_Inset_Button_1_ID');
+                const icon1 = buttonElement.querySelector('#DLP_Inset_Icon_1_ID');
+                const icon2 = buttonElement.querySelector('#DLP_Inset_Icon_2_ID');
+
+                if (!storageSession.legacy.status && storageSession.legacy[type].amount > 0) {
+                    setButtonState(buttonElement, systemText[systemLanguage][107], icon2, icon1, 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
+                    storageSession.legacy.page = page;
+                    storageSession.legacy.status = type;
+                    saveStorageSession();
+                }
+                setTimeout(() => {
+                    isGetButtonsBusy = false;
+                }, 800);
             }
-        } else if (storageSession.legacy.status === 'listen' && storageSession.legacy.practice.listen > 0) {
-            if (storageSession.legacy.page === 1) {
-                setButtonState(DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][107], DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
-            } else if (storageSession.legacy.page === 2) {
-                setButtonState(DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][107], DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
+        };
+    }
+
+    function setupButton2Events(baseId, type) {
+        const button2 = document.querySelector(`#${baseId}_ID`).querySelector('#DLP_Inset_Button_2_ID');
+
+        function clickHandler(toggle, animate) {
+            const icon1 = button2.querySelector('#DLP_Inset_Icon_1_ID');
+            const icon2 = button2.querySelector('#DLP_Inset_Icon_2_ID');
+            const icon3 = button2.querySelector('#DLP_Inset_Icon_3_ID');
+            const input = button2.parentElement.querySelector('#DLP_Inset_Input_1_ID');
+
+            function animateElement(element, visibility, duration = 400) {
+                if (visibility) {
+                    element.style.display = 'block';
+                    element.style.filter = 'blur(4px)';
+                    element.style.opacity = '0';
+                    element.style.transition = '0.4s';
+
+                    requestAnimationFrame(() => {
+                        element.style.filter = 'blur(0px)';
+                        element.style.opacity = '1';
+                    });
+
+                    setTimeout(() => {
+                        element.style.filter = '';
+                        element.style.opacity = '';
+
+                        element.style.transition = '';
+                    }, duration);
+                } else {
+                    element.style.display = 'block';
+                    element.style.filter = 'blur(0px)';
+                    element.style.opacity = '1';
+                    element.style.transition = '0.4s';
+
+                    requestAnimationFrame(() => {
+                        element.style.filter = 'blur(4px)';
+                        element.style.opacity = '0';
+                    });
+
+                    setTimeout(() => {
+                        element.style.display = 'none';
+                        element.style.filter = '';
+                        element.style.opacity = '';
+                        element.style.transition = '';
+                    }, duration);
+                }
             }
-        } else if (storageSession.legacy.status === 'lesson' && storageSession.legacy.practice.lesson > 0) {
-            if (storageSession.legacy.page === 1) {
-                setButtonState(DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][107], DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
-            } else if (storageSession.legacy.page === 2) {
-                setButtonState(DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][107], DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
+
+            if (storageSession.legacy[type].type === 'lesson') {
+                let iconToHide;
+                let iconToShow = icon1;
+                let inputTo;
+
+                if (icon2.style.display !== 'none') {
+                    iconToHide = icon2;
+                    icon3.style.display = 'none';
+                } else if (icon3.style.display !== 'none') {
+                    icon2.style.display = 'none';
+                    iconToHide = icon3;
+                }
+
+                if (input.style.display === 'none') inputTo = 'show';
+
+                iconToShow.style.display = 'none';
+                animateElement(iconToHide, false);
+                setTimeout(() => animateElement(iconToShow, true), 400);
+                if (inputTo === 'show') setTimeout(() => animateElement(input, true), 400);
+            } else if (storageSession.legacy[type].type === 'xp') {
+                let iconToHide;
+                let iconToShow = icon2;
+                let inputTo;
+
+                if (icon1.style.display !== 'none') {
+                    iconToHide = icon1;
+                    icon3.style.display = 'none';
+                } else if (icon3.style.display !== 'none') {
+                    icon1.style.display = 'none';
+                    iconToHide = icon3;
+                }
+
+                if (input.style.display === 'none') inputTo = 'show';
+
+                iconToShow.style.display = 'none';
+                animateElement(iconToHide, false);
+                setTimeout(() => animateElement(iconToShow, true), 400);
+                if (inputTo === 'show') setTimeout(() => animateElement(input, true), 400);
+
+            } else if (storageSession.legacy[type].type === 'infinity') {
+                let iconToHide;
+                let iconToShow = icon3;
+                let inputTo;
+
+                if (icon1.style.display !== 'none') {
+                    iconToHide = icon1;
+                    icon2.style.display = 'none';
+                } else if (icon2.style.display !== 'none') {
+                    icon1.style.display = 'none';
+                    iconToHide = icon2;
+                }
+
+                if (input.style.display !== 'none') inputTo = 'hide';
+
+                iconToShow.style.display = 'none';
+                animateElement(iconToHide, false);
+                setTimeout(() => animateElement(iconToShow, true), 400);
+                if (inputTo === 'hide') animateElement(input, false);
+
             }
+        };
+        clickHandler();
+
+        button2.addEventListener('click', () => {
+            if (isGetButtonsBusy) return;
+            isGetButtonsBusy = true;
+            if (storageSession.legacy[type].type === 'lesson') {
+                storageSession.legacy[type].type = 'xp';
+                saveStorageSession();
+            } else if (storageSession.legacy[type].type === 'xp') {
+                storageSession.legacy[type].type = 'infinity';
+                saveStorageSession();
+            } else if (storageSession.legacy[type].type === 'infinity') {
+                storageSession.legacy[type].type = 'lesson';
+                saveStorageSession();
+            }
+            clickHandler();
+            setTimeout(() => {
+                isGetButtonsBusy = false;
+            }, 800);
+        });
+    }
+
+    for (const type of ['PATH', 'PRACTICE', 'LISTEN', 'LESSON']) {
+        for (let i = 1; i <= 2; i++) {
+            const baseId = `DLP_Get_${type}_${i}`;
+            setupButton1Events(baseId, i, type.toLowerCase());
+            setupButton2Events(baseId, type.toLowerCase());
         }
     }
-    setTimeout(restoreClick2, 400);
+
+    if (storageSession.legacy.status === 'path' && storageSession.legacy.path.amount > 0) {
+        if (storageSession.legacy.page === 1) {
+            setButtonState(DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][107], DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_PATH_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
+        } else if (storageSession.legacy.page === 2) {
+            setButtonState(DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][107], DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_PATH_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
+        }
+    } else if (storageSession.legacy.status === 'practice' && storageSession.legacy.practice.amount > 0) {
+        if (storageSession.legacy.page === 1) {
+            setButtonState(DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][107], DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_PRACTICE_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
+        } else if (storageSession.legacy.page === 2) {
+            setButtonState(DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][107], DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_PRACTICE_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
+        }
+    } else if (storageSession.legacy.status === 'listen' && storageSession.legacy.listen.amount > 0) {
+        if (storageSession.legacy.page === 1) {
+            setButtonState(DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][107], DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_LISTEN_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
+        } else if (storageSession.legacy.page === 2) {
+            setButtonState(DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][107], DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_LISTEN_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
+        }
+    } else if (storageSession.legacy.status === 'lesson' && storageSession.legacy.lesson.amount > 0) {
+        if (storageSession.legacy.page === 1) {
+            setButtonState(DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][107], DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_LESSON_1_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
+        } else if (storageSession.legacy.page === 2) {
+            setButtonState(DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_1_ID'), systemText[systemLanguage][107], DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_2_ID'), DLP_Get_LESSON_2_ID.querySelector('#DLP_Inset_Button_1_ID').querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(0, 122, 255, 0.10)', '2px solid rgba(0, 122, 255, 0.20)', '#007AFF', 400);
+        }
+    }
 
     let pageSwitching = false;
     function process1() {
@@ -3230,7 +3877,8 @@ function One() {
             } else if (storageSession.legacy.status === 'listen') {
                 window.location.href = "https://duolingo.com/practice-hub/listening-practice";
             } else if (storageSession.legacy.status === 'lesson') {
-                window.location.href = "https://duolingo.com/lesson/unit/1/level/1";
+                //storageSession.legacy[storageSession.legacy.status].section
+                window.location.href = `https://duolingo.com/lesson/unit/${storageSession.legacy[storageSession.legacy.status].unit}/level/${storageSession.legacy[storageSession.legacy.status].level}`;
             }
         } else {
             pageSwitching = false;
@@ -3275,6 +3923,21 @@ function One() {
             }, 2000);
         }
     };
+
+    if (storageSession.legacy.page === 1) {
+        document.querySelector(`#DLP_Main_Box_Divider_${currentPage}_ID`).style.display = 'none';
+        document.querySelector(`#DLP_Main_Box_Divider_3_ID`).style.display = 'block';
+        currentPage = 3;
+        let button = document.querySelector('#DLP_Switch_Legacy_Button_1_ID');
+        setButtonState(button, systemText[systemLanguage][105], button.querySelector('#DLP_Inset_Icon_2_ID'), button.querySelector('#DLP_Inset_Icon_1_ID'), 'linear-gradient(0deg, rgba(0, 122, 255, 0.10) 0%, rgba(0, 122, 255, 0.10) 100%), rgba(var(--color-snow), 0.80)', '2px solid rgba(0, 122, 255, 0.20', '#007AFF', 400);
+    } else if (storageSession.legacy.page === 2) {
+        document.querySelector(`#DLP_Main_Box_Divider_${currentPage}_ID`).style.display = 'none';
+        document.querySelector(`#DLP_Main_Box_Divider_4_ID`).style.display = 'block';
+        lastPage = 3;
+        currentPage = 4;
+        let button = document.querySelector('#DLP_Switch_Legacy_Button_1_ID');
+        setButtonState(button, systemText[systemLanguage][105], button.querySelector('#DLP_Inset_Icon_2_ID'), button.querySelector('#DLP_Inset_Icon_1_ID'), 'linear-gradient(0deg, rgba(0, 122, 255, 0.10) 0%, rgba(0, 122, 255, 0.10) 100%), rgba(var(--color-snow), 0.80)', '2px solid rgba(0, 122, 255, 0.20', '#007AFF', 400);
+    }
 
 
 
@@ -3325,16 +3988,17 @@ function One() {
             const input = element.querySelector('#DLP_Inset_Input_1_ID');
             const button = element.querySelector('#DLP_Inset_Button_1_ID');
             if (!input || !button) return;
-            const updateButtonState = () => {
+            function updateButtonState() {
                 const isEmpty = input.value.length === 0;
                 button.style.opacity = isEmpty ? '0.5' : '';
                 button.style.pointerEvents = isEmpty ? 'none' : '';
+                console.log(input.value.length);
             };
             const category = ids[id][0];
             input.addEventListener("input", function () {
                 this.value = this.value.replace(/[^0-9]/g, "");
                 if (this.value.length === 1 && this.value[0] === '0') this.value = this.value.slice(1);
-                if (this.value.length > 8) this.value = this.value.slice(0, 8);
+                if (this.value.length > 9) this.value = this.value.slice(0, 9);
                 updateButtonState();
             });
             if (!input.value) updateButtonState();
@@ -3399,8 +4063,8 @@ function One() {
     }
     inputCheck1();
 
-    let DLP_Magnetic_Hover_1 = document.querySelectorAll('.DLP_Magnetic_Hover_1');
-    DLP_Magnetic_Hover_1.forEach(element => {
+
+    function initializeMagneticHover(element) {
         let mouseDown = false;
         let originalZIndex = null;
         element.addEventListener('mousemove', (e) => {
@@ -3445,6 +4109,9 @@ function One() {
                 element.style.transform = `translate(${x * 0.1}px, ${y * 0.1}px) scale(1.1)`;
             }
         });
+    }
+    document.querySelectorAll('.DLP_Magnetic_Hover_1').forEach(element => {
+        initializeMagneticHover(element);
     });
 
 
@@ -3493,6 +4160,7 @@ function One() {
         }, 400);
     }
     let serverConnectedBefore = 'no';
+    let serverConnectedBeforeNotification;
     let newTermID;
     function connectToServer() {
         let mainInputsDiv1 = document.getElementById('DLP_Main_Inputs_1_Divider_1_ID');
@@ -3534,6 +4202,10 @@ function One() {
                                 } else if (serverConnectedBefore === 'error') {
                                     updateConnetionButtonStyles(DLP_Server_Connection_Button, systemText[systemLanguage][108], DLP_Server_Connection_Button.querySelector("#DLP_Inset_Icon_2_ID"), DLP_Server_Connection_Button.querySelector("#DLP_Inset_Icon_3_ID"), '#34C759');
                                     updateConnetionButtonStyles(DLP_Server_Connection_Button_2, systemText[systemLanguage][108], DLP_Server_Connection_Button_2.querySelector("#DLP_Inset_Icon_2_ID"), DLP_Server_Connection_Button_2.querySelector("#DLP_Inset_Icon_3_ID"), '#34C759');
+                                    if (serverConnectedBeforeNotification) {
+                                        serverConnectedBeforeNotification.close();
+                                        serverConnectedBeforeNotification = false;
+                                    }
                                 }
                                 serverConnectedBefore = 'yes';
                             }
@@ -3575,7 +4247,7 @@ function One() {
                     mainInputsDiv1.style.pointerEvents = 'none';
                     updateConnetionButtonStyles(DLP_Server_Connection_Button, systemText[systemLanguage][109], DLP_Server_Connection_Button.querySelector("#DLP_Inset_Icon_3_ID"), DLP_Server_Connection_Button.querySelector("#DLP_Inset_Icon_2_ID"), '#FF2D55');
                     updateConnetionButtonStyles(DLP_Server_Connection_Button_2, systemText[systemLanguage][109], DLP_Server_Connection_Button_2.querySelector("#DLP_Inset_Icon_3_ID"), DLP_Server_Connection_Button_2.querySelector("#DLP_Inset_Icon_2_ID"), '#FF2D55');
-                    if (error !== 'Outdated Client') showNotification("error", systemText[systemLanguage][231], systemText[systemLanguage][232], 30);
+                    if (error !== 'Outdated Client') serverConnectedBeforeNotification = showNotification("error", systemText[systemLanguage][231], systemText[systemLanguage][232], 30);
                 } else if (serverConnectedBefore === 'no') {
                     serverConnectedBefore = 'error';
                     mainInputsDiv1.style.opacity = '0.5';
@@ -3586,9 +4258,13 @@ function One() {
             });
     }
     connectToServer();
-    setInterval(() => {
+    setTimeout(() => {
         connectToServer();
-    }, 2000);
+    }, 1000);
+    setInterval(() => {
+        //if (windowBlurState) connectToServer();
+        if (document.visibilityState === "visible" || isAutoMode) connectToServer();
+    }, 4000);
 
     function updateReleaseNotes(warnings) {
         const releaseNotesContainer = document.getElementById('DLP_Release_Notes_List_1_ID');
@@ -3856,66 +4532,6 @@ function One() {
         return timeMessage;
     }
 
-    let isGetButtonsBusy = false;
-    function setButtonState(button, text, iconToShow, iconToHide, bgColor, outlineColor, textColor, delay, callback) {
-        const textElement = button.querySelector('#DLP_Inset_Text_1_ID');
-        const icons = [1, 2, 3, 4].map(num => button.querySelector(`#DLP_Inset_Icon_${num}_ID`));
-
-        let previousText = textElement.textContent;
-        textElement.textContent = text;
-        iconToShow.style.display = 'block';
-        iconToHide.style.display = 'none';
-        let buttonNewWidth = button.offsetWidth;
-        textElement.textContent = previousText;
-        iconToShow.style.display = 'none';
-        iconToHide.style.display = 'block';
-
-        button.style.transition = 'width 0.8s cubic-bezier(0.77,0,0.18,1), background 0.8s cubic-bezier(0.16, 1, 0.32, 1), outline 0.8s cubic-bezier(0.16, 1, 0.32, 1), filter 0.4s cubic-bezier(0.16, 1, 0.32, 1), transform 0.4s cubic-bezier(0.16, 1, 0.32, 1)';
-        button.style.width = `${button.offsetWidth}px`;
-
-        requestAnimationFrame(() => {
-            textElement.style.transition = '0.4s';
-            iconToShow.style.transition = '0.4s';
-            iconToHide.style.transition = '0.4s';
-
-            textElement.style.filter = 'blur(4px)';
-            textElement.style.opacity = '0';
-            iconToHide.style.filter = 'blur(4px)';
-            iconToHide.style.opacity = '0';
-            button.style.width = `${buttonNewWidth}px`;
-
-            button.style.background = bgColor;
-            button.style.outline = outlineColor;
-        });
-
-        setTimeout(() => {
-            textElement.style.transition = '0s';
-            textElement.style.color = textColor;
-            textElement.offsetWidth;
-            textElement.style.transition = '0.4s';
-
-            iconToShow.style.display = 'block';
-            iconToHide.style.display = 'none';
-            iconToShow.style.filter = 'blur(4px)';
-            iconToShow.style.opacity = '0';
-
-            textElement.textContent = text;
-
-            requestAnimationFrame(() => {
-                textElement.style.filter = '';
-                textElement.style.opacity = '';
-                iconToShow.style.filter = '';
-                iconToShow.style.opacity = '1';
-            });
-
-            setTimeout(() => {
-                button.style.width = '';
-            }, 400);
-
-            if (callback) callback();
-        }, delay);
-    }
-
     function handleClick(button, id, amount) {
         const ogIcon = button.querySelector('#DLP_Inset_Icon_1_ID');
         const loadingIcon = button.querySelector('#DLP_Inset_Icon_2_ID');
@@ -3969,7 +4585,11 @@ function One() {
                                                 status = "done";
                                                 done = true;
                                                 showNotification(data.notification.icon, data.notification.head, data.notification.body, data.notification.duration);
-                                                button.parentElement.querySelector('#DLP_Inset_Input_1_ID').value = '';
+                                                const input = button.parentElement.querySelector('#DLP_Inset_Input_1_ID');
+                                                if (input) {
+                                                    input.value = "";
+                                                    //setTimeout(() => input.dispatchEvent(new Event("input")), 2400);
+                                                }
                                             } else if (data.status == 'failed') {
                                                 status = "error";
                                                 done = true;
@@ -4015,13 +4635,19 @@ function One() {
                         status = 'done';
                         showNotification(data.notification.icon, data.notification.head, data.notification.body, data.notification.duration);
                         const input = button.parentElement.querySelector('#DLP_Inset_Input_1_ID');
-                        if (input) input.value = "";
+                        if (input) {
+                            input.value = "";
+                            //setTimeout(() => input.dispatchEvent(new Event("input")), 2400);
+                        }
                     } else {
                         status = 'rejected';
                         showNotification(data.notification.icon, data.notification.head, data.notification.body, data.notification.duration);
                         const input = button.parentElement.querySelector('#DLP_Inset_Input_1_ID');
                         if (data.max_amount && input) input.value = data.max_amount;
-                        else if (input) input.value = "";
+                        else if (input) {
+                            input.value = "";
+                            //setTimeout(() => input.dispatchEvent(new Event("input")), 2400);
+                        }
                     }
                 })
                 .catch(error => {
@@ -4064,167 +4690,115 @@ function One() {
             }
         });
     }
-    DLP_Get_XP_1_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
-        if (isGetButtonsBusy) return;
-        isGetButtonsBusy = true;
-        handleClick(DLP_Get_XP_1_ID.querySelector('#DLP_Inset_Button_1_ID'), 'xp', Number(DLP_Get_XP_1_ID.querySelector('#DLP_Inset_Input_1_ID').value));
-    });
-    DLP_Get_XP_1_ID.querySelector('#DLP_Inset_Input_1_ID').onkeyup = function (event) {
-        if (event.keyCode === 13) {
-            if (isGetButtonsBusy) return;
-            isGetButtonsBusy = true;
-            handleClick(DLP_Get_XP_1_ID.querySelector('#DLP_Inset_Button_1_ID'), 'xp', Number(DLP_Get_XP_1_ID.querySelector('#DLP_Inset_Input_1_ID').value));
-        }
-    };
-    DLP_Get_XP_2_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
-        if (isGetButtonsBusy) return;
-        isGetButtonsBusy = true;
-        handleClick(DLP_Get_XP_2_ID.querySelector('#DLP_Inset_Button_1_ID'), 'xp', Number(DLP_Get_XP_2_ID.querySelector('#DLP_Inset_Input_1_ID').value));
-    });
-    DLP_Get_XP_2_ID.querySelector('#DLP_Inset_Input_1_ID').onkeyup = function (event) {
-        if (event.keyCode === 13) {
-            if (isGetButtonsBusy) return;
-            isGetButtonsBusy = true;
-            handleClick(DLP_Get_XP_2_ID.querySelector('#DLP_Inset_Button_1_ID'), 'xp', Number(DLP_Get_XP_2_ID.querySelector('#DLP_Inset_Input_1_ID').value));
-        }
-    };
 
-    DLP_Get_GEMS_1_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
-        if (isGetButtonsBusy) return;
-        isGetButtonsBusy = true;
-        handleClick(DLP_Get_GEMS_1_ID.querySelector('#DLP_Inset_Button_1_ID'), 'gems', Number(DLP_Get_GEMS_1_ID.querySelector('#DLP_Inset_Input_1_ID').value));
-    });
-    DLP_Get_GEMS_1_ID.querySelector('#DLP_Inset_Input_1_ID').onkeyup = function (event) {
-        if (event.keyCode === 13) {
-            if (isGetButtonsBusy) return;
-            isGetButtonsBusy = true;
-            handleClick(DLP_Get_GEMS_1_ID.querySelector('#DLP_Inset_Button_1_ID'), 'gems', Number(DLP_Get_GEMS_1_ID.querySelector('#DLP_Inset_Input_1_ID').value));
-        }
-    };
-    DLP_Get_GEMS_2_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
-        if (isGetButtonsBusy) return;
-        isGetButtonsBusy = true;
-        handleClick(DLP_Get_GEMS_2_ID.querySelector('#DLP_Inset_Button_1_ID'), 'gems', Number(DLP_Get_GEMS_2_ID.querySelector('#DLP_Inset_Input_1_ID').value));
-    });
-    DLP_Get_GEMS_2_ID.querySelector('#DLP_Inset_Input_1_ID').onkeyup = function (event) {
-        if (event.keyCode === 13) {
-            if (isGetButtonsBusy) return;
-            isGetButtonsBusy = true;
-            handleClick(DLP_Get_GEMS_2_ID.querySelector('#DLP_Inset_Button_1_ID'), 'gems', Number(DLP_Get_GEMS_2_ID.querySelector('#DLP_Inset_Input_1_ID').value));
-        }
-    };
+    const getButtonsList1 = [
+        { base: 'DLP_Get_XP', type: 'xp', input: true },
+        { base: 'DLP_Get_GEMS', type: 'gems', input: true },
+        { base: 'DLP_Get_SUPER', type: 'super' },
+        { base: 'DLP_Get_DOUBLE_XP_BOOST', type: 'double_xp_boost' },
+        { base: 'DLP_Get_Streak_Freeze', type: 'streak_freeze', input: true },
+        { base: 'DLP_Get_Heart_Refill', type: 'heart_refill' },
+        { base: 'DLP_Get_Streak', type: 'streak', input: true },
+    ];
+    function setupGetButtons(base, type, hasInput) {
+        [1, 2].forEach(n => {
+            const parent = document.getElementById(`${base}_${n}_ID`);
+            if (!parent) return;
 
-    DLP_Get_SUPER_1_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
-        if (isGetButtonsBusy) return;
-        isGetButtonsBusy = true;
-        handleClick(DLP_Get_SUPER_1_ID.querySelector('#DLP_Inset_Button_1_ID'), 'super', 1);
-    });
-    DLP_Get_SUPER_2_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
-        if (isGetButtonsBusy) return;
-        isGetButtonsBusy = true;
-        handleClick(DLP_Get_SUPER_2_ID.querySelector('#DLP_Inset_Button_1_ID'), 'super', 1);
-    });
+            const button = parent.querySelector('#DLP_Inset_Button_1_ID');
+            const handler = () => {
+                if (isGetButtonsBusy) return;
+                isGetButtonsBusy = true;
+                handleClick(button, type, hasInput ? Number(parent.querySelector('#DLP_Inset_Input_1_ID').value) : 1);
+            };
 
-    DLP_Get_DOUBLE_XP_BOOST_1_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
-        if (isGetButtonsBusy) return;
-        isGetButtonsBusy = true;
-        handleClick(DLP_Get_DOUBLE_XP_BOOST_1_ID.querySelector('#DLP_Inset_Button_1_ID'), 'double_xp_boost', 1);
-    });
-    DLP_Get_DOUBLE_XP_BOOST_2_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
-        if (isGetButtonsBusy) return;
-        isGetButtonsBusy = true;
-        handleClick(DLP_Get_DOUBLE_XP_BOOST_2_ID.querySelector('#DLP_Inset_Button_1_ID'), 'double_xp_boost', 1);
-    });
+            button.addEventListener('click', handler);
 
-    DLP_Get_Streak_Freeze_1_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
-        if (isGetButtonsBusy) return;
-        isGetButtonsBusy = true;
-        handleClick(DLP_Get_Streak_Freeze_1_ID.querySelector('#DLP_Inset_Button_1_ID'), 'streak_freeze', Number(DLP_Get_Streak_Freeze_1_ID.querySelector('#DLP_Inset_Input_1_ID').value));
-    });
-    DLP_Get_Streak_Freeze_1_ID.querySelector('#DLP_Inset_Input_1_ID').onkeyup = function (event) {
-        if (event.keyCode === 13) {
-            if (isGetButtonsBusy) return;
-            isGetButtonsBusy = true;
-            handleClick(DLP_Get_Streak_Freeze_1_ID.querySelector('#DLP_Inset_Button_1_ID'), 'streak_freeze', Number(DLP_Get_Streak_Freeze_1_ID.querySelector('#DLP_Inset_Input_1_ID').value));
-        }
+            if (hasInput) {
+                const input = parent.querySelector('#DLP_Inset_Input_1_ID');
+                input.onkeyup = e => e.keyCode === 13 && handler();
+            }
+        });
     };
-    DLP_Get_Streak_Freeze_2_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
-        if (isGetButtonsBusy) return;
-        isGetButtonsBusy = true;
-        handleClick(DLP_Get_Streak_Freeze_2_ID.querySelector('#DLP_Inset_Button_1_ID'), 'streak_freeze', Number(DLP_Get_Streak_Freeze_2_ID.querySelector('#DLP_Inset_Input_1_ID').value));
-    });
-    DLP_Get_Streak_Freeze_2_ID.querySelector('#DLP_Inset_Input_1_ID').onkeyup = function (event) {
-        if (event.keyCode === 13) {
-            if (isGetButtonsBusy) return;
-            isGetButtonsBusy = true;
-            handleClick(DLP_Get_Streak_Freeze_2_ID.querySelector('#DLP_Inset_Button_1_ID'), 'streak_freeze', Number(DLP_Get_Streak_Freeze_2_ID.querySelector('#DLP_Inset_Input_1_ID').value));
-        }
-    };
-
-    DLP_Get_Heart_Refill_1_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
-        if (isGetButtonsBusy) return;
-        isGetButtonsBusy = true;
-        handleClick(DLP_Get_Heart_Refill_1_ID.querySelector('#DLP_Inset_Button_1_ID'), 'heart_refill', 1);
-    });
-    DLP_Get_Heart_Refill_2_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
-        if (isGetButtonsBusy) return;
-        isGetButtonsBusy = true;
-        handleClick(DLP_Get_Heart_Refill_2_ID.querySelector('#DLP_Inset_Button_1_ID'), 'heart_refill', 1);
-    });
-
-    DLP_Get_Streak_1_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
-        if (isGetButtonsBusy) return;
-        isGetButtonsBusy = true;
-        handleClick(DLP_Get_Streak_1_ID.querySelector('#DLP_Inset_Button_1_ID'), 'streak', Number(DLP_Get_Streak_1_ID.querySelector('#DLP_Inset_Input_1_ID').value));
-    });
-    DLP_Get_Streak_1_ID.querySelector('#DLP_Inset_Input_1_ID').onkeyup = function (event) {
-        if (event.keyCode === 13) {
-            if (isGetButtonsBusy) return;
-            isGetButtonsBusy = true;
-            handleClick(DLP_Get_Streak_1_ID.querySelector('#DLP_Inset_Button_1_ID'), 'streak', Number(DLP_Get_Streak_1_ID.querySelector('#DLP_Inset_Input_1_ID').value));
-        }
-    };
-    DLP_Get_Streak_2_ID.querySelector('#DLP_Inset_Button_1_ID').addEventListener('click', () => {
-        if (isGetButtonsBusy) return;
-        isGetButtonsBusy = true;
-        handleClick(DLP_Get_Streak_2_ID.querySelector('#DLP_Inset_Button_1_ID'), 'streak', Number(DLP_Get_Streak_2_ID.querySelector('#DLP_Inset_Input_1_ID').value));
-    });
-    DLP_Get_Streak_2_ID.querySelector('#DLP_Inset_Input_1_ID').onkeyup = function (event) {
-        if (event.keyCode === 13) {
-            if (isGetButtonsBusy) return;
-            isGetButtonsBusy = true;
-            handleClick(DLP_Get_Streak_2_ID.querySelector('#DLP_Inset_Button_1_ID'), 'streak', Number(DLP_Get_Streak_2_ID.querySelector('#DLP_Inset_Input_1_ID').value));
-        }
-    };
+    getButtonsList1.forEach(({ base, type, input }) => setupGetButtons(base, type, input));
 
 
     let DLP_Settings_Save_Button_1_ID = document.getElementById("DLP_Settings_Save_Button_1_ID");
-    let DLP_Settings_Save_Button_1_ID_Busy = false;
     DLP_Settings_Save_Button_1_ID.addEventListener('click', () => {
-        if (DLP_Settings_Save_Button_1_ID_Busy) return;
-        DLP_Settings_Save_Button_1_ID_Busy = true;
+        if (isBusySwitchingPages) return;
+        isBusySwitchingPages = true;
         storageLocal.settings.autoUpdate = DLP_Settings_Auto_Update;
+        storageLocal.settings.showAutoServerButton = DLP_Settings_Show_AutoServer_Button;
         storageLocal.settings.showSolveButtons = DLP_Settings_Show_Solve_Buttons;
+        storageLocal.settings.solveSpeed = Number(settingsLegacySolveSpeedInputSanitizeValue(DLP_Settings_Legacy_Solve_Speed_1_ID.querySelector('#DLP_Inset_Input_1_ID').value, true));
         saveStorageLocal();
-        setButtonState(DLP_Settings_Save_Button_1_ID, systemText[systemLanguage][116], DLP_Settings_Save_Button_1_ID.querySelector('#DLP_Inset_Icon_3_ID'), DLP_Settings_Save_Button_1_ID.querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(52, 199, 89, 0.10)', '2px solid rgba(52, 199, 89, 0.20)', '#34C759', 400, () => {
+        setButtonState(DLP_Settings_Save_Button_1_ID, systemText[systemLanguage][116], null, DLP_Settings_Save_Button_1_ID.querySelector('#DLP_Inset_Icon_1_ID'), 'rgba(52, 199, 89, 0.10)', '2px solid rgba(52, 199, 89, 0.20)', '#34C759', 400, () => {
             //confetti();
             setTimeout(() => {
-                goToPage(1);
+                //goToPage(-1);
+                location.reload();
             }, 1600);
-            setTimeout(() => {
-                setButtonState(DLP_Settings_Save_Button_1_ID, systemText[systemLanguage][37], DLP_Settings_Save_Button_1_ID.querySelector('#DLP_Inset_Icon_1_ID'), DLP_Settings_Save_Button_1_ID.querySelector('#DLP_Inset_Icon_3_ID'), '#007AFF', '2px solid rgba(0, 0, 0, 0.20)', '#FFF', 400);
-                DLP_Settings_Save_Button_1_ID_Busy = false;
-            }, 2400);
+            //setTimeout(() => {
+            //    setButtonState(DLP_Settings_Save_Button_1_ID, systemText[systemLanguage][37], DLP_Settings_Save_Button_1_ID.querySelector('#DLP_Inset_Icon_1_ID'), DLP_Settings_Save_Button_1_ID.querySelector('#DLP_Inset_Icon_3_ID'), '#007AFF', '2px solid rgba(0, 0, 0, 0.20)', '#FFF', 400);
+            //    isBusySwitchingPages = false;
+            //}, 2400);
         });
     });
 
     let DLP_Settings_Auto_Update = storageLocal.settings.autoUpdate;
+    let DLP_Settings_Show_AutoServer_Button = storageLocal.settings.showAutoServerButton;
     let DLP_Settings_Show_Solve_Buttons = storageLocal.settings.showSolveButtons;
+    let DLP_Settings_Legacy_Solve_Speed = storageLocal.settings.solveSpeed;
     let DLP_Settings_Toggle_Busy = false;
     let DLP_Settings_Show_Solve_Buttons_1_ID = document.getElementById("DLP_Settings_Show_Solve_Buttons_1_ID");
+    let DLP_Settings_Show_AutoServer_Button_1_ID = document.getElementById("DLP_Settings_Show_AutoServer_Button_1_ID");
+    let DLP_Settings_Legacy_Solve_Speed_1_ID = document.getElementById("DLP_Settings_Legacy_Solve_Speed_1_ID");
     let DLP_Settings_Auto_Update_Toggle_1_ID = document.getElementById("DLP_Settings_Auto_Update_Toggle_1_ID");
     handleToggleClick(DLP_Settings_Show_Solve_Buttons_1_ID.querySelector('#DLP_Inset_Toggle_1_ID'), DLP_Settings_Show_Solve_Buttons);
+    if (alpha) handleToggleClick(DLP_Settings_Show_AutoServer_Button_1_ID.querySelector('#DLP_Inset_Toggle_1_ID'), DLP_Settings_Show_AutoServer_Button);
+    else DLP_Settings_Show_AutoServer_Button_1_ID.remove();
     handleToggleClick(DLP_Settings_Auto_Update_Toggle_1_ID.querySelector('#DLP_Inset_Toggle_1_ID'), DLP_Settings_Auto_Update);
+    DLP_Settings_Legacy_Solve_Speed_1_ID.querySelector('#DLP_Inset_Input_1_ID').value = DLP_Settings_Legacy_Solve_Speed;
+
+    DLP_Settings_Legacy_Solve_Speed_1_ID.querySelector('#DLP_Inset_Input_1_ID').addEventListener("input", function () {
+        this.value = settingsLegacySolveSpeedInputSanitizeValue(this.value, false);
+    });
+    DLP_Settings_Legacy_Solve_Speed_1_ID.querySelector('#DLP_Inset_Input_1_ID').addEventListener("blur", function () {
+        this.value = settingsLegacySolveSpeedInputSanitizeValue(this.value, true);
+        DLP_Settings_Legacy_Solve_Speed = Number(this.value);
+    });
+
+    function settingsLegacySolveSpeedInputSanitizeValue(value, completeSanitization) {
+        value = value.replace(/[^0-9.,]/g, '');
+        let match = value.match(/[.,]/g);
+        if (match && match.length > 1) {
+            value = value.slice(0, value.lastIndexOf(match[match.length - 1]));
+        }
+        let decimalIndex = value.indexOf('.');
+        if (decimalIndex !== -1) {
+            value = value.slice(0, decimalIndex + 3);
+        }
+        let digitCount = value.replace(/[^0-9]/g, '').length;
+        if (digitCount > 3) {
+            value = value.replace(/(\d{3})\d+/, '$1');
+        }
+        if (/^0\d/.test(value) && !value.startsWith("0.")) {
+            value = value.replace(/^0+/, '0');
+        }
+
+        if (!completeSanitization) return value;
+
+        value = value.replace(',', '.');
+        value = parseFloat(value);
+        if (!isNaN(value)) {
+            if (value < 0.6) value = 0.6;
+        } else {
+            value = 0.8;
+        }
+        return value;
+    }
+
+
     function handleToggleClick(button, state) {
         let iconToHide;
         let iconToShow;
@@ -4290,18 +4864,78 @@ function One() {
             DLP_Settings_Toggle_Busy = false;
         }, 800);
     });
+    DLP_Settings_Show_AutoServer_Button_1_ID.querySelector('#DLP_Inset_Toggle_1_ID').addEventListener('click', () => {
+        if (DLP_Settings_Toggle_Busy) return;
+        DLP_Settings_Show_AutoServer_Button = !DLP_Settings_Show_AutoServer_Button;
+        DLP_Settings_Toggle_Busy = true;
+        handleToggleClick(DLP_Settings_Show_AutoServer_Button_1_ID.querySelector('#DLP_Inset_Toggle_1_ID'), DLP_Settings_Show_AutoServer_Button);
+        setTimeout(() => {
+            DLP_Settings_Toggle_Busy = false;
+        }, 800);
+    });
 
 
     function confetti() {
         let canvas = document.getElementById("DLP_Confetti_Canvas");
-        let ctx = canvas.getContext("2d");
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        let cx = ctx.canvas.width / 2;
-        let cy = ctx.canvas.height / 2;
+        if (!canvas.confettiInitialized) {
+            let ctx = canvas.getContext("2d");
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            let cx = ctx.canvas.width / 2;
+            let cy = ctx.canvas.height / 2;
 
-        let confetti = [];
-        const confettiCount = 500;
+            canvas.ctx = ctx;
+            canvas.cx = cx;
+            canvas.cy = cy;
+            canvas.confetti = [];
+            canvas.animationId = null;
+            canvas.confettiInitialized = true;
+
+            let resizeCanvas = () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                canvas.cx = canvas.ctx.canvas.width / 2;
+                canvas.cy = canvas.ctx.canvas.height / 2;
+            };
+
+            const resizeObserver = new ResizeObserver(() => {
+                resizeCanvas();
+            });
+            resizeObserver.observe(canvas);
+
+            let render = () => {
+                canvas.ctx.clearRect(0, 0, canvas.width, canvas.height);
+                canvas.confetti.forEach((confetto, index) => {
+                    let width = confetto.dimensions.x * confetto.scale.x;
+                    let height = confetto.dimensions.y * confetto.scale.y;
+                    canvas.ctx.translate(confetto.position.x, confetto.position.y);
+                    canvas.ctx.rotate(confetto.rotation);
+
+                    confetto.velocity.x -= confetto.velocity.x * drag;
+                    confetto.velocity.y = Math.min(
+                        confetto.velocity.y + gravity,
+                        terminalVelocity,
+                    );
+                    confetto.velocity.x +=
+                        Math.random() > 0.5 ? Math.random() : -Math.random();
+
+                    confetto.position.x += confetto.velocity.x;
+                    confetto.position.y += confetto.velocity.y;
+
+                    if (confetto.position.y >= canvas.height) canvas.confetti.splice(index, 1);
+
+                    if (confetto.position.x > canvas.width) confetto.position.x = 0;
+                    if (confetto.position.x < 0) confetto.position.x = canvas.width;
+
+                    canvas.ctx.fillStyle = confetto.color.front;
+                    canvas.ctx.fillRect(-width / 2, -height / 2, width, height);
+                    canvas.ctx.setTransform(1, 0, 0, 1, 0, 0);
+                });
+                canvas.animationId = window.requestAnimationFrame(render);
+            };
+            render();
+        }
+
         const gravity = 0.5;
         const terminalVelocity = 10;
         const drag = 0.01;
@@ -4321,80 +4955,32 @@ function One() {
             max: 15
         };
 
-        let resizeCanvas = () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            cx = ctx.canvas.width / 2;
-            cy = ctx.canvas.height / 2;
-        };
-
         let randomRange = (min, max) => Math.random() * (max - min) + min;
 
-        let initConfetti = () => {
-            for (let i = 0; i < confettiCount; i++) {
-                confetti.push({
-                    color: colors[Math.floor(randomRange(0, colors.length))],
-                    dimensions: {
-                        x: randomRange(confettiSizeRange.min, confettiSizeRange.max),
-                        y: randomRange(confettiSizeRange.min, confettiSizeRange.max),
-                    },
-                    position: {
-                        x: randomRange(0, canvas.width),
-                        y: canvas.height - 1,
-                    },
-                    rotation: randomRange(0, 2 * Math.PI),
-                    scale: {
-                        x: 1,
-                        y: 1,
-                    },
-                    velocity: {
-                        x: randomRange(-25, 25),
-                        y: randomRange(0, -50),
-                    },
-                });
-            }
-        };
-
-        let render = () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            confetti.forEach((confetto, index) => {
-                let width = confetto.dimensions.x * confetto.scale.x;
-                let height = confetto.dimensions.y * confetto.scale.y;
-                ctx.translate(confetto.position.x, confetto.position.y);
-                ctx.rotate(confetto.rotation);
-
-                confetto.velocity.x -= confetto.velocity.x * drag;
-                confetto.velocity.y = Math.min(
-                    confetto.velocity.y + gravity,
-                    terminalVelocity,
-                );
-                confetto.velocity.x +=
-                    Math.random() > 0.5 ? Math.random() : -Math.random();
-
-                confetto.position.x += confetto.velocity.x;
-                confetto.position.y += confetto.velocity.y;
-
-                if (confetto.position.y >= canvas.height) confetti.splice(index, 1);
-
-                if (confetto.position.x > canvas.width) confetto.position.x = 0;
-                if (confetto.position.x < 0) confetto.position.x = canvas.width;
-
-                ctx.fillStyle = confetto.color.front;
-
-                ctx.fillRect(-width / 2, -height / 2, width, height);
-
-                ctx.setTransform(1, 0, 0, 1, 0, 0);
+        const confettiCount = 500;
+        for (let i = 0; i < confettiCount; i++) {
+            canvas.confetti.push({
+                color: colors[Math.floor(randomRange(0, colors.length))],
+                dimensions: {
+                    x: randomRange(confettiSizeRange.min, confettiSizeRange.max),
+                    y: randomRange(confettiSizeRange.min, confettiSizeRange.max),
+                },
+                position: {
+                    x: randomRange(0, canvas.width),
+                    y: canvas.height - 1,
+                },
+                rotation: randomRange(0, 2 * Math.PI),
+                scale: {
+                    x: 1,
+                    y: 1,
+                },
+                velocity: {
+                    x: randomRange(-25, 25),
+                    y: randomRange(0, -50),
+                },
             });
-            window.requestAnimationFrame(render);
-        };
-        render();
-        initConfetti();
-        const resizeObserver = new ResizeObserver(() => {
-            resizeCanvas();
-        });
-        resizeObserver.observe(canvas);
+        }
     }
-
 
 
     async function generateEarnKey() {
@@ -4434,6 +5020,7 @@ function One() {
         }
     }
 
+    let earnButtonAssignedLink = false;
     document.querySelectorAll("#DLP_Main_Earn_Button_1_ID, #DLP_Secondary_Earn_Button_1_ID").forEach(button => {
         button.addEventListener('click', () => {
             button.style.opacity = '0.5';
@@ -4442,7 +5029,11 @@ function One() {
             generateEarnKey()
                 .then(earnKey => {
                 console.log('Successfully retrieved earn key:', earnKey);
-                window.open(serverURL + "/earn/connect/link/" + earnKey, "_blank");
+                button.setAttribute("onclick", `window.open('${serverURL}/earn/connect/link/${earnKey}', '_blank');`);
+                if (!earnButtonAssignedLink) {
+                    earnButtonAssignedLink = true;
+                    window.open(serverURL + "/earn/connect/link/" + earnKey, "_blank");
+                }
             })
                 .catch(error => {
                 console.error('Failed to retrieve earn key:', error.message);
@@ -4453,7 +5044,6 @@ function One() {
             });
         });
     });
-
 
 
 
@@ -4475,6 +5065,16 @@ function One() {
             return originalPlay.apply(this, arguments);
         };
     }
+
+    document.addEventListener('keydown', function(event) {
+        if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+            if (event.shiftKey) {
+                solving();
+            } else {
+                solve();
+            }
+        }
+    });
 
     function updateSolveButtonText(text) {
         document.getElementById("solveAllButton").innerText = text;
@@ -4499,7 +5099,8 @@ function One() {
             '._8AMBh._2vfJy._3Qy5R._28UWu._3h0lA._1S2uf._1E9sc',
             '._1Qh5D._36g4N._2YF0P._28UWu._3h0lA._1S2uf._1E9sc',
             '[data-test="story-start"]',
-            '._3bBpU._1x5JY._1M9iF._36g4N._2YF0P.T7I0c._2EnxW.MYehf'
+            '._3bBpU._1x5JY._1M9iF._36g4N._2YF0P.T7I0c._2EnxW.MYehf',
+            '._2V6ug._1ursp._7jW2t._28UWu._3h0lA._1S2uf._1E9sc' // No Thanks Legendary Button
         ];
         selectorsForSkip.forEach(selector => {
             const element = document.querySelector(selector);
@@ -4527,6 +5128,7 @@ function One() {
                         }
                     } else {
                         storageSession.legacy[status].amount = 0;
+                        storageSession.legacy.status = false;
                         saveStorageSession();
                         window.location.href = "https://duolingo.com";
                         return;
@@ -4544,6 +5146,7 @@ function One() {
                         }
                     } else {
                         storageSession.legacy[status].amount = 0;
+                        storageSession.legacy.status = false;
                         saveStorageSession();
                         window.location.href = "https://duolingo.com";
                         return;
@@ -4791,24 +5394,29 @@ function One() {
             }
 
         } else if (challengeType === 'Story Pairs') {
-            let nl = document.querySelectorAll('[data-test*="challenge-tap-token"]:not(span)');
-            const pairs = [];
-            if (document.querySelectorAll('[data-test="challenge-tap-token-text"]').length === nl.length) {
-                Object.keys(window.sol.dictionary).forEach((key) => {
-                    if (!pairs.includes(key.split(":")[1])) {
-                        pairs.push(key.split(":")[1]);
-                        pairs.push(window.sol.dictionary[key]);
-                    }
-                    for (let p = 0; p < pairs.length; p++) {
-                        for (let i = 0; i < nl.length; i++) {
-                            const nlInnerText = nl[i].querySelector('[data-test="challenge-tap-token-text"]').innerText.toLowerCase().trim();
-                            if (nlInnerText === pairs[p] && !nl[i].disabled) {
-                                nl[i].click();
-                            }
-                        }
-                    }
-                })
+            const nl = document.querySelectorAll('[data-test*="challenge-tap-token"]:not(span)');
+            const textElements = document.querySelectorAll('[data-test="challenge-tap-token-text"]');
+
+            const textToElementMap = new Map();
+            for (let i = 0; i < nl.length; i++) {
+                const text = textElements[i].innerText.toLowerCase().trim();
+                textToElementMap.set(text, nl[i]);
             }
+
+            for (const key in window.sol.dictionary) {
+                if (window.sol.dictionary.hasOwnProperty(key)) {
+                    const value = window.sol.dictionary[key];
+                    const keyPart = key.split(":")[1].toLowerCase().trim();
+                    const normalizedValue = value.toLowerCase().trim();
+
+                    const element1 = textToElementMap.get(keyPart);
+                    const element2 = textToElementMap.get(normalizedValue);
+
+                    if (element1 && !element1.disabled) element1.click();
+                    if (element2 && !element2.disabled) element2.click();
+                }
+            }
+
         } else if (challengeType === 'Tokens Run') {
             correctTokensRun();
 
