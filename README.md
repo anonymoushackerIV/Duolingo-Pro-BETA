@@ -19,6 +19,7 @@ Subscribe to our [Youtube channel](https://www.youtube.com/@DuolingoPROscript) f
 - Get free XP boosts.
 - Get free streak freezes.
 - Refill your hearts for free.
+- Dark mode.
 - Hide/Show Duolingo PRO.
 - Send feedback.
 - More coming soon! (AutoServer, Gems, other features)
