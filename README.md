@@ -14,10 +14,14 @@ Subscribe to our [Youtube channel](https://www.youtube.com/@DuolingoPROscript) f
 ## Features
 - Instantly get the amount of XP you want.
 - Automatically solve questions.
-- Solve a set or infinite number of lessons and practices, all automatically.
+- Solve a set or an infinite number of lessons and practices, all automatically.
+- Increase your streak by an amount you want.
+- Get free XP boosts.
+- Get free streak freezes.
+- Refill your hearts for free.
 - Hide/Show Duolingo PRO.
 - Send feedback.
-- More coming soon! (AutoServer, Gems, Streak Edit, other features)
+- More coming soon! (AutoServer, Gems, other features)
 
 ## If You Run Into An Issue, Try...
 1) Ensure you are using the latest version of Duolingo PRO.
