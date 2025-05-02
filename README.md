@@ -22,6 +22,7 @@ Subscribe to our [Youtube channel](https://www.youtube.com/@DuolingoPROscript) f
 - Dark mode.
 - Hide/Show Duolingo PRO.
 - Send feedback.
+- Increase your streak by up to 10 days.
 - More coming soon! (AutoServer, Gems, other features)
 
 ## If You Run Into An Issue, Try...
