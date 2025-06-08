@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Duolingo PRO
 // @namespace    http://duolingopro.net
-// @version      3.0BETA.04
-// @description  The fastest Duolingo XP gainer, working as of March 2025.
+// @version      3.1BETA.01
+// @description  The fastest Duolingo XP gainer, working as of June 2025.
 // @author       anonymousHackerIV
 // @match        https://*.duolingo.com/*
 // @match        https://*.duolingo.cn/*
@@ -12,12 +12,12 @@
 
 let storageLocal;
 let storageSession;
-let versionNumber = "04";
-let storageLocalVersion = "04";
-let storageSessionVersion = "04";
-let versionName = "BETA.04";
-let versionFull = "3.0BETA.04";
-let versionFormal = "3.0 BETA.04";
+let versionNumber = "01";
+let storageLocalVersion = "05";
+let storageSessionVersion = "05";
+let versionName = "BETA.01";
+let versionFull = "3.1BETA.01";
+let versionFormal = "3.1 BETA.01";
 let serverURL = "https://www.duolingopro.net";
 let apiURL = "https://api.duolingopro.net";
 let greasyfork = true;
@@ -34,6 +34,8 @@ let findReactMainElementClass = '_3yE3H';
 let reactTraverseUp = 1;
 
 const debug = false;
+const flag01 = false;
+const flag02 = false;
 
 let temporaryRandom16 = Array.from({ length: 16 }, () => 'abcdefghijklmnopqrstuvwxyz0123456789'[Math.floor(Math.random() * 36)]).join('');
 
@@ -53,6 +55,7 @@ if (localStorage.getItem("DLP_Local_Storage") == null || JSON.parse(localStorage
             "muteLessons": false,
             "solveSpeed": 0.9
         },
+        "chats": [],
         "notifications": [
             {
                 "id": "0001"
@@ -113,6 +116,8 @@ function saveStorageSession() {
     sessionStorage.setItem("DLP_Session_Storage", JSON.stringify(storageSession));
 }
 
+if (alpha) apiURL = "https://api.duolingopro.net/alpha";
+
 let systemLanguage = document.cookie.split('; ').find(row => row.startsWith('lang=')).split('=')[1];
 let systemText = {
     en: {
@@ -136,19 +141,19 @@ let systemText = {
         19: "How many practices would you like to solve?",
         21: "How many listening practices would you like to solve? (Requires Super Duolingo)",
         23: "Which and how many lessons would you like to repeat?",
-        25: "Please read and accept the Terms & Conditions to use Duolingo PRO 3.0.",
-        26: "These are the Terms & Conditions you agreed to use Duolingo PRO 3.0.",
+        25: "Please read and accept the Terms & Conditions to use Duolingo PRO 3.1.",
+        26: "These are the Terms & Conditions you agreed to use Duolingo PRO 3.1.",
         27: "LOADING TERMS & CONDITIONS<br><br>YOU CANNOT USE THIS SOFTWARE UNTIL TERMS & CONDITIONS ARE LOADED",
         28: "DECLINE",
         29: "ACCEPT",
-        30: "Without accepting the Terms & Conditions, you cannot use Duolingo PRO 3.0.",
+        30: "Without accepting the Terms & Conditions, you cannot use Duolingo PRO 3.1.",
         31: "BACK",
         32: "Settings",
         34: "Automatic Updates",
-        35: "Duolingo PRO 3.0 will automatically update itself when there's a new version available.",
+        35: "Duolingo PRO 3.1 will automatically update itself when there's a new version available.",
         37: "SAVE",
         38: "Feedback",
-        39: "Help us make Duolingo PRO 3.0 better.",
+        39: "Help us make Duolingo PRO 3.1 better.",
         40: "Write here as much as you can with as many details as possible.",
         41: "Feedback Type: ",
         42: "BUG REPORT",
@@ -166,7 +171,7 @@ let systemText = {
         102: "PAUSE SOLVE",
         103: "Hide",
         104: "Show",
-        105: "Switch to 3.0",
+        105: "Switch to 3.1",
         106: "Switch to Legacy",
         107: "STOP",
         108: "Connected",
@@ -209,6 +214,8 @@ let systemText = {
         230: "GEMS testing",
         231: "Error Connecting",
         232: "Duolingo PRO was unable to connect to our servers. This may be because our servers are temporarily unavailable or you are using an outdated version. Check for <a href='https://status.duolingopro.net' target='_blank' style='font-family: Duolingo Pro Rounded; text-decoration: underline; color: #007AFF;'>server status</a> or <a href='https://duolingopro.net/greasyfork' target='_blank' style='font-family: Duolingo Pro Rounded; text-decoration: underline; color: #007AFF;'>updates</a>.",
+        233: "Update Duolingo PRO",
+        234: "You are using an outdated version of Duolingo PRO. Please <a href='https://www.duolingopro.net/greasyfork' target='_blank' style='font-family: Duolingo Pro Rounded; color: #007AFF; text-decoration: underline;'>update Duolingo PRO</a> or turn on automatic updates."
     },
 };
 
@@ -228,15 +235,8 @@ function Two() {
 CSS1 = `
 @font-face {
     font-family: 'Duolingo Pro Rounded';
-    src: url(${serverURL}/static/3.0/assets/fonts/Duolingo-Pro-Rounded-Semibold.woff) format('woff');
-    font-weight: 700;
-    font-style: normal;
-}
-@font-face {
-    font-family: 'Duolingo Pro Rounded';
-    src: url(${serverURL}/static/3.0/assets/fonts/Duolingo-Pro-Rounded-Medium.woff) format('woff');
-    font-weight: 500;
-    font-style: normal;
+    src: url(${serverURL}/static/fonts/V6R99/Duolingo-PRO-Rounded-Semibold.woff2) format('woff2');
+    font-weight: 600;
 }`;
 
 HTML2 = `
@@ -277,6 +277,9 @@ HTML2 = `
                             </svg>
                             <svg id="DLP_Inset_Icon_3_ID" width="18" height="16" viewBox="0 0 18 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg" display="none" style="transition: 0.4s;">
                                 <path d="M2.96094 15.5469C1.53125 15.5469 0.59375 14.4688 0.59375 13.1797C0.59375 12.7812 0.695312 12.375 0.914062 11.9922L6.92969 1.47656C7.38281 0.695312 8.17188 0.289062 8.97656 0.289062C9.77344 0.289062 10.5547 0.6875 11.0156 1.47656L17.0312 11.9844C17.25 12.3672 17.3516 12.7812 17.3516 13.1797C17.3516 14.4688 16.4141 15.5469 14.9844 15.5469H2.96094ZM8.98438 9.96094C9.52344 9.96094 9.83594 9.65625 9.86719 9.09375L9.99219 5.72656C10.0234 5.14062 9.59375 4.73438 8.97656 4.73438C8.35156 4.73438 7.92969 5.13281 7.96094 5.72656L8.08594 9.10156C8.10938 9.65625 8.42969 9.96094 8.98438 9.96094ZM8.98438 12.7812C9.60156 12.7812 10.0859 12.3906 10.0859 11.7891C10.0859 11.2031 9.60938 10.8047 8.98438 10.8047C8.35938 10.8047 7.875 11.2031 7.875 11.7891C7.875 12.3906 8.35938 12.7812 8.98438 12.7812Z"/>
+                            </svg>
+                            <svg id="DLP_Inset_Icon_4_ID" width="17" height="18" viewBox="0 0 17 18" fill="#FFF" xmlns="http://www.w3.org/2000/svg" display="none" style="transition: 0.4s;">
+                                <path d="M8.64844 17.1094C4.09375 17.1094 0.398438 13.4141 0.398438 8.85938C0.398438 4.30469 4.09375 0.609375 8.64844 0.609375C13.2031 0.609375 16.8984 4.30469 16.8984 8.85938C16.8984 13.4141 13.2031 17.1094 8.64844 17.1094ZM8.65625 10.0312C9.19531 10.0312 9.50781 9.72656 9.53906 9.16406L9.66406 5.79688C9.69531 5.21094 9.26562 4.80469 8.64844 4.80469C8.02344 4.80469 7.60156 5.20312 7.63281 5.79688L7.75781 9.17188C7.78125 9.72656 8.10156 10.0312 8.65625 10.0312ZM8.65625 12.8516C9.27344 12.8516 9.75 12.4609 9.75 11.8594C9.75 11.2734 9.28125 10.875 8.65625 10.875C8.03125 10.875 7.54688 11.2734 7.54688 11.8594C7.54688 12.4609 8.03125 12.8516 8.65625 12.8516Z"/>
                             </svg>
                             <p id="DLP_Inset_Text_1_ID" class="DLP_Text_Style_1" style="color: rgb(var(--color-eel)); transition: 0.4s;">${systemText[systemLanguage][3]}</p>
                         </div>
@@ -328,7 +331,7 @@ HTML2 = `
                 <div class="DLP_HStack_Auto_Top DLP_NoSelect">
                     <div class="DLP_HStack_4">
                         <p class="DLP_Text_Style_2">Duolingo</p>
-                        <p class="DLP_Text_Style_2" style="background: url(${serverURL}/static/images/flow/primary/512/light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PRO 3.0</p>
+                        <p class="DLP_Text_Style_2" style="background: url(${serverURL}/static/images/flow/primary/512/light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PRO 3.1</p>
                     </div>
                     <p class="DLP_Text_Style_1" style="margin-top: 2px; font-size: 14px; background: url(${serverURL}/static/images/flow/secondary/512/light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${versionName}</p>
                 </div>
@@ -361,16 +364,20 @@ HTML2 = `
                             </div>
                         </div>
                     </div>
-                    <div class="DLP_VStack_8" id="DLP_Get_GEMS_1_ID" style="flex: 1 0 0; align-self: stretch; opacity: 0.5;">
+                    <div class="DLP_VStack_8" id="DLP_Get_GEMS_1_ID" style="flex: 1 0 0; align-self: stretch;">
                         <p class="DLP_Text_Style_1 DLP_NoSelect" style="align-self: stretch; opacity: 0.5;">${systemText[systemLanguage][10]}</p>
                         <div class="DLP_HStack_8">
-                            <div class="DLP_Input_Style_1_Active">
+                            <div class="DLP_Input_Style_1_Active" style="position: relative; overflow: hidden;">
+                                <svg width="120" height="48" viewBox="0 0 120 48" fill="none" xmlns="http://www.w3.org/2000/svg" style="position: absolute; pointer-events: none; transform: translateX(-150px); animation: slideRight 4s ease-in-out forwards infinite; animation-delay: 2s;">
+                                    <path opacity="0.5" d="M72 0H96L72 48H48L72 0Z" fill="#007AFF"/>
+                                    <path opacity="0.5" d="M24 0H60L36 48H0L24 0Z" fill="#007AFF"/>
+                                    <path opacity="0.5" d="M108 0H120L96 48H84L108 0Z" fill="#007AFF"/>
+                                </svg>
                                 <p class="DLP_Text_Style_1 DLP_NoSelect" style="color: #007AFF; opacity: 0.5; display: none;">GEMS</p>
                                 <svg width="15" height="16" viewBox="0 0 15 16" fill="#007AFF" opacity="0.5" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M1.39844 11.3594C0.78125 11.3594 0.398438 11 0.398438 10.4297C0.398438 9.72656 0.867188 9.25 1.625 9.25H3.46875L4.07812 6.17969H2.40625C1.78906 6.17969 1.39844 5.80469 1.39844 5.24219C1.39844 4.53125 1.875 4.05469 2.63281 4.05469H4.5L5.07812 1.17188C5.21094 0.507812 5.58594 0.15625 6.26562 0.15625C6.88281 0.15625 7.26562 0.507812 7.26562 1.07031C7.26562 1.19531 7.24219 1.35938 7.22656 1.45312L6.70312 4.05469H9.61719L10.1953 1.17188C10.3281 0.507812 10.6953 0.15625 11.375 0.15625C11.9844 0.15625 12.3672 0.507812 12.3672 1.07031C12.3672 1.19531 12.3516 1.35938 12.3359 1.45312L11.8125 4.05469H13.5938C14.2109 4.05469 14.5938 4.4375 14.5938 4.99219C14.5938 5.70312 14.125 6.17969 13.3672 6.17969H11.3906L10.7812 9.25H12.5859C13.2031 9.25 13.5859 9.64062 13.5859 10.1953C13.5859 10.8984 13.1172 11.3594 12.3516 11.3594H10.3594L9.72656 14.5469C9.59375 15.2266 9.17969 15.5547 8.52344 15.5547C7.91406 15.5547 7.53906 15.2109 7.53906 14.6406C7.53906 14.5391 7.55469 14.375 7.57812 14.2656L8.15625 11.3594H5.25L4.61719 14.5469C4.48438 15.2266 4.0625 15.5547 3.42188 15.5547C2.8125 15.5547 2.42969 15.2109 2.42969 14.6406C2.42969 14.5391 2.44531 14.375 2.46875 14.2656L3.04688 11.3594H1.39844ZM5.67188 9.25H8.57812L9.19531 6.17969H6.28125L5.67188 9.25Z"/>
                                 </svg>
-                                <p class="DLP_Text_Style_1 DLP_NoSelect" style="color: #007AFF; flex: 1 0 0; text-align: end;">0</p>
-                                <input style="display: none;" type="text" placeholder="0" id="DLP_Inset_Input_1_ID" class="DLP_Input_Input_Style_1">
+                                <input type="text" placeholder="0" id="DLP_Inset_Input_1_ID" class="DLP_Input_Input_Style_1">
                             </div>
                             <div class="DLP_Input_Button_Style_1_Active DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Inset_Button_1_ID">
                                 <p id="DLP_Inset_Text_1_ID" class="DLP_Text_Style_1" style="color: #FFF;">${systemText[systemLanguage][9]}</p>
@@ -530,7 +537,7 @@ HTML2 = `
                             <path d="M0.171875 9.44922C0.181641 9.04883 0.318359 8.7168 0.640625 8.4043L8.16016 1.05078C8.4043 0.796875 8.70703 0.679688 9.07812 0.679688C9.81055 0.679688 10.3965 1.25586 10.3965 1.98828C10.3965 2.34961 10.25 2.68164 9.98633 2.94531L3.30664 9.43945L9.98633 15.9531C10.25 16.2168 10.3965 16.5391 10.3965 16.9102C10.3965 17.6426 9.81055 18.2285 9.07812 18.2285C8.7168 18.2285 8.4043 18.1016 8.16016 17.8477L0.640625 10.4941C0.318359 10.1816 0.171875 9.84961 0.171875 9.44922Z"/>
                         </svg>
                         <p class="DLP_Text_Style_2">Duolingo</p>
-                        <p class="DLP_Text_Style_2" style="background: url(${serverURL}/static/images/flow/primary/512/light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PRO 3.0</p>
+                        <p class="DLP_Text_Style_2" style="background: url(${serverURL}/static/images/flow/primary/512/light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PRO 3.1</p>
                     </div>
                     <p class="DLP_Text_Style_1" style="font-size: 14px; background: url(${serverURL}/static/images/flow/secondary/512/light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${versionName}</p>
                 </div>
@@ -571,7 +578,7 @@ HTML2 = `
                             </div>
                         </div>
                     </div>
-                    <div class="DLP_VStack_8" id="DLP_Get_GEMS_2_ID" style="flex: 1 0 0; align-self: stretch; opacity: 0.5;">
+                    <div class="DLP_VStack_8" id="DLP_Get_GEMS_2_ID" style="flex: 1 0 0; align-self: stretch;">
                         <div class="DLP_HStack_8" style="align-items: center;">
                             <svg id="DLP_Inset_Icon_1_ID" class="DLP_Magnetic_Hover_1 DLP_NoSelect" width="13" height="20" viewBox="0 0 13 20" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M0.140625 12.25C0.140625 10.5156 1.50781 8.80469 3.73438 7.96875L3.98438 4.25781C2.77344 3.57812 1.875 2.85156 1.47656 2.35156C1.24219 2.05469 1.13281 1.74219 1.13281 1.46094C1.13281 0.875 1.57812 0.453125 2.22656 0.453125H10.7578C11.4062 0.453125 11.8516 0.875 11.8516 1.46094C11.8516 1.74219 11.7422 2.05469 11.5078 2.35156C11.1094 2.85156 10.2109 3.57031 9 4.25781L9.25781 7.96875C11.4766 8.80469 12.8438 10.5156 12.8438 12.25C12.8438 13.0312 12.3047 13.5547 11.5 13.5547H7.40625V17.3203C7.40625 18.2578 6.74219 19.5703 6.49219 19.5703C6.24219 19.5703 5.57812 18.2578 5.57812 17.3203V13.5547H1.48438C0.679688 13.5547 0.140625 13.0312 0.140625 12.25Z"/>
@@ -582,13 +589,17 @@ HTML2 = `
                             <p class="DLP_Text_Style_1 DLP_NoSelect" style="align-self: stretch; opacity: 0.5;">${systemText[systemLanguage][10]}</p>
                         </div>
                         <div class="DLP_HStack_8">
-                            <div class="DLP_Input_Style_1_Active">
+                            <div class="DLP_Input_Style_1_Active" style="position: relative; overflow: hidden;">
+                                <svg width="120" height="48" viewBox="0 0 120 48" fill="none" xmlns="http://www.w3.org/2000/svg" style="position: absolute; pointer-events: none; transform: translateX(-150px); animation: slideRight 4s ease-in-out forwards infinite; animation-delay: 2s;">
+                                    <path opacity="0.5" d="M72 0H96L72 48H48L72 0Z" fill="#007AFF"/>
+                                    <path opacity="0.5" d="M24 0H60L36 48H0L24 0Z" fill="#007AFF"/>
+                                    <path opacity="0.5" d="M108 0H120L96 48H84L108 0Z" fill="#007AFF"/>
+                                </svg>
                                 <p class="DLP_Text_Style_1 DLP_NoSelect" style="color: #007AFF; opacity: 0.5; display: none;">GEMS</p>
                                 <svg width="15" height="16" viewBox="0 0 15 16" fill="#007AFF" opacity="0.5" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M1.39844 11.3594C0.78125 11.3594 0.398438 11 0.398438 10.4297C0.398438 9.72656 0.867188 9.25 1.625 9.25H3.46875L4.07812 6.17969H2.40625C1.78906 6.17969 1.39844 5.80469 1.39844 5.24219C1.39844 4.53125 1.875 4.05469 2.63281 4.05469H4.5L5.07812 1.17188C5.21094 0.507812 5.58594 0.15625 6.26562 0.15625C6.88281 0.15625 7.26562 0.507812 7.26562 1.07031C7.26562 1.19531 7.24219 1.35938 7.22656 1.45312L6.70312 4.05469H9.61719L10.1953 1.17188C10.3281 0.507812 10.6953 0.15625 11.375 0.15625C11.9844 0.15625 12.3672 0.507812 12.3672 1.07031C12.3672 1.19531 12.3516 1.35938 12.3359 1.45312L11.8125 4.05469H13.5938C14.2109 4.05469 14.5938 4.4375 14.5938 4.99219C14.5938 5.70312 14.125 6.17969 13.3672 6.17969H11.3906L10.7812 9.25H12.5859C13.2031 9.25 13.5859 9.64062 13.5859 10.1953C13.5859 10.8984 13.1172 11.3594 12.3516 11.3594H10.3594L9.72656 14.5469C9.59375 15.2266 9.17969 15.5547 8.52344 15.5547C7.91406 15.5547 7.53906 15.2109 7.53906 14.6406C7.53906 14.5391 7.55469 14.375 7.57812 14.2656L8.15625 11.3594H5.25L4.61719 14.5469C4.48438 15.2266 4.0625 15.5547 3.42188 15.5547C2.8125 15.5547 2.42969 15.2109 2.42969 14.6406C2.42969 14.5391 2.44531 14.375 2.46875 14.2656L3.04688 11.3594H1.39844ZM5.67188 9.25H8.57812L9.19531 6.17969H6.28125L5.67188 9.25Z"/>
                                 </svg>
-                                <p class="DLP_Text_Style_1 DLP_NoSelect" style="color: #007AFF; flex: 1 0 0; text-align: end;">0</p>
-                                <input style="display: none;" type="text" placeholder="0" id="DLP_Inset_Input_1_ID" class="DLP_Input_Input_Style_1">
+                                <input type="text" placeholder="0" id="DLP_Inset_Input_1_ID" class="DLP_Input_Input_Style_1">
                             </div>
                             <div class="DLP_Input_Button_Style_1_Active DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Inset_Button_1_ID">
                                 <p id="DLP_Inset_Text_1_ID" class="DLP_Text_Style_1" style="color: #FFF;">${systemText[systemLanguage][9]}</p>
@@ -824,6 +835,9 @@ HTML2 = `
                             </svg>
                             <svg id="DLP_Inset_Icon_3_ID" width="18" height="16" viewBox="0 0 18 16" fill="#FFF" xmlns="http://www.w3.org/2000/svg" display="none" style="transition: 0.4s;">
                                 <path d="M2.96094 15.5469C1.53125 15.5469 0.59375 14.4688 0.59375 13.1797C0.59375 12.7812 0.695312 12.375 0.914062 11.9922L6.92969 1.47656C7.38281 0.695312 8.17188 0.289062 8.97656 0.289062C9.77344 0.289062 10.5547 0.6875 11.0156 1.47656L17.0312 11.9844C17.25 12.3672 17.3516 12.7812 17.3516 13.1797C17.3516 14.4688 16.4141 15.5469 14.9844 15.5469H2.96094ZM8.98438 9.96094C9.52344 9.96094 9.83594 9.65625 9.86719 9.09375L9.99219 5.72656C10.0234 5.14062 9.59375 4.73438 8.97656 4.73438C8.35156 4.73438 7.92969 5.13281 7.96094 5.72656L8.08594 9.10156C8.10938 9.65625 8.42969 9.96094 8.98438 9.96094ZM8.98438 12.7812C9.60156 12.7812 10.0859 12.3906 10.0859 11.7891C10.0859 11.2031 9.60938 10.8047 8.98438 10.8047C8.35938 10.8047 7.875 11.2031 7.875 11.7891C7.875 12.3906 8.35938 12.7812 8.98438 12.7812Z"/>
+                            </svg>
+                            <svg id="DLP_Inset_Icon_4_ID" width="17" height="18" viewBox="0 0 17 18" fill="#FFF" xmlns="http://www.w3.org/2000/svg" display="none" style="transition: 0.4s;">
+                                <path d="M8.64844 17.1094C4.09375 17.1094 0.398438 13.4141 0.398438 8.85938C0.398438 4.30469 4.09375 0.609375 8.64844 0.609375C13.2031 0.609375 16.8984 4.30469 16.8984 8.85938C16.8984 13.4141 13.2031 17.1094 8.64844 17.1094ZM8.65625 10.0312C9.19531 10.0312 9.50781 9.72656 9.53906 9.16406L9.66406 5.79688C9.69531 5.21094 9.26562 4.80469 8.64844 4.80469C8.02344 4.80469 7.60156 5.20312 7.63281 5.79688L7.75781 9.17188C7.78125 9.72656 8.10156 10.0312 8.65625 10.0312ZM8.65625 12.8516C9.27344 12.8516 9.75 12.4609 9.75 11.8594C9.75 11.2734 9.28125 10.875 8.65625 10.875C8.03125 10.875 7.54688 11.2734 7.54688 11.8594C7.54688 12.4609 8.03125 12.8516 8.65625 12.8516Z"/>
                             </svg>
                             <p id="DLP_Inset_Text_1_ID" class="DLP_Text_Style_1" style="color: #000; transition: 0.4s;">${systemText[systemLanguage][3]}</p>
                         </div>
@@ -1289,7 +1303,7 @@ HTML2 = `
                 <div class="DLP_HStack_Auto_Top DLP_NoSelect">
                     <div class="DLP_HStack_4">
                         <p class="DLP_Text_Style_2">Duolingo</p>
-                        <p class="DLP_Text_Style_2" style="background: url(${serverURL}/static/images/flow/primary/512/light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PRO 3.0</p>
+                        <p class="DLP_Text_Style_2" style="background: url(${serverURL}/static/images/flow/primary/512/light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PRO 3.1</p>
                     </div>
                     <p class="DLP_Text_Style_1" style="font-size: 14px; background: url(${serverURL}/static/images/flow/secondary/512/light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${versionName}</p>
                 </div>
@@ -1329,7 +1343,7 @@ HTML2 = `
                 <div class="DLP_HStack_Auto_Top DLP_NoSelect">
                     <div class="DLP_HStack_4">
                         <p class="DLP_Text_Style_2">Duolingo</p>
-                        <p class="DLP_Text_Style_2" style="background: url(${serverURL}/static/images/flow/primary/512/light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PRO 3.0</p>
+                        <p class="DLP_Text_Style_2" style="background: url(${serverURL}/static/images/flow/primary/512/light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PRO 3.1</p>
                     </div>
                     <p class="DLP_Text_Style_1" style="font-size: 14px; background: url(${serverURL}/static/images/flow/secondary/512/light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${versionName}</p>
                 </div>
@@ -1536,7 +1550,7 @@ HTML2 = `
                         <p class="DLP_Text_Style_1" style="font-size: 14px; background: url(${serverURL}/static/images/flow/secondary/512/light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${systemText[systemLanguage][52]}</p>
                         <div class="DLP_HStack_4" style="align-self: auto;">
                             <p class="DLP_Text_Style_2">Duolingo</p>
-                            <p class="DLP_Text_Style_2" style="background: url(${serverURL}/static/images/flow/primary/512/light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PRO 3.0</p>
+                            <p class="DLP_Text_Style_2" style="background: url(${serverURL}/static/images/flow/primary/512/light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PRO 3.1</p>
                         </div>
                     </div>
                     <p class="DLP_Text_Style_1 DLP_NoSelect" style="align-self: stretch; opacity: 0.5; text-align: center;">${systemText[systemLanguage][53]}</p>
@@ -1556,44 +1570,66 @@ HTML2 = `
         <div class="DLP_Main_Box_Divider" id="DLP_Main_Box_Divider_11_ID" style="display: none;">
             <div class="DLP_VStack_8">
                 <div class="DLP_HStack_Auto_Top DLP_NoSelect">
-                    <div class="DLP_HStack_4">
+                    <div id="DLP_Universal_Back_1_Button_1_ID" class="DLP_HStack_4">
+                        <svg class="DLP_Magnetic_Hover_1" width="11" height="19" opacity=0.5 viewBox="0 0 11 19" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <pattern id="sedfgvhbjnklmedf" patternUnits="objectBoundingBox" width="1" height="1">
+                                    <image href="${serverURL}/static/images/flow/primary/512/light.png" width="19" height="19"/>
+                                </pattern>
+                            </defs>
+                            <path d="M0.171875 9.44922C0.181641 9.04883 0.318359 8.7168 0.640625 8.4043L8.16016 1.05078C8.4043 0.796875 8.70703 0.679688 9.07812 0.679688C9.81055 0.679688 10.3965 1.25586 10.3965 1.98828C10.3965 2.34961 10.25 2.68164 9.98633 2.94531L3.30664 9.43945L9.98633 15.9531C10.25 16.2168 10.3965 16.5391 10.3965 16.9102C10.3965 17.6426 9.81055 18.2285 9.07812 18.2285C8.7168 18.2285 8.4043 18.1016 8.16016 17.8477L0.640625 10.4941C0.318359 10.1816 0.171875 9.84961 0.171875 9.44922Z" fill="url(#sedfgvhbjnklmedf)"/>
+                        </svg>
                         <p class="DLP_Text_Style_2" style="background: url(${serverURL}/static/images/flow/primary/512/light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Support</p>
                     </div>
                     <p class="DLP_Text_Style_1" style="font-size: 14px; background: url(${serverURL}/static/images/flow/secondary/512/light.png) lightgray 50% / cover no-repeat; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${versionName}</p>
                 </div>
 
-                <div class="DLP_HStack_8">
-                    <div class="DLP_Button_Style_1 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Main_Feedback_1_Button_1_ID" style="outline: 2px solid rgba(88, 101, 242, 0.20); outline-offset: -2px; background: rgba(88, 101, 242, 0.10); justify-content: center;">
-                        <svg width="20" height="16" viewBox="0 0 20 16" fill="#5865F2" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M16.5948 2.06843C15.3649 1.51091 14.0498 1.10572 12.675 0.875C12.5061 1.17077 12.3088 1.56859 12.1728 1.88506C10.7113 1.6721 9.26323 1.6721 7.82858 1.88506C7.6926 1.56859 7.49086 1.17077 7.32049 0.875C5.94414 1.10572 4.62756 1.51239 3.39765 2.07139C0.916926 5.70339 0.244441 9.24519 0.580684 12.7367C2.22603 13.9271 3.82057 14.6503 5.3882 15.1235C5.77526 14.6074 6.12046 14.0588 6.41785 13.4806C5.85147 13.272 5.309 13.0147 4.79643 12.716C4.93242 12.6184 5.06543 12.5163 5.19393 12.4113C8.32024 13.8281 11.717 13.8281 14.806 12.4113C14.936 12.5163 15.069 12.6184 15.2035 12.716C14.6894 13.0162 14.1455 13.2735 13.5791 13.482C13.8765 14.0588 14.2202 14.6089 14.6087 15.125C16.1779 14.6518 17.7739 13.9286 19.4192 12.7367C19.8138 8.68915 18.7453 5.17988 16.5948 2.06843ZM6.84376 10.5895C5.90528 10.5895 5.13565 9.74059 5.13565 8.70689C5.13565 7.67319 5.88885 6.82287 6.84376 6.82287C7.79871 6.82287 8.56832 7.6717 8.55188 8.70689C8.55337 9.74059 7.79871 10.5895 6.84376 10.5895ZM13.1562 10.5895C12.2177 10.5895 11.4481 9.74059 11.4481 8.70689C11.4481 7.67319 12.2012 6.82287 13.1562 6.82287C14.1111 6.82287 14.8807 7.6717 14.8643 8.70689C14.8643 9.74059 14.1111 10.5895 13.1562 10.5895Z"/>
-                        </svg>
-                        <p class="DLP_Text_Style_1" style="color: #5865F2;">Talk in Discord</p>
-                    </div>
-                    <div class="DLP_Button_Style_1 DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Main_Settings_1_Button_1_ID" style="outline: 2px solid rgba(255, 45, 85, 0.20); outline-offset: -2px; background: rgba(255, 45, 85, 0.10); justify-content: center;">
-                        <svg width="15" height="14" viewBox="0 0 15 14" fill="#FF2D55" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M1.36719 12.9922C0.914062 12.5469 0.929688 11.7578 1.35156 11.3359L5.82031 6.86719L1.35156 2.41406C0.929688 1.98438 0.914062 1.20312 1.36719 0.75C1.82031 0.289062 2.60938 0.304688 3.03125 0.734375L7.49219 5.19531L11.9531 0.734375C12.3906 0.296875 13.1562 0.296875 13.6094 0.75C14.0703 1.20312 14.0703 1.96875 13.625 2.41406L9.17188 6.86719L13.625 11.3281C14.0703 11.7734 14.0625 12.5312 13.6094 12.9922C13.1641 13.4453 12.3906 13.4453 11.9531 13.0078L7.49219 8.54688L3.03125 13.0078C2.60938 13.4375 1.82812 13.4453 1.36719 12.9922Z"/>
-                        </svg>
-                        <p class="DLP_Text_Style_1" style="color: #FF2D55;">End Chat</p>
-                    </div>
-                </div>
-
-                <div class="DLP_VStack_8">
-                    <div class="DLP_HStack_8">
-
-                        <div class="DLP_Input_Button_Style_1_Active DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Inset_Button_1_ID" style="width: 48px; background: rgba(0, 122, 255, 0.10); outline-offset: -2px; outline: 2px solid rgba(0, 122, 255, 0.20);">
-                            <svg width="17" height="20" viewBox="0 0 17 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M13.8438 10.2031C14.1719 9.88281 14.7109 9.85156 15.0234 10.1875C15.3594 10.5 15.3594 11.0938 15.0391 11.4062L9.19531 17.2578C7.13281 19.3125 4.14844 19.1797 2.25 17.2969C0.367188 15.4062 0.242188 12.4219 2.29688 10.3594L10.3359 2.3125C11.9297 0.726562 14.0625 0.804688 15.4531 2.1875C16.8672 3.60156 16.9141 5.70312 15.3203 7.29688L7.39062 15.2266C6.48438 16.1328 5.14844 16.1562 4.27344 15.2812C3.46094 14.4688 3.42188 13.0703 4.32812 12.1562L9.83594 6.64844C10.1719 6.3125 10.6719 6.3125 11 6.625C11.3281 6.95312 11.3125 7.45312 10.9766 7.78906L5.49219 13.2734C5.21094 13.5547 5.28906 13.8828 5.47656 14.0781C5.67188 14.2656 6 14.3438 6.28125 14.0625L14.1641 6.16406C14.9609 5.36719 15.1641 4.16406 14.3516 3.34375C13.5469 2.53906 12.3281 2.73438 11.5312 3.53906L3.54688 11.5078C2.11719 12.9453 2.23438 14.8438 3.47656 16.0781C4.70312 17.3125 6.60938 17.4375 8.03906 16L13.8438 10.2031Z" fill="#007AFF"/>
+                <div class="DLP_VStack_8" style="height: 500px;">
+                    <div id="DLP_Inset_Card_1" style="display: flex; padding: 14.5px 16px; flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; align-self: stretch; border-radius: 8px; outline: 2px solid rgba(0, 122, 255, 0.20); outline-offset: -2px; background: rgba(0, 122, 255, 0.10); transition: all 0.4s cubic-bezier(0.16, 1, 0.32, 1);">
+                        <div class="DLP_HStack_6">
+                            <svg width="18" height="18" viewBox="0 0 18 18" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9 17.1094C4.44531 17.1094 0.75 13.4141 0.75 8.85938C0.75 4.30469 4.44531 0.609375 9 0.609375C13.5547 0.609375 17.25 4.30469 17.25 8.85938C17.25 13.4141 13.5547 17.1094 9 17.1094ZM8.99219 6.36719C9.65625 6.36719 10.2031 5.8125 10.2031 5.14844C10.2031 4.46094 9.65625 3.92188 8.99219 3.92188C8.32031 3.92188 7.76562 4.46094 7.76562 5.14844C7.76562 5.8125 8.32031 6.36719 8.99219 6.36719ZM7.52344 13.3125H10.8438C11.2734 13.3125 11.6094 13.0156 11.6094 12.5703C11.6094 12.1562 11.2734 11.8281 10.8438 11.8281H10.1094V8.45312C10.1094 7.86719 9.82031 7.49219 9.27344 7.49219H7.67969C7.25 7.49219 6.91406 7.82031 6.91406 8.22656C6.91406 8.66406 7.25 8.97656 7.67969 8.97656H8.42969V11.8281H7.52344C7.09375 11.8281 6.75781 12.1562 6.75781 12.5703C6.75781 13.0156 7.09375 13.3125 7.52344 13.3125Z"/>
+                            </svg>
+                            <p class="DLP_Text_Style_1 DLP_NoSelect" style="color: #007AFF; flex: 1 0 0;">Response Times</p>
+                            <svg width="9" height="16" viewBox="0 0 9 16" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M8.82812 7.85938C8.82812 8.24219 8.69531 8.5625 8.36719 8.875L2.46094 14.6641C2.22656 14.8984 1.9375 15.0156 1.59375 15.0156C0.90625 15.0156 0.34375 14.4609 0.34375 13.7734C0.34375 13.4219 0.484375 13.1094 0.742188 12.8516L5.89062 7.85156L0.742188 2.85938C0.484375 2.60938 0.34375 2.28906 0.34375 1.94531C0.34375 1.26562 0.90625 0.703125 1.59375 0.703125C1.9375 0.703125 2.22656 0.820312 2.46094 1.05469L8.36719 6.84375C8.6875 7.14844 8.82812 7.46875 8.82812 7.85938Z"/>
                             </svg>
                         </div>
-                        <div class="DLP_Input_Style_1_Active">
-                            <textarea type="text" placeholder="Type here..." id="DLP_Inset_Input_1_ID" class="DLP_Input_Style_1"></textarea>
-                        </div>
-                        <div class="DLP_Input_Button_Style_1_Active DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Inset_Button_1_ID" style="width: 48px;">
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M1.25 15.0156C0.554688 15.0156 -0.0078125 14.4609 -0.0078125 13.7734C-0.0078125 13.4297 0.140625 13.1094 0.390625 12.8516L5.54688 7.85156L0.390625 2.85938C0.132812 2.60156 -0.0078125 2.28125 -0.0078125 1.94531C-0.0078125 1.25781 0.554688 0.703125 1.25 0.703125C1.59375 0.703125 1.875 0.820312 2.10938 1.05469L8.02344 6.83594C8.33594 7.14062 8.48438 7.46875 8.48438 7.85938C8.48438 8.24219 8.34375 8.5625 8.02344 8.88281L2.10938 14.6641C1.86719 14.8984 1.58594 15.0156 1.25 15.0156ZM8.22656 15.0156C7.53125 15.0156 6.96875 14.4609 6.96875 13.7734C6.96875 13.4297 7.11719 13.1094 7.375 12.8516L12.5234 7.85156L7.375 2.85938C7.10938 2.60156 6.96875 2.28125 6.96875 1.94531C6.96875 1.25781 7.53125 0.703125 8.22656 0.703125C8.57031 0.703125 8.85156 0.820312 9.09375 1.05469L15 6.83594C15.3203 7.14062 15.4609 7.46875 15.4688 7.85938C15.4688 8.24219 15.3203 8.5625 15.0078 8.88281L9.09375 14.6641C8.85156 14.8984 8.57031 15.0156 8.22656 15.0156Z" fill="white"/>
-                            </svg>
-                        </div>
+                        <p class="DLP_Text_Style_1 DLP_NoSelect" style="align-self: stretch; color: #007AFF; opacity: 0.5; display: none; opacity: 0; filter: blur(4px); height: 0px; transition: 0.4s cubic-bezier(0.16, 1, 0.32, 1);">It may take a few hours for a developer to respond to you. You will be notified in Duolingo PRO when there’s a reply.</p>
+                    </div>
 
+                    <div class="DLP_Chat_Box_1_ID_1" style="display: flex; flex-direction: column; justify-content: flex-start; flex-direction: column-reverse; align-items: center; gap: 8px; flex: 1 0 0; align-self: stretch; overflow-y: scroll;">
+
+                    </div>
+
+                    <div style="display: flex; display: none; flex-direction: column; justify-content: center; align-items: center; gap: 8px; flex: 1 0 0; align-self: stretch;">
+                        <div class="DLP_VStack_4" style="padding: 0px 32px;">
+                            <svg width="37" height="29" viewBox="0 0 37 29" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M0.988281 15.7227V6.44141C0.988281 2.87891 3.14453 0.699219 6.73047 0.699219H21.4258C24.2617 0.699219 26.1719 2.07031 26.8281 4.41406V4.53125H19.8438C15.4141 4.53125 12.5898 7.34375 12.5898 11.668V18.8398C12.5898 20.2109 12.8828 21.4062 13.4453 22.4141L10.0352 25.3789C9.30859 26.0234 8.83984 26.293 8.24219 26.293C7.375 26.293 6.85938 25.6953 6.85938 24.7578V21.4766H6.53125C3.28516 21.4766 0.988281 19.2852 0.988281 15.7227ZM19.8438 23.8789C16.4805 23.8789 14.4883 22.0039 14.4883 18.8398V11.668C14.4883 8.39844 16.4805 6.42969 19.8438 6.42969H31.1875C34.5508 6.42969 36.543 8.39844 36.543 11.668V18.8398C36.543 21.9922 34.6445 23.8789 31.3984 23.8789H31.2227V26.8789C31.2227 27.8164 30.7188 28.4141 29.8633 28.4141C29.2656 28.4141 28.8086 28.1328 28.0703 27.5L23.8516 23.8789H19.8438Z"/>
+                            </svg>
+                            <p class="DLP_Text_Style_1 DLP_NoSelect" style="align-self: stretch; text-align: center; opacity: 0.5;">Send a message to start chatting</p>
+                        </div>
+                    </div>
+                    <div class="DLP_VStack_8">
+
+                        <div id="DLP_Attachment_Preview_Parent" style="display: flex; align-items: center; gap: 8px; align-self: stretch; width: 100%; overflow-y: scroll; opacity: 0; filter: blur(4px);"></div>
+
+                        <div class="DLP_HStack_8" style="align-items: flex-end;">
+                            <div class="DLP_Input_Button_Style_1_Active DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Inset_Button_1_ID" style="width: 48px; background: rgba(0, 122, 255, 0.10); outline-offset: -2px; outline: 2px solid rgba(0, 122, 255, 0.20);" onclick="document.getElementById('DLP_Attachment_Input_1').click();">
+                                <svg width="14" height="14" viewBox="0 0 14 14" fill="#007AFF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M-0.0078125 6.85938C-0.0078125 6.21094 0.523438 5.67969 1.17969 5.67969H5.51562V1.34375C5.51562 0.695312 6.03906 0.15625 6.69531 0.15625C7.35156 0.15625 7.88281 0.695312 7.88281 1.34375V5.67969H12.2188C12.8672 5.67969 13.3984 6.21094 13.3984 6.85938C13.3984 7.51562 12.8672 8.04688 12.2188 8.04688H7.88281V12.3828C7.88281 13.0312 7.35156 13.5703 6.69531 13.5703C6.03906 13.5703 5.51562 13.0312 5.51562 12.3828V8.04688H1.17969C0.523438 8.04688 -0.0078125 7.51562 -0.0078125 6.85938Z"/>
+                                </svg>
+                                <input type="file" id="DLP_Attachment_Input_1" accept="image/*, video/*" multiple style="display: none;" onchange="displayFiles()">
+                            </div>
+                            <div class="DLP_Input_Style_1_Active" style="padding: 0;">
+                                <textarea type="text" placeholder="Type here..." id="DLP_Inset_Input_1_ID" class="DLP_Input_Style_1" style="padding: 16px; box-sizing: content-box; overflow: scroll;"></textarea>
+                            </div>
+                            <div class="DLP_Input_Button_Style_1_Active DLP_Magnetic_Hover_1 DLP_NoSelect" id="DLP_Inset_Button_2_ID" style="width: 48px;">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1.25 15.0156C0.554688 15.0156 -0.0078125 14.4609 -0.0078125 13.7734C-0.0078125 13.4297 0.140625 13.1094 0.390625 12.8516L5.54688 7.85156L0.390625 2.85938C0.132812 2.60156 -0.0078125 2.28125 -0.0078125 1.94531C-0.0078125 1.25781 0.554688 0.703125 1.25 0.703125C1.59375 0.703125 1.875 0.820312 2.10938 1.05469L8.02344 6.83594C8.33594 7.14062 8.48438 7.46875 8.48438 7.85938C8.48438 8.24219 8.34375 8.5625 8.02344 8.88281L2.10938 14.6641C1.86719 14.8984 1.58594 15.0156 1.25 15.0156ZM8.22656 15.0156C7.53125 15.0156 6.96875 14.4609 6.96875 13.7734C6.96875 13.4297 7.11719 13.1094 7.375 12.8516L12.5234 7.85156L7.375 2.85938C7.10938 2.60156 6.96875 2.28125 6.96875 1.94531C6.96875 1.25781 7.53125 0.703125 8.22656 0.703125C8.57031 0.703125 8.85156 0.820312 9.09375 1.05469L15 6.83594C15.3203 7.14062 15.4609 7.46875 15.4688 7.85938C15.4688 8.24219 15.3203 8.5625 15.0078 8.88281L9.09375 14.6641C8.85156 14.8984 8.57031 15.0156 8.22656 15.0156Z" fill="white"/>
+                                </svg>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -1616,7 +1652,7 @@ CSS2 = `
     font-family: "Duolingo Pro Rounded";
     font-size: 16px;
     font-style: normal;
-    font-weight: 700;
+    font-weight: 500;
     line-height: normal;
 
     margin: 0;
@@ -1626,7 +1662,7 @@ CSS2 = `
     font-family: "Duolingo Pro Rounded";
     font-size: 24px;
     font-style: normal;
-    font-weight: 700;
+    font-weight: 500;
     line-height: normal;
 
     margin: 0;
@@ -1682,7 +1718,7 @@ CSS2 = `
     gap: 8px;
     overflow: hidden;
 
-    border-radius: 16px;
+    border-radius: 20px;
     outline: 2px solid rgb(var(--color-eel), 0.10);
     outline-offset: -2px;
     background: rgb(var(--color-snow), 0.90);
@@ -1796,7 +1832,7 @@ svg {
     font-family: "Duolingo Pro Rounded";
     font-size: 16px;
     font-style: normal;
-    font-weight: 700;
+    font-weight: 500;
     line-height: normal;
     color: #007AFF;
 
@@ -1826,7 +1862,7 @@ svg {
     font-family: "Duolingo Pro Rounded";
     font-size: 16px;
     font-style: normal;
-    font-weight: 700;
+    font-weight: 500;
     line-height: normal;
     color: #007AFF;
 
@@ -1906,7 +1942,7 @@ svg {
     font-family: "Duolingo Pro Rounded";
     font-size: 16px;
     font-style: normal;
-    font-weight: 700;
+    font-weight: 500;
     line-height: normal;
     opacity: 0.5;
     margin: 0;
@@ -1974,14 +2010,14 @@ svg {
 
     color: rgb(var(--color-eel), 0.50);
     font-size: 16px;
-    font-weight: 700;
+    font-weight: 500;
     font-family: Duolingo Pro Rounded, 'din-round' !important;
 
     resize: vertical;
     transition: .2s;
 }
 .DLP_Large_Input_Box_Style_1::placeholder {
-    font-weight: 700;
+    font-weight: 500;
     color: rgb(var(--color-eel), 0.25);
 }
 .DLP_Large_Input_Box_Style_1:focus {
@@ -2060,6 +2096,66 @@ svg {
 ._2V6ug._1ursp._7jW2t._3dDzz._1wiIJ::before {
     border-radius: 20px !important;
 }
+.DLP_Tooltip {
+    position: fixed;
+    display: inline-flex;
+    height: 40px;
+    padding: 10px 14px;
+    box-sizing: border-box;
+    margin: 0;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+
+    border-radius: 24px;
+    outline: 2px solid rgb(var(--color-eel), 0.10);
+    outline-offset: -2px;
+    background: rgb(var(--color-snow), 0.90);
+    backdrop-filter: blur(4px);
+    filter: blur(8px);
+
+    font-family: Duolingo Pro Rounded;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out, filter 0.5s ease-in-out;
+    white-space: nowrap;
+    pointer-events: none;
+}
+.DLP_Tooltip.DLP_Tooltip_Visible {
+    opacity: 1;
+    filter: blur(0px);
+}
+.DLP_Attachment_Preview_Box_1 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+
+    width: 80px;
+    height: 80px;
+
+    border-radius: 8px;
+    outline-offset: -2px;
+    outline: 2px solid rgba(0, 0, 0, 0.1);
+
+    overflow: hidden;
+    flex-shrink: 0;
+    cursor: pointer;
+
+    transition: outline 0.5s ease-in-out;
+}
+@keyframes slideRight {
+  0% {
+    transform: translateX(-150px);
+  }
+  20% {
+    transform: translateX(200px);
+  }
+  100% {
+    transform: translateX(200px);
+  }
+}
+
 `;
 
 HTML3 = `
@@ -2402,8 +2498,8 @@ CSS5 = `
 .DLP_AutoServer_Menu_Bar {
     display: flex;
     width: 100%;
-    height: 60px;
-    padding: 20px;
+    height: 64px;
+    padding: 16px;
     justify-content: space-between;
     align-items: center;
 
@@ -2419,7 +2515,7 @@ CSS5 = `
 
 .DLP_AutoServer_Scroll_Box {
     display: flex;
-    padding: 0 20px 20px 20px;
+    padding: 0 16px 16px 16px;
     flex-direction: column;
     justify-content: center;
     align-items: center;
@@ -2851,13 +2947,6 @@ function One() {
         windowBlurState = false;
     };
 
-    document.querySelector('#DLP_Get_GEMS_1_ID').addEventListener('click', () => {
-        showNotification("warning", systemText[systemLanguage][200], systemText[systemLanguage][201], 6);
-    });
-    document.querySelector('#DLP_Get_GEMS_2_ID').addEventListener('click', () => {
-        showNotification("warning", systemText[systemLanguage][200], systemText[systemLanguage][201], 6);
-    });
-
     function addButtons() {
         if (!storageLocal.settings.showSolveButtons) return;
         if (window.location.pathname === '/learn' && document.querySelector('a[data-test="global-practice"]')) return;
@@ -2940,37 +3029,6 @@ function One() {
     setInterval(addButtons, 500);
 
 
-    try {
-        const container = document.getElementById('DLP_Main_Box_Divider_11_ID');
-        const textarea = container.querySelector('#DLP_Inset_Input_1_ID');
-        const activeContainer = container.querySelector('.DLP_Input_Style_1_Active');
-
-        // Set initial height to be equal to one line
-        textarea.style.height = '1.2em'; // Set to the height of one line
-
-        // Add event listener to adjust height dynamically
-        textarea.addEventListener('input', function () {
-            // Reset height to auto to allow shrinking
-            textarea.style.height = 'auto';
-
-            // Calculate the maximum height for 5 lines
-            const lineHeight = parseInt(getComputedStyle(textarea).lineHeight);
-            const maxRows = 5;
-            const maxHeight = lineHeight * maxRows;
-
-            // Set the height to the scrollHeight or maximum height
-            const newHeight = Math.min(textarea.scrollHeight, maxHeight);
-
-            // Set the new height for the textarea
-            textarea.style.height = newHeight + 'px';
-
-            // Adjust the active container height; +32px for padding (16px top and bottom)
-            activeContainer.style.height = (newHeight + 32) + 'px'; // 32px for padding
-        });
-    } catch (error) {
-        console.log("Construction Zone 1 ERROR: ", error);
-    }
-
 
     let notificationCount = 0;
     let currentNotification = [];
@@ -2984,7 +3042,7 @@ function One() {
         notificationsHovered = false;
     });
 
-    function showNotification(icon, head, body, time) {
+    function showNotification(icon, head, body, time = 0) {
         notificationCount++;
         let notificationID = notificationCount;
         currentNotification.push(notificationID);
@@ -3172,6 +3230,9 @@ function One() {
 
         "DLP_Main_Settings_1_Button_1_ID": [7],
         "DLP_Main_Feedback_1_Button_1_ID": [8],
+
+        //"DLP_Main_Feedback_1_Button_1_ID": [11],
+
         "DLP_Main_Whats_New_1_Button_1_ID": [9],
         "DLP_Main_See_More_1_Button_1_ID": [2],
         "DLP_Main_Terms_1_Button_1_ID": [5],
@@ -3246,6 +3307,7 @@ function One() {
         else if (toNumber === 7) mainBoxNewToBeWidth = "400";
         else if (toNumber === 8) mainBoxNewToBeWidth = "400";
         else if (toNumber === 9) mainBoxNewToBeWidth = "400";
+        else if (toNumber === 11) mainBoxNewToBeWidth = "400";
         else mainBoxNewToBeWidth = "312";
 
         if ([1, 2, 3, 4].includes(toNumber)) legacyButtonVisibility(true);
@@ -3280,7 +3342,9 @@ function One() {
         mainBox.style.height = `${mainBoxOldHeight}px`;
         mainBox.offsetHeight;
 
-        mainBox.style.transition = "0.8s cubic-bezier(0.16, 1, 0.32, 1)";
+        if (flag02) mainBox.style.transition = "0.8s linear(0.00, -0.130, 0.164, 0.450, 0.687, 0.861, 0.973, 1.04, 1.06, 1.07, 1.06, 1.04, 1.03, 1.02, 1.01, 1.00, 0.999, 0.997, 0.997, 0.997, 0.998, 0.998, 0.999, 0.999, 1.00)";
+        else mainBox.style.transition = "0.8s cubic-bezier(0.16, 1, 0.32, 1)";
+
         mainBox.offsetHeight;
         mainBox.style.width = `${mainBoxNewToBeWidth}px`;
         mainBox.style.height = `${mainBoxNewHeight}px`;
@@ -3289,7 +3353,9 @@ function One() {
         fromPage.style.width = `${fromBoxOldWidth}px`;
         fromPage.style.height = `${fromBoxOldHeight}px`;
 
-        fromPage.style.transition = "opacity 0.4s cubic-bezier(0.16, 1, 0.32, 1), filter 0.4s cubic-bezier(0.16, 1, 0.32, 1), transform 0.8s cubic-bezier(0.16, 1, 0.32, 1)";
+        if (flag02) fromPage.style.transition = "opacity 0.4s cubic-bezier(0.16, 1, 0.32, 1), filter 0.4s cubic-bezier(0.16, 1, 0.32, 1), transform 1.5s linear(0.00, -0.130, 0.164, 0.450, 0.687, 0.861, 0.973, 1.04, 1.06, 1.07, 1.06, 1.04, 1.03, 1.02, 1.01, 1.00, 0.999, 0.997, 0.997, 0.997, 0.998, 0.998, 0.999, 0.999, 1.00)";
+        else fromPage.style.transition = "opacity 0.4s cubic-bezier(0.16, 1, 0.32, 1), filter 0.4s cubic-bezier(0.16, 1, 0.32, 1), transform 0.8s cubic-bezier(0.16, 1, 0.32, 1)";
+
         fromPage.offsetHeight;
         fromPage.style.opacity = "0";
         fromPage.style.filter = "blur(4px)";
@@ -3301,7 +3367,9 @@ function One() {
         toPage.style.filter = "blur(4px)";
         toPage.style.transform = `scaleX(${fromBoxOldWidth / toBoxOldWidth}) scaleY(${fromBoxOldHeight / toBoxOldHeight})`;
 
-        toPage.style.transition = "opacity 0.4s cubic-bezier(0.16, 1, 0.32, 1), filter 0.4s cubic-bezier(0.16, 1, 0.32, 1), transform 0.8s cubic-bezier(0.16, 1, 0.32, 1)";
+        if (flag02) toPage.style.transition = "opacity 0.4s cubic-bezier(0.16, 1, 0.32, 1), filter 0.4s cubic-bezier(0.16, 1, 0.32, 1), transform 1.5s linear(0.00, -0.130, 0.164, 0.450, 0.687, 0.861, 0.973, 1.04, 1.06, 1.07, 1.06, 1.04, 1.03, 1.02, 1.01, 1.00, 0.999, 0.997, 0.997, 0.997, 0.998, 0.998, 0.999, 0.999, 1.00)";
+        else toPage.style.transition = "opacity 0.4s cubic-bezier(0.16, 1, 0.32, 1), filter 0.4s cubic-bezier(0.16, 1, 0.32, 1), transform 0.8s cubic-bezier(0.16, 1, 0.32, 1)";
+
         toPage.offsetHeight;
         toPage.style.transform = `scaleX(1) scaleY(1)`;
 
@@ -3471,6 +3539,169 @@ function One() {
             if (callback) callback();
         }, delay);
     }
+
+    const tooltipObserver = new MutationObserver((mutationsList) => {
+        mutationsList.forEach(mutation => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'data-dlp-tooltip') {
+                tooltipCreate(mutation.target);
+                console.log('Attribute changed: registered');
+            } else if (mutation.type === 'childList') {
+                mutation.addedNodes.forEach(node => {
+                    if (node.nodeType === Node.ELEMENT_NODE && node.hasAttribute('data-dlp-tooltip')) {
+                        tooltipCreate(node);
+                        console.log('New element with attribute: registered');
+                    }
+                });
+            }
+        });
+    });
+
+    tooltipObserver.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['data-dlp-tooltip']
+    });
+
+    const tooltipData = new WeakMap(); // Store tooltip data associated with elements
+
+    function tooltipCreate(element) {
+        if (!flag01) return;
+        // Check if there's an existing tooltip for this element and hide it
+        if (tooltipData.has(element)) {
+            hideTooltip(element);
+        }
+
+        let timeoutId = null;
+        let currentTooltip = null; // Use a local variable here
+
+        const showTooltipForElement = (event) => { // Pass event to showTooltipForElement
+            timeoutId = setTimeout(() => {
+                currentTooltip = showTooltip(element, event); // Pass event to showTooltip
+                tooltipData.set(element, { tooltip: currentTooltip, timeoutId: timeoutId }); // Store data
+            }, 1000);
+        };
+
+        const hideTooltipForElement = () => {
+            clearTimeout(timeoutId);
+            hideTooltip(element);
+        };
+
+        const positionTooltipForElement = (event) => { // Pass event to positionTooltipForElement
+            if(!currentTooltip) return; // Use the local currentTooltip
+            positionTooltip(currentTooltip, event); // Pass tooltip and event to positionTooltip
+        };
+
+        element.addEventListener('mouseenter', showTooltipForElement);
+        element.addEventListener('mouseleave', hideTooltipForElement);
+        element.addEventListener('mousemove', positionTooltipForElement);
+
+        // Store the listeners so we can remove them later if needed (though not explicitly required by the prompt, good practice)
+        tooltipData.set(element, {
+            timeoutId: null,
+            tooltip: null,
+            listeners: {
+                mouseenter: showTooltipForElement,
+                mouseleave: hideTooltipForElement,
+                mousemove: positionTooltipForElement
+            }
+        });
+
+        console.log('Tooltip listeners attached to element');
+
+        // Immediately show tooltip if mouse is already over and attribute is just added/changed
+        if (element.matches(':hover')) {
+            // Simulate mousemove event to position tooltip correctly on initial hover if attribute is added dynamically
+            const mockEvent = new MouseEvent('mousemove', {
+                clientX: element.getBoundingClientRect().left, // Or any reasonable default cursor position
+                clientY: element.getBoundingClientRect().top
+            });
+            showTooltipForElement(mockEvent);
+        }
+    };
+
+    function showTooltip(element, event) { // Accept event in showTooltip
+        const tooltipText = element.dataset.dlpTooltip;
+        let tooltip = document.createElement('div'); // Create a new tooltip each time
+        tooltip.classList.add('DLP_Tooltip');
+        document.body.appendChild(tooltip);
+
+        tooltip.textContent = tooltipText;
+        tooltip.offsetHeight; // Trigger reflow for transition
+        tooltip.classList.add('DLP_Tooltip_Visible');
+
+        positionTooltip(tooltip, event); // Pass tooltip and event to positionTooltip
+        console.log('created tooltip');
+        return tooltip; // Return the created tooltip
+    }
+
+    function positionTooltip(tooltip, event){ // Accept tooltip and event in positionTooltip
+        if (!tooltip || !event) return; // Exit if tooltip or event is null
+
+        const tooltipRect = tooltip.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+
+        const cursorX = event.clientX;
+        const cursorY = event.clientY;
+
+        const tooltipWidth = tooltipRect.width;
+        const tooltipHeight = tooltipRect.height;
+
+        const offsetX = 10; // Horizontal offset from cursor
+        const offsetY = 10; // Vertical offset from cursor
+
+        let preferredPosition = 'bottom-right'; // Default position
+        let tooltipLeft, tooltipTop, tooltipBottom, tooltipRight;
+
+        // Check bottom-right position
+        tooltipLeft = cursorX + offsetX;
+        tooltipTop = cursorY + offsetY;
+        if (tooltipLeft + tooltipWidth <= viewportWidth && tooltipTop + tooltipHeight <= viewportHeight) {
+            preferredPosition = 'bottom-right';
+        } else if (cursorX - offsetX - tooltipWidth >= 0 && tooltipTop + tooltipHeight <= viewportHeight) { // Check bottom-left
+            tooltipLeft = cursorX - offsetX - tooltipWidth;
+            tooltipTop = cursorY + offsetY;
+            preferredPosition = 'bottom-left';
+        } else if (tooltipLeft + tooltipWidth <= viewportWidth && cursorY - offsetY - tooltipHeight >= 0) { // Check top-right
+            tooltipLeft = cursorX + offsetX;
+            tooltipTop = cursorY - offsetY - tooltipHeight;
+            preferredPosition = 'top-right';
+        } else if (cursorX - offsetX - tooltipWidth >= 0 && cursorY - offsetY - tooltipHeight >= 0) { // Check top-left
+            tooltipLeft = cursorX - offsetX - tooltipWidth;
+            tooltipTop = cursorY - offsetY - tooltipHeight;
+            preferredPosition = 'top-left';
+        } else { // Fallback to bottom-right if none fit (might go off-screen)
+            tooltipLeft = cursorX + offsetX;
+            tooltipTop = cursorY + offsetY;
+            preferredPosition = 'bottom-right';
+        }
+
+        tooltip.style.left = tooltipLeft + 'px';
+        tooltip.style.top = tooltipTop + 'px';
+        tooltip.style.bottom = 'auto'; // Ensure bottom is not overriding top
+        tooltip.style.right = 'auto'; // Ensure right is not overriding left
+    }
+
+    function hideTooltip(element) {
+        if (!tooltipData.has(element)) return; // Exit if no tooltip data for this element
+
+        const data = tooltipData.get(element);
+        const tooltip = data.tooltip;
+        if (tooltip) {
+            tooltip.classList.remove('DLP_Tooltip_Visible');
+            setTimeout(() => {
+                if (tooltip && tooltip.parentNode) {
+                    tooltip.parentNode.removeChild(tooltip);
+                }
+                tooltipData.delete(element); // Clear tooltip data when hidden
+                console.log('tooltip removed');
+            }, 500);
+        } else {
+            tooltipData.delete(element); // Clear data even if no tooltip element (to avoid memory leak)
+        }
+    }
+
 
 
 
@@ -3741,6 +3972,7 @@ function One() {
                 let iconToHide;
                 let iconToShow = icon1;
                 let inputTo;
+                button2.setAttribute("data-dlp-tooltip", "Lesson Mode");
 
                 if (icon2.style.display !== 'none') {
                     iconToHide = icon2;
@@ -3760,6 +3992,7 @@ function One() {
                 let iconToHide;
                 let iconToShow = icon2;
                 let inputTo;
+                button2.setAttribute("data-dlp-tooltip", "XP Mode");
 
                 if (icon1.style.display !== 'none') {
                     iconToHide = icon1;
@@ -3780,6 +4013,7 @@ function One() {
                 let iconToHide;
                 let iconToShow = icon3;
                 let inputTo;
+                button2.setAttribute("data-dlp-tooltip", "Infinity Mode");
 
                 if (icon1.style.display !== 'none') {
                     iconToHide = icon1;
@@ -4119,7 +4353,8 @@ function One() {
     let DLP_Server_Connection_Button_2 = document.getElementById("DLP_Secondary_1_Server_Connection_Button_1_ID");
     DLP_Server_Connection_Button.querySelector("#DLP_Inset_Icon_1_ID").style.animation = 'DLP_Rotate_360_Animation_1 4s ease-in-out infinite';
     DLP_Server_Connection_Button_2.querySelector("#DLP_Inset_Icon_1_ID").style.animation = 'DLP_Rotate_360_Animation_1 4s ease-in-out infinite';
-    function updateConnetionButtonStyles(button, text, iconToShow, iconToHide, buttonColor) {
+    function updateConnetionButtonStyles(button, buttonColor, textContent, textColor, iconToShow) {
+        let iconToHide = Array.from(button.querySelectorAll('[id^="DLP_Inset_Icon_"]')).find(el => getComputedStyle(el).display !== 'none');
         let textToChange = button.querySelector("#DLP_Inset_Text_1_ID");
         textToChange.style.animation = '';
         iconToHide.style.animation = '';
@@ -4142,7 +4377,7 @@ function One() {
             iconToShow.style.display = 'block';
             requestAnimationFrame(() => {
                 textToChange.style.transition = '0s';
-                textToChange.textContent = text;
+                textToChange.textContent = textContent;
                 textToChange.style.color = '#FFF';
                 textToChange.offsetWidth;
                 textToChange.style.transition = '0.4s';
@@ -4172,12 +4407,522 @@ function One() {
             },
             body: JSON.stringify({
                 version: versionFormal,
-                key: storageLocal.random16
+                key: storageLocal.random16,
+                ...(Array.isArray(storageLocal.chatKey) && storageLocal.chatKey.length > 0 && { chat_key: storageLocal.chatKey[0] })
             })
         })
             .then(response => response.json())
             .then(data => {
                 if (data.global || data.versions) {
+                    console.log(data.chats);
+
+
+
+                    function buildChat2() {
+                        function formatTimeAgo(timestamp) {
+                            if (typeof timestamp !== 'number' || isNaN(timestamp)) {
+                                return "";
+                            }
+                            if (timestamp > 1e12) {
+                                timestamp = Math.floor(timestamp / 1_000_000);
+                            } else if (timestamp > 1e10) {
+                                timestamp = Math.floor(timestamp / 1_000);
+                            }
+                            const now = Math.floor(Date.now() / 1000);
+                            const secondsPast = now - timestamp;
+                            if (secondsPast < 0) return 'in the future?';
+                            if (secondsPast < 60) return 'now';
+                            if (secondsPast < 3600) return `${Math.floor(secondsPast / 60)}m ago`;
+                            if (secondsPast <= 86400) return `${Math.floor(secondsPast / 3600)}h ago`;
+                            const days = Math.floor(secondsPast / 86400);
+                            if (days === 1) return '1d ago';
+                            if (days < 7) return `${days}d ago`;
+                            const weeks = Math.floor(days / 7);
+                            if (weeks === 1) return '1w ago';
+                            if (weeks < 4) return `${weeks}w ago`;
+                            try {
+                                const date = new Date(timestamp * 1000);
+                                return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+                            } catch (e) {
+                                return "older";
+                            }
+                        }
+
+                        const chatBox = document.querySelector('#DLP_Main_Box_Divider_11_ID')?.querySelector('.DLP_Chat_Box_1_ID_1');
+
+                        if (!chatBox) {
+                            return;
+                        }
+                        if (typeof data === 'undefined' || typeof data.chats === 'undefined' || !Array.isArray(data.chats.messages)) {
+                            return;
+                        }
+
+                        const existingIndividualMessages = new Map();
+                        chatBox.querySelectorAll('p[data-message-timestamp]').forEach(msgP => {
+                            const msgTimestamp = msgP.dataset.messageTimestamp;
+                            if(msgTimestamp) {
+                                existingIndividualMessages.set(parseInt(msgTimestamp, 10), msgP);
+                            }
+                        });
+
+                        const isScrolledNearLatest = chatBox.scrollTop <= 10;
+                        const processedMessageTimestamps = new Set();
+
+                        let lastAuthor = null;
+
+                        let previousMessageGroupElement = null;
+
+
+                        for (let i = 0; i < data.chats.messages.length; i++) {
+                            const chat = data.chats.messages[i];
+
+                            if (!chat || typeof chat.author !== 'string' || typeof chat.message !== 'string' || typeof chat.role !== 'string' || typeof chat.send_time !== 'number') {
+                                continue;
+                            }
+
+                            const messageTimestamp = chat.send_time;
+                            processedMessageTimestamps.add(messageTimestamp);
+
+                            let currentMessageGroupElement = null;
+
+                            if (existingIndividualMessages.has(messageTimestamp)) {
+                                const messageP = existingIndividualMessages.get(messageTimestamp);
+                                if (messageP.textContent !== chat.message) {
+                                    messageP.textContent = chat.message;
+                                }
+                                currentMessageGroupElement = messageP.closest('.DLP_VStack_4[data-group-timestamp]');
+                                lastAuthor = chat.author;
+                                previousMessageGroupElement = currentMessageGroupElement;
+                                continue;
+                            }
+
+                            // --- Message is NEW ---
+                            const messageP = document.createElement('p');
+                            messageP.className = 'DLP_Text_Style_1 DLP_NoSelect';
+                            messageP.style.alignSelf = 'stretch';
+                            messageP.style.opacity = '0.5';
+                            messageP.textContent = chat.message;
+                            messageP.dataset.messageTimestamp = messageTimestamp;
+
+                            const needsNewHeader = (chat.author !== lastAuthor || !previousMessageGroupElement);
+
+                            if (needsNewHeader) {
+                                currentMessageGroupElement = document.createElement('div');
+                                currentMessageGroupElement.className = 'DLP_VStack_4';
+                                currentMessageGroupElement.dataset.groupTimestamp = messageTimestamp;
+
+                                const headerDiv = document.createElement('div');
+                                headerDiv.style.display = 'flex';
+                                headerDiv.style.justifyContent = 'space-between';
+                                headerDiv.style.alignItems = 'center';
+                                headerDiv.style.alignSelf = 'stretch';
+                                headerDiv.dataset.chatHeader = "true";
+
+                                const leftHeaderDiv = document.createElement('div');
+                                leftHeaderDiv.className = 'DLP_HStack_6';
+                                const avatarDiv = document.createElement('div');
+                                avatarDiv.style.width = '20px';
+                                avatarDiv.style.height = '20px';
+                                avatarDiv.style.borderRadius = '16px';
+                                avatarDiv.style.outline = '2px solid rgba(0, 0, 0, 0.20)';
+                                avatarDiv.style.outlineOffset = '-2px';
+                                const profilePicUrl = chat.profile_picture || 'https://www.duolingopro.net/static/default_profile_picture_1.png';
+                                avatarDiv.style.background = `url(${profilePicUrl}) 50% center / cover no-repeat white`;
+                                const authorP = document.createElement('p');
+                                authorP.className = 'DLP_Text_Style_1 DLP_NoSelect';
+                                authorP.style.color = chat.accent || '#007AFF';
+                                authorP.style.opacity = '0.5';
+                                authorP.textContent = chat.author;
+                                leftHeaderDiv.appendChild(avatarDiv);
+                                leftHeaderDiv.appendChild(authorP);
+
+                                const rightHeaderDiv = document.createElement('div');
+                                rightHeaderDiv.className = 'DLP_HStack_6';
+                                const timeP = document.createElement('p');
+                                timeP.className = 'DLP_Text_Style_1 DLP_NoSelect';
+                                timeP.style.color = chat.accent || '#007AFF';
+                                timeP.style.opacity = '0.5';
+                                timeP.textContent = formatTimeAgo(chat.send_time);
+                                timeP.dataset.timeElement = "true";
+                                const svgDot = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                                svgDot.setAttribute('width', '6');
+                                svgDot.setAttribute('height', '6');
+                                svgDot.setAttribute('viewBox', '0 0 6 6');
+                                svgDot.setAttribute('fill', chat.accent || '#007AFF');
+                                svgDot.setAttribute('opacity', '0.5');
+                                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                                path.setAttribute('d', 'M2.80371 5.27832C1.48242 5.27832 0.410156 4.20605 0.410156 2.88477C0.410156 1.56348 1.48242 0.491211 2.80371 0.491211C4.125 0.491211 5.19727 1.56348 5.19727 2.88477C5.19727 4.20605 4.125 5.27832 2.80371 5.27832Z');
+                                svgDot.appendChild(path);
+                                const roleP = document.createElement('p');
+                                roleP.className = 'DLP_Text_Style_1 DLP_NoSelect';
+                                roleP.style.color = chat.accent || '#007AFF';
+                                roleP.style.opacity = '0.5';
+                                roleP.textContent = chat.role;
+                                rightHeaderDiv.appendChild(timeP);
+                                rightHeaderDiv.appendChild(svgDot);
+                                rightHeaderDiv.appendChild(roleP);
+
+                                headerDiv.appendChild(leftHeaderDiv);
+                                headerDiv.appendChild(rightHeaderDiv);
+                                currentMessageGroupElement.appendChild(headerDiv);
+
+                                currentMessageGroupElement.appendChild(messageP);
+
+                                chatBox.insertBefore(currentMessageGroupElement, chatBox.firstChild);
+
+                            } else {
+                                if (!previousMessageGroupElement) {
+                                    lastAuthor = chat.author;
+                                    continue;
+                                }
+                                previousMessageGroupElement.appendChild(messageP);
+                                currentMessageGroupElement = previousMessageGroupElement;
+                            }
+
+                            if (chat.files && chat.files.length > 0) {
+                                console.log(`Files exist: ${chat.files.length} file(s)`);
+                                chat.files.forEach((file, index) => {
+                                    console.log(`File ${index + 1}: ${file}`);
+                                });
+                                console.log('currentMessageGroupElement', currentMessageGroupElement);
+                                console.log('previousMessageGroupElement', previousMessageGroupElement);
+                                updateDisplayFiles(chat.files, currentMessageGroupElement);
+                            } else {
+                                console.log('No files');
+                            }
+
+                            existingIndividualMessages.set(messageTimestamp, messageP);
+
+                            lastAuthor = chat.author;
+                            previousMessageGroupElement = currentMessageGroupElement;
+                        }
+
+                        existingIndividualMessages.forEach((messageElement, timestamp) => {
+                            if (!processedMessageTimestamps.has(timestamp)) {
+                                const group = messageElement.closest('.DLP_VStack_4[data-group-timestamp]');
+                                messageElement.remove();
+                                existingIndividualMessages.delete(timestamp);
+                                if (group && group.querySelectorAll('p[data-message-timestamp]').length === 0) {
+                                    group.remove();
+                                }
+                            }
+                        });
+
+                        chatBox.querySelectorAll('.DLP_VStack_4[data-group-timestamp]').forEach(group => {
+                            const timeElement = group.querySelector('p[data-time-element="true"]');
+                            const groupTimestamp = parseInt(group.dataset.groupTimestamp, 10);
+                            if (timeElement && !isNaN(groupTimestamp)) {
+                                const newTimeText = formatTimeAgo(groupTimestamp);
+                                if (timeElement.textContent !== newTimeText) {
+                                    timeElement.textContent = newTimeText;
+                                }
+                            }
+                        });
+
+                        if (isScrolledNearLatest) {
+                            setTimeout(() => {
+                                chatBox.scrollTop = 0;
+                            }, 0);
+                        }
+
+                        async function getTypeFromUrl(url) {
+                            const clean = url.split('?')[0];
+                            const ext = clean.split('.').pop().toLowerCase();
+
+                            const imageExts = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg'];
+                            const videoExts = ['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv'];
+
+                            if (imageExts.includes(ext)) return 'image';
+                            if (videoExts.includes(ext)) return 'video';
+
+                            try {
+                                const res = await fetch(url, { method: 'HEAD' });
+                                const ct = res.headers.get('Content-Type') || '';
+                                if (ct.startsWith('video/')) return 'video';
+                                if (ct.startsWith('image/')) return 'image';
+                            } catch (err) {
+                                console.warn('HEAD request failed for', url, err);
+                            }
+
+                            return 'image';
+                        }
+
+
+                        async function updateDisplayFiles(newLinks, elementToAddInto) {
+                            const previewParent = document.createElement('div');
+                            Object.assign(previewParent.style, {
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                alignSelf: 'stretch',
+                                width: '100%',
+                                overflowY: 'scroll',
+                                opacity: '1',
+                                filter: 'blur(0px)',
+                                marginTop: '0px',
+                                transition: '0.4s cubic-bezier(0.16,1,0.32,1)'
+                            });
+                            elementToAddInto.appendChild(previewParent);
+
+                            let initiate = previewParent.childElementCount === 0;
+
+                            for (const url of newLinks) {
+                                const type = await getTypeFromUrl(url);
+                                const previewBox = createPreviewBox(url, type);
+
+                                if (!initiate) {
+                                    const newWidth = 80;
+                                    Object.assign(previewBox.style, {
+                                        width: "0px",
+                                        opacity: "0",
+                                        filter: "blur(4px)",
+                                        transition: "all 0.4s cubic-bezier(0.16,1,0.32,1)"
+                                    });
+                                    previewParent.appendChild(previewBox);
+                                    void previewBox.offsetWidth;
+                                    previewBox.style.width = `${newWidth}px`;
+                                    previewBox.style.opacity = "1";
+                                    previewBox.style.filter = "blur(0px)";
+                                } else {
+                                    previewParent.appendChild(previewBox);
+                                }
+                            }
+
+                            if (initiate) {
+                                previewParent.style.display = "flex";
+                                const newHeight = previewParent.offsetHeight;
+                                previewParent.style.transition = "";
+                                void previewParent.offsetHeight;
+                                Object.assign(previewParent.style, {
+                                    height: "0px",
+                                    opacity: "0",
+                                    filter: "blur(4px)",
+                                    marginTop: "-8px"
+                                });
+                                Array.from(previewParent.children).forEach(c => { c.style.height = "100%"; });
+                                previewParent.style.transition =
+                                    "all 0.4s cubic-bezier(0.16,1,0.32,1)";
+                                void previewParent.offsetHeight;
+                                Object.assign(previewParent.style, {
+                                    height: `${newHeight}px`,
+                                    opacity: "1",
+                                    filter: "blur(0px)",
+                                    marginTop: "0px"
+                                });
+                                setTimeout(() => {
+                                    Array.from(previewParent.children).forEach(c => { c.style.height = ""; });
+                                    previewParent.style.height = "";
+                                }, 400);
+                            }
+                        }
+
+
+
+                        function createPreviewBox(url, fileType) {
+                            const previewBox = document.createElement("div");
+                            previewBox.className = "DLP_Attachment_Preview_Box_1";
+
+                            if (fileType === "image") {
+                                previewBox.style.backgroundImage = `url('${url}')`;
+                                previewBox.style.backgroundSize = "cover";
+                                previewBox.style.backgroundPosition = "center";
+                                previewBox.style.backgroundRepeat = "no-repeat";
+                                previewBox.dataset.previewType = "image";
+                                previewBox.dataset.previewSrc = url;
+
+                            } else if (fileType === "video") {
+                                const video = document.createElement("video");
+                                video.src = url;
+                                video.muted = true;
+                                video.loop = true;
+                                video.autoplay = true;
+                                video.playsInline = true;
+                                video.style.width = "100%";
+                                video.style.height = "100%";
+                                video.style.objectFit = "cover";
+                                previewBox.appendChild(video);
+                                previewBox.dataset.previewType = "video";
+                                previewBox.dataset.previewSrc = url;
+                            }
+
+                            previewBox.addEventListener("click", function(event) {
+                                if (event.target.closest("svg")) return;
+                                const overlay = document.createElement("div");
+                                Object.assign(overlay.style, {
+                                    position: "fixed", top: 0, bottom: 0, left: 0, right: 0,
+                                    display: "flex", justifyContent: "center", alignItems: "center",
+                                    width: "100%", height: "100vh", zIndex: 210,
+                                    background: "rgba(var(--color-snow), 0.50)",
+                                    backdropFilter: "blur(16px)",
+                                    opacity: "0", filter: "blur(8px)",
+                                    transition: "opacity 0.4s cubic-bezier(0.16, 1, 0.32, 1), filter 0.4s cubic-bezier(0.16, 1, 0.32, 1)"
+                                });
+
+                                let previewEl;
+                                const src = previewBox.dataset.previewSrc;
+                                if (fileType === "image") {
+                                    previewEl = document.createElement("img");
+                                    previewEl.src = src;
+                                    previewEl.style.maxWidth = "90%";
+                                    previewEl.style.maxHeight = "90%";
+                                    previewEl.style.objectFit = "contain";
+                                    previewEl.style.borderRadius = "16px";
+                                } else {
+                                    previewEl = document.createElement("video");
+                                    previewEl.src = src;
+                                    previewEl.controls = true;
+                                    previewEl.autoplay = false;
+                                    previewEl.style.maxWidth = "90%";
+                                    previewEl.style.maxHeight = "90%";
+                                    previewEl.style.objectFit = "contain";
+                                    previewEl.style.borderRadius = "16px";
+                                }
+                                overlay.appendChild(previewEl);
+                                document.body.appendChild(overlay);
+
+                                void overlay.offsetHeight;
+                                overlay.style.opacity = "1";
+                                overlay.style.filter = "blur(0px)";
+
+                                overlay.addEventListener("click", e => {
+                                    if (e.target === overlay) {
+                                        overlay.style.opacity = "0";
+                                        overlay.style.filter = "blur(8px)";
+                                        setTimeout(() => document.body.removeChild(overlay), 400);
+                                    }
+                                });
+                            });
+                            return previewBox;
+                        }
+
+
+                        function getAverageImageColor(img, width, height) {
+                            const canvas = document.createElement("canvas");
+                            const ctx = canvas.getContext("2d");
+                            canvas.width = width;
+                            canvas.height = height;
+                            img.width = 96;
+                            img.height = 96;
+
+                            ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, width, height);
+                            const imageData = ctx.getImageData(0, 0, width, height);
+                            const data = imageData.data;
+                            let r = 0,
+                                g = 0,
+                                b = 0;
+
+                            for (let i = 0; i < data.length; i += 4) {
+                                r += data[i];
+                                g += data[i + 1];
+                                b += data[i + 2];
+                            }
+
+                            r = Math.floor(r / (data.length / 4));
+                            g = Math.floor(g / (data.length / 4));
+                            b = Math.floor(b / (data.length / 4));
+
+                            return { r, g, b };
+                        }
+
+                        function getContrastColor(rgb) {
+                            const luminance = 0.2126 * rgb.r + 0.7152 * rgb.g + 0.0722 * rgb.b;
+                            return luminance < 140 ? "#FFF" : "#000";
+                        }
+
+                        function createVideoElement(file, previewBox) {
+                            const video = document.createElement("video");
+                            video.src = URL.createObjectURL(file);
+                            video.style.width = "100%";
+                            video.style.height = "100%";
+                            video.autoplay = true;
+                            video.loop = true;
+                            video.muted = true;
+                            video.style.objectFit = "cover";
+                            video.controls = false;
+
+                            video.addEventListener("loadeddata", function () {
+                                if (video.readyState >= 3) {
+                                    analyzeVideoColor(video, previewBox);
+                                }
+                            });
+
+                            return video;
+                        }
+
+                        function analyzeVideoColor(video, previewBox) {
+                            const canvas = document.createElement("canvas");
+                            const ctx = canvas.getContext("2d");
+                            canvas.width = 96;
+                            canvas.height = 96;
+                            video.width = 96;
+                            video.height = 96;
+
+                            function captureColor() {
+                                if (!document.body.contains(previewBox)) {
+                                    return;
+                                }
+                                try {
+                                    ctx.drawImage(video, 0, 0, 96, 96);
+                                    ctx.drawImage(canvas, 0, 0, 32, 32, 0, 0, 32, 32);
+
+                                    const frame = ctx.getImageData(0, 0, 32, 32);
+                                    const color = getAverageImageColorFromData(frame.data);
+                                    const contrastColor = getContrastColor(color);
+
+                                    ctx.drawImage(video, 0, 0, 96, 96);
+                                    ctx.drawImage(canvas, 0, 0, 96, 96, 0, 0, 96, 96);
+
+                                    const frame96 = ctx.getImageData(0, 0, 96, 96);
+                                    const color96 = getAverageImageColorFromData(frame96.data);
+                                    const contrastColor96 = getContrastColor(color96);
+
+                                    const svgDelete = previewBox.querySelector("svg");
+                                    if (svgDelete) {
+                                        svgDelete.style.fill = contrastColor;
+                                        if (contrastColor96 === "#000") {
+                                            svgDelete.parentElement.style.outline = "2px solid rgba(0, 0, 0, 0.1)";
+                                        } else if (contrastColor96 === "#FFF") {
+                                            svgDelete.parentElement.style.outline =
+                                                "2px solid rgba(256, 256, 256, 0.2)";
+                                        }
+                                    }
+
+                                    setTimeout(captureColor, 1000);
+                                } catch (e) {
+                                    console.error("Error capturing video color:", e);
+                                }
+                            }
+                            captureColor();
+                        }
+
+                        function getAverageImageColorFromData(data) {
+                            let r = 0,
+                                g = 0,
+                                b = 0,
+                                count = 0;
+                            for (let i = 0; i < data.length; i += 4) {
+                                r += data[i];
+                                g += data[i + 1];
+                                b += data[i + 2];
+                                count++;
+                            }
+                            r = Math.floor(r / count);
+                            g = Math.floor(g / count);
+                            b = Math.floor(b / count);
+                            return { r, g, b };
+                        }
+
+                        function createThePreviewBoxesFr() {
+                            let newFiles = Array.from(DLP_Attachment_Input_1.files);
+
+                            appendFiles(newFiles);
+                            updateDisplayFiles(newFiles);
+                        }
+                    }
+                    buildChat2();
+
+
+
                     const globalData = data.global;
                     const versionData = data.versions[versionFull];
                     const warnings = versionData.warnings || [];
@@ -4192,20 +4937,15 @@ function One() {
 
                     if (versionData.status === 'latest') {
                         if (storageLocal.terms === newTermID) {
-                            if (serverConnectedBefore === 'no' || serverConnectedBefore === 'error') {
+                            if (serverConnectedBefore !== 'yes') {
                                 updateReleaseNotes(warnings);
                                 mainInputsDiv1.style.opacity = '1';
                                 mainInputsDiv1.style.pointerEvents = 'auto';
-                                if (serverConnectedBefore === 'no') {
-                                    updateConnetionButtonStyles(DLP_Server_Connection_Button, systemText[systemLanguage][108], DLP_Server_Connection_Button.querySelector("#DLP_Inset_Icon_2_ID"), DLP_Server_Connection_Button.querySelector("#DLP_Inset_Icon_1_ID"), '#34C759');
-                                    updateConnetionButtonStyles(DLP_Server_Connection_Button_2, systemText[systemLanguage][108], DLP_Server_Connection_Button_2.querySelector("#DLP_Inset_Icon_2_ID"), DLP_Server_Connection_Button_2.querySelector("#DLP_Inset_Icon_1_ID"), '#34C759');
-                                } else if (serverConnectedBefore === 'error') {
-                                    updateConnetionButtonStyles(DLP_Server_Connection_Button, systemText[systemLanguage][108], DLP_Server_Connection_Button.querySelector("#DLP_Inset_Icon_2_ID"), DLP_Server_Connection_Button.querySelector("#DLP_Inset_Icon_3_ID"), '#34C759');
-                                    updateConnetionButtonStyles(DLP_Server_Connection_Button_2, systemText[systemLanguage][108], DLP_Server_Connection_Button_2.querySelector("#DLP_Inset_Icon_2_ID"), DLP_Server_Connection_Button_2.querySelector("#DLP_Inset_Icon_3_ID"), '#34C759');
-                                    if (serverConnectedBeforeNotification) {
-                                        serverConnectedBeforeNotification.close();
-                                        serverConnectedBeforeNotification = false;
-                                    }
+                                updateConnetionButtonStyles(DLP_Server_Connection_Button, '#34C759', systemText[systemLanguage][108], '#FFF', DLP_Server_Connection_Button.querySelector("#DLP_Inset_Icon_2_ID"));
+                                updateConnetionButtonStyles(DLP_Server_Connection_Button_2, '#34C759', systemText[systemLanguage][108], '#FFF', DLP_Server_Connection_Button_2.querySelector("#DLP_Inset_Icon_2_ID"));
+                                if (serverConnectedBefore === 'error' || serverConnectedBeforeNotification) {
+                                    serverConnectedBeforeNotification.close();
+                                    serverConnectedBeforeNotification = false;
                                 }
                                 serverConnectedBefore = 'yes';
                             }
@@ -4216,10 +4956,24 @@ function One() {
                                 if (currentPage !== 10) goToPage(10);
                             }
                         }
-                    } else if (document.getElementById('DLP_Main_Warning_1_ID').style.display === 'none') {
-                        document.getElementById('DLP_Main_Inputs_1_Divider_1_ID').style.display = 'none';
-                        document.getElementById('DLP_Main_Warning_1_ID').style.display = 'block';
-                        document.getElementById('DLP_Main_Warning_1_ID').innerHTML = systemText[systemLanguage][203];
+                    } else if (serverConnectedBefore !== 'outdated') {
+                        updateConnetionButtonStyles(DLP_Server_Connection_Button, '#FF9500', 'Outdated', '#FFF', DLP_Server_Connection_Button.querySelector("#DLP_Inset_Icon_4_ID"));
+                        updateConnetionButtonStyles(DLP_Server_Connection_Button_2, '#FF9500', 'Outdated', '#FFF', DLP_Server_Connection_Button_2.querySelector("#DLP_Inset_Icon_4_ID"));
+                        DLP_Server_Connection_Button.addEventListener('click', function () {
+                            window.open(`${serverURL}/update/userscript`, '_blank');
+                        });
+                        DLP_Server_Connection_Button_2.addEventListener('click', function () {
+                            window.open(`${serverURL}/update/userscript`, '_blank');
+                        });
+                        if (serverConnectedBefore === 'no') {
+                            mainInputsDiv1.style.opacity = '0.5';
+                            mainInputsDiv1.style.pointerEvents = 'none';
+                            showNotification("warning", systemText[systemLanguage][233], systemText[systemLanguage][234], 0);
+                        } else if (serverConnectedBefore === 'error' || serverConnectedBeforeNotification) {
+                            serverConnectedBeforeNotification.close();
+                            serverConnectedBeforeNotification = false;
+                        }
+                        serverConnectedBefore = 'outdated';
                     }
 
                     //if (storageLocal.languagePackVersion !== versionData.languagePackVersion) {
@@ -4241,19 +4995,13 @@ function One() {
             })
             .catch(error => {
                 console.error('Error fetching data:', error);
-                if (serverConnectedBefore === 'yes') {
-                    serverConnectedBefore = 'error';
+                if (serverConnectedBefore !== 'error') {
                     mainInputsDiv1.style.opacity = '0.5';
                     mainInputsDiv1.style.pointerEvents = 'none';
-                    updateConnetionButtonStyles(DLP_Server_Connection_Button, systemText[systemLanguage][109], DLP_Server_Connection_Button.querySelector("#DLP_Inset_Icon_3_ID"), DLP_Server_Connection_Button.querySelector("#DLP_Inset_Icon_2_ID"), '#FF2D55');
-                    updateConnetionButtonStyles(DLP_Server_Connection_Button_2, systemText[systemLanguage][109], DLP_Server_Connection_Button_2.querySelector("#DLP_Inset_Icon_3_ID"), DLP_Server_Connection_Button_2.querySelector("#DLP_Inset_Icon_2_ID"), '#FF2D55');
-                    if (error !== 'Outdated Client') serverConnectedBeforeNotification = showNotification("error", systemText[systemLanguage][231], systemText[systemLanguage][232], 30);
-                } else if (serverConnectedBefore === 'no') {
+                    updateConnetionButtonStyles(DLP_Server_Connection_Button, '#FF2D55', systemText[systemLanguage][109], '#FFF', DLP_Server_Connection_Button.querySelector("#DLP_Inset_Icon_3_ID"));
+                    updateConnetionButtonStyles(DLP_Server_Connection_Button_2, '#FF2D55', systemText[systemLanguage][109], '#FFF', DLP_Server_Connection_Button_2.querySelector("#DLP_Inset_Icon_3_ID"));
+                    serverConnectedBeforeNotification = showNotification("error", systemText[systemLanguage][231], systemText[systemLanguage][232], 0);
                     serverConnectedBefore = 'error';
-                    mainInputsDiv1.style.opacity = '0.5';
-                    mainInputsDiv1.style.pointerEvents = 'none';
-                    updateConnetionButtonStyles(DLP_Server_Connection_Button, systemText[systemLanguage][109], DLP_Server_Connection_Button.querySelector("#DLP_Inset_Icon_3_ID"), DLP_Server_Connection_Button.querySelector("#DLP_Inset_Icon_1_ID"), '#FF2D55');
-                    updateConnetionButtonStyles(DLP_Server_Connection_Button_2, systemText[systemLanguage][109], DLP_Server_Connection_Button_2.querySelector("#DLP_Inset_Icon_3_ID"), DLP_Server_Connection_Button_2.querySelector("#DLP_Inset_Icon_1_ID"), '#FF2D55');
                 }
             });
     }
@@ -4541,10 +5289,11 @@ function One() {
             loadingIcon.style.animation = 'DLP_Rotate_360_Animation_1 4s ease-in-out infinite';
             let status = 'loading';
 
-            if (id === "streak") {
+            if (id === "streak" || id === "gems") {
                 (async () => {
                     try {
-                        const response = await fetch(apiURL + '/streak', {
+                        console.log(apiURL + (id === "streak" ? "/streak" : id === "gems" ? "/gem" : ""));
+                        const response = await fetch(apiURL + (id === "streak" ? "/streak" : id === "gems" ? "/gem" : ""), {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -5049,6 +5798,615 @@ function One() {
 
 
 
+    function setupSupportPage() {
+
+
+        function setupCard() {
+            let card = document.getElementById("DLP_Main_Box_Divider_11_ID").querySelector("#DLP_Inset_Card_1");
+            let cardExpanded = false;
+            let cardAnimating = false;
+
+            let descriptionText = card.querySelectorAll(':scope > .DLP_Text_Style_1');
+
+            card.addEventListener('click', () => {
+                if (cardAnimating) return;
+                cardAnimating = true;
+                if (!cardExpanded) {
+                    let cardHeight = card.offsetHeight;
+                    let textHeight = false;
+                    if (descriptionText.length > 0) {
+                        textHeight = Array.from(descriptionText).map(() => "0");
+                        descriptionText.forEach(element => {
+                            element.style.display = 'block';
+                            element.style.height = 'auto';
+                        });
+                    }
+                    void card.offsetHeight;
+                    let newCardHeight = card.offsetHeight;
+                    let newTextHeight = false;
+                    if (descriptionText.length > 0) {
+                        newTextHeight = Array.from(descriptionText).map(element => element.offsetHeight);
+                    }
+                    if (descriptionText.length > 0) {
+                        descriptionText.forEach(element => {
+                            element.style.height = '0px';
+                        });
+                    }
+                    card.style.height = `${cardHeight}px`;
+                    void card.offsetHeight;
+                    if (descriptionText.length > 0) {
+                        descriptionText.forEach(element => {
+                            element.style.filter = 'blur(0px)';
+                            element.style.opacity = '1';
+                        });
+                    }
+                    card.style.height = `${newCardHeight}px`;
+                    if (descriptionText.length > 0) {
+                        descriptionText.forEach(element => {
+                            element.style.height = `${newTextHeight[Array.from(descriptionText).indexOf(element)]}px`;
+                        });
+                    }
+                    card.querySelector('.DLP_HStack_6').style.opacity = '0.5';
+                    card.querySelectorAll('svg')[1].style.transition = 'all 0.4s cubic-bezier(0.16, 1, 0.32, 1)';
+                    card.querySelectorAll('svg')[1].style.transform = 'rotate(90deg)';
+                    setTimeout(() => {
+                        card.style.height = 'auto';
+                        if (descriptionText.length > 0) {
+                            descriptionText.forEach(element => {
+                                element.style.height = 'auto';
+                            });
+                        }
+                        cardExpanded = true;
+                        cardAnimating = false;
+                    }, 400);
+                } else {
+                    let cardHeight = card.offsetHeight;
+                    let textHeight = false;
+                    if (descriptionText.length > 0) {
+                        textHeight = Array.from(descriptionText).map(element => element.offsetHeight);
+                        descriptionText.forEach(element => {
+                            element.style.display = 'none';
+                        });
+                    }
+                    void card.offsetHeight;
+                    let newCardHeight = card.offsetHeight;
+                    let newTextHeight = false;
+                    if (descriptionText.length > 0) {
+                        newTextHeight = Array.from(descriptionText).map(() => "0");
+                        descriptionText.forEach(element => {
+                            element.style.display = 'block';
+                            element.style.height = `${textHeight[Array.from(descriptionText).indexOf(element)]}px`;
+                        });
+                    }
+                    card.style.height = `${cardHeight}px`;
+                    void card.offsetHeight;
+
+                    if (descriptionText.length > 0) {
+                        descriptionText.forEach(element => {
+                            element.style.filter = 'blur(4px)';
+                            element.style.opacity = '0';
+                        });
+                    }
+                    card.style.height = `${newCardHeight}px`;
+                    if (descriptionText.length > 0) {
+                        descriptionText.forEach(element => {
+                            element.style.height = '0px';
+                        });
+                    }
+                    card.querySelector('.DLP_HStack_6').style.opacity = '1';
+                    card.querySelectorAll('svg')[1].style.transition = 'all 0.4s cubic-bezier(0.16, 1, 0.32, 1)';
+                    card.querySelectorAll('svg')[1].style.transform = 'rotate(0deg)';
+                    setTimeout(() => {
+                        card.style.height = 'auto';
+                        if (descriptionText.length > 0) {
+                            descriptionText.forEach(element => {
+                                element.style.display = 'none';
+                            });
+                        }
+                        cardExpanded = false;
+                        cardAnimating = false;
+                    }, 400);
+                }
+            });
+        }
+        setupCard();
+
+        function setupSendButton() {
+            const container = document.getElementById("DLP_Main_Box_Divider_11_ID");
+            const sendButton = container.querySelector("#DLP_Inset_Button_2_ID");
+            const attachmentInput = container.querySelector("#DLP_Attachment_Input_1");
+            const messageInput = container.querySelector("#DLP_Inset_Input_1_ID");
+
+            sendButton.addEventListener('click', async () => {
+                if (!storageLocal.chatKey) {
+                    try {
+                        let response = await fetch(apiURL + "/chats/create", {
+                            method: "GET",
+                            headers: {
+                                "Authorization": `Bearer ${document.cookie.split(';').find(cookie => cookie.includes('jwt_token')).split('=')[1]}`
+                            }
+                        });
+
+                        let data = await response.json();
+                        console.log("Server Response:", data);
+                        storageLocal.chatKey = [data.chat_key];
+                        saveStorageLocal();
+                    } catch (error) {
+                        console.error("Fetch error:", error);
+                    }
+                }
+
+                let formData = new FormData();
+                formData.append("message", messageInput.value);
+                for (const file of attachmentInput.files) {
+                    console.log("attaching", file);
+                    formData.append("files", file);
+                }
+
+                sendButton.style.opacity = '0.5';
+                sendButton.style.pointerEvents = 'none';
+
+                try {
+                    let response = await fetch(apiURL + "/chats/send_message", {
+                        method: "POST",
+                        headers: alpha
+                        ? {
+                            'Authorization': `Bearer ${document.cookie.split(';').find(cookie => cookie.includes('jwt_token')).split('=')[1]}`,
+                            'X-Chat-Key': `${storageLocal.chatKey}`
+                        }
+                        : {
+                            'Authorization': `Bearer ${storageLocal.chatKey}`
+                        },
+                        body: formData
+                    });
+
+                    let responseData = await response.json();
+                    console.log("Server Response:", responseData);
+                    if (!responseData.status) showNotification(responseData.notification.icon, responseData.notification.head, responseData.notification.body, responseData.notification.duration);
+
+                    messageInput.value = '';
+                } catch (error) {
+                    console.error("Fetch error:", error);
+                }
+            });
+        }
+        setupSendButton();
+
+        function setupTextInput() {
+            const container = document.getElementById('DLP_Main_Box_Divider_11_ID');
+            const textarea = container.querySelector('#DLP_Inset_Input_1_ID');
+            const activeContainer = container.querySelector('.DLP_Input_Style_1_Active');
+            const sendButton = container.querySelector("#DLP_Inset_Button_2_ID");
+            sendButton.style.opacity = '0.5';
+            sendButton.style.pointerEvents = 'none';
+
+            textarea.style.height = '1.2em';
+
+            textarea.addEventListener('input', function () {
+                textarea.style.height = '1.2em';
+
+                const lineHeight = parseInt(getComputedStyle(textarea).lineHeight);
+                const maxRows = 5;
+                const maxHeight = lineHeight * maxRows;
+
+                const newHeight = Math.min((textarea.scrollHeight - 32), maxHeight);
+
+                textarea.style.height = newHeight + 'px';
+
+                if (newHeight < 20) {
+                    activeContainer.style.height = '48px';
+                } else {
+                    activeContainer.style.height = (newHeight + 32) + 'px';
+                }
+
+                if (textarea.value.trim() === '') {
+                    sendButton.style.opacity = '0.5';
+                    sendButton.style.pointerEvents = 'none';
+                } else {
+                    sendButton.style.opacity = '';
+                    sendButton.style.pointerEvents = '';
+                }
+            });
+        }
+        setupTextInput();
+
+        let fileList = [];
+        function setupFileInput() {
+            document.getElementById("DLP_Attachment_Preview_Parent").style.display = "none";
+
+            function appendFiles(newFiles) {
+                fileList = fileList.concat(newFiles);
+            }
+
+            function updateDisplayFiles(newFiles) {
+                const previewParent = document.getElementById("DLP_Attachment_Preview_Parent");
+                let initiate = false;
+
+                newFiles.forEach((file, index) => {
+                    if (previewParent.childElementCount === 0) initiate = true;
+
+                    const previewBox = createPreviewBox(
+                        file,
+                        fileList.length - newFiles.length + index
+                    );
+
+                    if (!initiate) {
+                        let newWidth = "80"; //previewBox.offsetWidth;
+                        previewBox.style.width = "0px";
+                        previewBox.style.opacity = "0";
+                        previewBox.style.filter = "blur(4px)";
+                        previewBox.style.transition = "all 0.4s cubic-bezier(0.16, 1, 0.32, 1)";
+                        previewParent.appendChild(previewBox);
+                        void previewBox.offsetWidth;
+                        previewBox.style.width = `${newWidth}px`;
+                        previewBox.style.opacity = "1";
+                        previewBox.style.filter = "blur(0px)";
+                    } else {
+                        previewParent.appendChild(previewBox);
+                    }
+                });
+
+                if (initiate) {
+                    previewParent.style.display = "flex";
+                    let newHeight = previewParent.offsetHeight;
+                    previewParent.style.transition = "";
+                    void previewParent.offsetHeight;
+                    previewParent.style.height = "0px";
+                    previewParent.style.opacity = "0";
+                    previewParent.style.filter = "blur(4px)";
+                    previewParent.style.marginTop = "-8px";
+                    Array.from(previewParent.children).forEach((child) => {
+                        child.style.height = "100%";
+                    });
+                    previewParent.style.transition = "all 0.4s cubic-bezier(0.16, 1, 0.32, 1)";
+                    void previewParent.offsetHeight;
+                    previewParent.style.height = `${newHeight}px`;
+                    previewParent.style.opacity = "1";
+                    previewParent.style.filter = "blur(0px)";
+                    previewParent.style.marginTop = "0px";
+                    setTimeout(() => {
+                        Array.from(previewParent.children).forEach((child) => {
+                            child.style.height = "";
+                        });
+                        previewParent.style.height = "";
+                    }, 400);
+                }
+            }
+
+            function createPreviewBox(file, index) {
+                const previewBox = document.createElement("div");
+                previewBox.className = "DLP_Attachment_Preview_Box_1";
+                previewBox.dataset.index = index;
+
+                if (file.type.startsWith("image")) {
+                    const img = new Image();
+                    img.oncontextmenu = () => false;
+
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        img.src = e.target.result;
+                        img.onload = function () {
+                            const color = getAverageImageColor(img, 32, 32);
+                            const color96 = getAverageImageColor(img, 96, 96);
+
+                            previewBox.style.backgroundImage = `url('${e.target.result}')`;
+                            previewBox.style.backgroundSize = "cover";
+                            previewBox.style.backgroundPosition = "center";
+                            previewBox.style.backgroundRepeat = "no-repeat";
+
+                            const svgDelete = createDeleteButton(index, getContrastColor(color));
+                            previewBox.appendChild(svgDelete);
+                            let boxAverage = getContrastColor(color96);
+                            if (boxAverage === "#000") {
+                                previewBox.style.outline = "2px solid rgba(0, 0, 0, 0.1)";
+                            } else if (boxAverage === "#FFF") {
+                                previewBox.style.outline = "2px solid rgba(256, 256, 256, 0.2)";
+                            }
+                        };
+
+                        previewBox.dataset.previewSrc = e.target.result;
+                        previewBox.dataset.previewType = "image";
+                    };
+                    reader.readAsDataURL(file);
+                } else if (file.type.startsWith("video")) {
+                    const video = createVideoElement(file, previewBox, index);
+                    video.oncontextmenu = () => false;
+
+                    previewBox.appendChild(video);
+                    const svgDelete = createDeleteButton(index, "#000");
+                    previewBox.appendChild(svgDelete);
+                    initializeMagneticHover(svgDelete);
+
+                    previewBox.dataset.previewSrc = video.src;
+                    previewBox.dataset.previewType = "video";
+                }
+
+                previewBox.addEventListener("click", function(event) {
+                    if (event.target.closest("svg")) return;
+                    const overlay = document.createElement("div");
+                    overlay.setAttribute("style", "position: fixed; top: 0; bottom: 0; right: 0; left: 0; display: flex; width: 100%; height: 100vh; justify-content: center; align-items: center; flex-shrink: 0; z-index: 210; transition: filter 0.4s cubic-bezier(0.16, 1, 0.32, 1), opacity 0.4s cubic-bezier(0.16, 1, 0.32, 1); background: rgba(var(--color-snow), 0.50); backdrop-filter: blur(16px); opacity: 0; filter: blur(8px);");
+                    let previewElement;
+                    if (previewBox.dataset.previewType === "image") {
+                        previewElement = document.createElement("img");
+                        previewElement.src = previewBox.dataset.previewSrc;
+                        previewElement.style.maxWidth = "90%";
+                        previewElement.style.maxHeight = "90%";
+                        previewElement.style.objectFit = "contain";
+                        previewElement.style.borderRadius = "16px";
+                        previewElement.style.outlineOffset = "-2px";
+                    } else if (previewBox.dataset.previewType === "video") {
+                        previewElement = document.createElement("video");
+                        previewElement.src = previewBox.dataset.previewSrc;
+                        previewElement.controls = true;
+                        previewElement.loop = false;
+                        previewElement.muted = false;
+                        previewElement.autoplay = false;
+                        previewElement.style.maxWidth = "90%";
+                        previewElement.style.maxHeight = "90%";
+                        previewElement.style.objectFit = "contain";
+                        previewElement.style.borderRadius = "16px";
+                        previewElement.style.outlineOffset = "-2px";
+                    }
+                    if (previewElement) {
+                        previewElement.style.outline = previewBox.style.outline || window.getComputedStyle(previewBox).outline;
+                        overlay.appendChild(previewElement);
+                    }
+                    document.body.appendChild(overlay);
+
+                    void overlay.offsetHeight;
+                    overlay.style.opacity = "1";
+                    overlay.style.filter = "blur(0px)";
+
+                    overlay.addEventListener("click", function(e) {
+                        if(e.target === overlay) {
+                            overlay.style.opacity = "0";
+                            overlay.style.filter = "blur(8px)";
+                            setTimeout(() => {
+                                document.body.removeChild(overlay);
+                            }, 400);
+                        }
+                    });
+                });
+
+                return previewBox;
+            }
+
+            function getAverageImageColor(img, width, height) {
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
+                canvas.width = width;
+                canvas.height = height;
+                img.width = 96;
+                img.height = 96;
+
+                ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, width, height);
+                const imageData = ctx.getImageData(0, 0, width, height);
+                const data = imageData.data;
+                let r = 0,
+                    g = 0,
+                    b = 0;
+
+                for (let i = 0; i < data.length; i += 4) {
+                    r += data[i];
+                    g += data[i + 1];
+                    b += data[i + 2];
+                }
+
+                r = Math.floor(r / (data.length / 4));
+                g = Math.floor(g / (data.length / 4));
+                b = Math.floor(b / (data.length / 4));
+
+                return { r, g, b };
+            }
+
+            function getContrastColor(rgb) {
+                const luminance = 0.2126 * rgb.r + 0.7152 * rgb.g + 0.0722 * rgb.b;
+                return luminance < 140 ? "#FFF" : "#000";
+            }
+
+            function createDeleteButton(index, color) {
+                const svgDelete = document.createElementNS(
+                    "http://www.w3.org/2000/svg",
+                    "svg"
+                );
+                svgDelete.setAttribute("class", `magnetic_hover_1`);
+                svgDelete.setAttribute(
+                    "style",
+                    `position: absolute; top: 8px; left: 8px; cursor: pointer; fill: ${color}; z-index: 2; transition: filter 0.4s cubic-bezier(0.16, 1, 0.32, 1), transform 0.4s cubic-bezier(0.16, 1, 0.32, 1), fill 0.5s ease-in-out;`
+                );
+                svgDelete.setAttribute("width", "17");
+                svgDelete.setAttribute("height", "17");
+                svgDelete.setAttribute("viewBox", "0 0 17 17");
+                svgDelete.innerHTML =
+                    '<path d="M8.25 16.5C3.72656 16.5 0 12.7752 0 8.24609C0 3.7248 3.71875 0 8.25 0C12.7735 0 16.5 3.7248 16.5 8.24609C16.5 12.7752 12.7813 16.5 8.25 16.5ZM5.78906 11.6039C6.0625 11.6039 6.28125 11.5102 6.45312 11.3383L8.25 9.53454L10.0547 11.3383C10.2266 11.5102 10.4532 11.6039 10.7188 11.6039C11.2266 11.6039 11.6172 11.2056 11.6172 10.6981C11.6172 10.4638 11.5235 10.2452 11.3438 10.0733L9.53125 8.26171L11.3516 6.43445C11.5313 6.26265 11.6172 6.04401 11.6172 5.80975C11.6172 5.30999 11.2266 4.91954 10.7266 4.91954C10.461 4.91954 10.2578 4.99763 10.0704 5.18505L8.25 6.98887L6.44531 5.18505C6.26562 5.01325 6.0625 4.92735 5.78906 4.92735C5.28906 4.92735 4.89844 5.30999 4.89844 5.82536C4.89844 6.05181 4.99218 6.27046 5.16406 6.44226L6.98437 8.26171L5.16406 10.0811C4.99218 10.2452 4.89844 10.4716 4.89844 10.6981C4.89844 11.2056 5.28906 11.6039 5.78906 11.6039Z"/>';
+                svgDelete.clickHandler = () => removeAttachment(index);
+                svgDelete.addEventListener("click", svgDelete.clickHandler);
+                return svgDelete;
+            }
+
+            function createVideoElement(file, previewBox, index) {
+                const video = document.createElement("video");
+                video.dataset.index = index;
+                video.src = URL.createObjectURL(file);
+                video.style.width = "100%";
+                video.style.height = "100%";
+                video.autoplay = true;
+                video.loop = true;
+                video.muted = true;
+                video.style.objectFit = "cover";
+                video.controls = false;
+
+                video.addEventListener("loadeddata", function () {
+                    if (video.readyState >= 3) {
+                        analyzeVideoColor(video, previewBox);
+                    }
+                });
+
+                return video;
+            }
+
+            function analyzeVideoColor(video, previewBox) {
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
+                canvas.width = 96;
+                canvas.height = 96;
+                video.width = 96;
+                video.height = 96;
+
+                function captureColor() {
+                    if (!document.body.contains(previewBox)) {
+                        return;
+                    }
+                    try {
+                        ctx.drawImage(video, 0, 0, 96, 96);
+                        ctx.drawImage(canvas, 0, 0, 32, 32, 0, 0, 32, 32);
+
+                        const frame = ctx.getImageData(0, 0, 32, 32);
+                        const color = getAverageImageColorFromData(frame.data);
+                        const contrastColor = getContrastColor(color);
+
+                        ctx.drawImage(video, 0, 0, 96, 96);
+                        ctx.drawImage(canvas, 0, 0, 96, 96, 0, 0, 96, 96);
+
+                        const frame96 = ctx.getImageData(0, 0, 96, 96);
+                        const color96 = getAverageImageColorFromData(frame96.data);
+                        const contrastColor96 = getContrastColor(color96);
+
+                        const svgDelete = previewBox.querySelector("svg");
+                        if (svgDelete) {
+                            svgDelete.style.fill = contrastColor;
+                            if (contrastColor96 === "#000") {
+                                svgDelete.parentElement.style.outline = "2px solid rgba(0, 0, 0, 0.1)";
+                            } else if (contrastColor96 === "#FFF") {
+                                svgDelete.parentElement.style.outline =
+                                    "2px solid rgba(256, 256, 256, 0.2)";
+                            }
+                        }
+
+                        setTimeout(captureColor, 1000);
+                    } catch (e) {
+                        console.error("Error capturing video color:", e);
+                    }
+                }
+                captureColor();
+            }
+
+            function getAverageImageColorFromData(data) {
+                let r = 0,
+                    g = 0,
+                    b = 0,
+                    count = 0;
+                for (let i = 0; i < data.length; i += 4) {
+                    r += data[i];
+                    g += data[i + 1];
+                    b += data[i + 2];
+                    count++;
+                }
+                r = Math.floor(r / count);
+                g = Math.floor(g / count);
+                b = Math.floor(b / count);
+                return { r, g, b };
+            }
+
+            function removeAttachment(index) {
+                fileList.splice(index, 1);
+                updateFileInput();
+                removePreviewBox(index);
+                updateIndexes();
+            }
+
+            function removePreviewBox(index) {
+                const previewParent = document.getElementById("DLP_Attachment_Preview_Parent");
+                const previewBox = previewParent.querySelector(`[data-index="${index}"]`);
+                let childCount = previewParent.childElementCount;
+
+                if (childCount === 1) {
+                    let currentHeight = previewParent.offsetHeight;
+                    previewParent.style.transition = "";
+                    void previewParent.offsetHeight;
+                    previewParent.style.height = `${currentHeight}px`;
+                    previewParent.style.opacity = "1";
+                    previewParent.style.filter = "blur(0px)";
+                    previewParent.style.marginTop = "0px";
+
+                    previewBox.style.height = "100%";
+
+                    previewParent.style.transition = "all 0.4s cubic-bezier(0.16, 1, 0.32, 1)";
+                    void previewParent.offsetHeight;
+                    previewParent.style.height = "0px";
+                    previewParent.style.opacity = "0";
+                    previewParent.style.filter = "blur(4px)";
+                    previewParent.style.marginTop = "-8px";
+                    setTimeout(() => {
+                        previewParent.removeChild(previewBox);
+
+                        previewParent.style.height = "";
+                        previewParent.style.display = "none";
+                    }, 400);
+                } else {
+                    previewBox.style.marginRight = "0px";
+                    previewBox.style.transition = "all 0.4s cubic-bezier(0.16, 1, 0.32, 1)";
+                    previewBox.style.width = "0px";
+                    previewBox.style.marginRight = "-8px";
+                    setTimeout(() => {
+                        previewParent.removeChild(previewBox);
+                    }, 400);
+                }
+            }
+
+            function updateIndexes() {
+                const previewParent = document.getElementById("DLP_Attachment_Preview_Parent");
+                const previewBoxes = previewParent.querySelectorAll(
+                    ".DLP_Attachment_Preview_Box_1"
+                );
+                previewBoxes.forEach((box, newIndex) => {
+                    box.dataset.index = newIndex;
+                    const svgDelete = box.querySelector("svg");
+                    if (svgDelete) {
+                        svgDelete.removeEventListener("click", svgDelete.clickHandler);
+                        svgDelete.clickHandler = () => removeAttachment(newIndex);
+                        svgDelete.addEventListener("click", svgDelete.clickHandler);
+                    }
+                });
+            }
+
+            function updateFileInput() {
+                const dataTransfer = new DataTransfer();
+                fileList.forEach((file) => dataTransfer.items.add(file));
+                document.getElementById("DLP_Attachment_Input_1").files = dataTransfer.files;
+
+                const uploadButton = [...document.querySelectorAll('div[onclick]')].find(d => d.getAttribute('onclick') === "document.getElementById('DLP_Attachment_Input_1').click();");
+                if (fileList.length >= 5) {
+                    uploadButton.style.pointerEvents = "none";
+                    uploadButton.style.opacity = "0.5";
+                } else {
+                    uploadButton.style.pointerEvents = "";
+                    uploadButton.style.opacity = "";
+                }
+            }
+
+            const DLP_Attachment_Input_1 = document.getElementById("DLP_Main_Box_Divider_11_ID").querySelector("#DLP_Attachment_Input_1");
+            DLP_Attachment_Input_1.addEventListener("change", function () {
+                let newFiles = Array.from(DLP_Attachment_Input_1.files);
+                const availableSlots = 5 - fileList.length;
+                if (newFiles.length > availableSlots) {
+                    newFiles = newFiles.slice(0, availableSlots);
+                }
+
+                appendFiles(newFiles);
+                updateDisplayFiles(newFiles);
+                updateFileInput();
+            });
+        }
+        setupFileInput();
+    }
+    setupSupportPage();
+
+
+
+
+
+
 
 
 
@@ -5076,16 +6434,61 @@ function One() {
         }
     });
 
+    let currentQuestionId = null;
+    let hasLoggedForCurrent = false;
+
+    async function logOnce(flag, sol, dom) {
+        if (!hasLoggedForCurrent) {
+            console.log(flag);
+            //console.log(sol);
+            //console.log(dom);
+            hasLoggedForCurrent = true;
+
+            if (false) {
+                const payload = {
+                    version: versionFormal,
+                    random: storageLocal.random16,
+                    flag: flag,
+                    sol: sol,
+                    dom: dom.outerHTML
+                };
+
+                const response = await fetch("https://api.duolingopro.net/analytics/legacy", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const responseData = await response.json();
+            }
+        }
+    }
+
     function updateSolveButtonText(text) {
         document.getElementById("solveAllButton").innerText = text;
     }
+
     function solving(value) {
         if (value === "start") isAutoMode = true;
         else if (value === "stop") isAutoMode = false;
         else isAutoMode = !isAutoMode;
         updateSolveButtonText(isAutoMode ? systemText[systemLanguage][102] : systemText[systemLanguage][101]);
-        solvingIntervalId = isAutoMode ? setInterval(solve, storageLocal.settings.solveSpeed * 1000) : clearInterval(solvingIntervalId);
+        solvingIntervalId = isAutoMode ? (function() {
+            let initialUrl = window.location.href;
+            return setInterval(function() {
+                if (window.location.href !== initialUrl) {
+                    isAutoMode = false;
+                    clearInterval(solvingIntervalId);
+                    return;
+                } else {
+                    solve();
+                }
+            }, storageLocal.settings.solveSpeed * 1000);
+        })() : clearInterval(solvingIntervalId);
     }
+
     let hcwNIIOdaQqCZRDL = false;
     function solve() {
         const practiceAgain = document.querySelector('[data-test="player-practice-again"]');
@@ -5183,6 +6586,25 @@ function One() {
             challengeType = 'error';
             nextClickFunc();
         }
+
+        let questionKey;
+        if (window.sol && window.sol.id) {
+            questionKey = window.sol.id;
+        } else if (window.sol) {
+            // Fallback if no 'id' property: use type + prompt
+            questionKey = JSON.stringify({
+                type: window.sol.type,
+                prompt: window.sol.prompt || ''
+            });
+        } else {
+            questionKey = null;
+        }
+
+        if (questionKey !== currentQuestionId) {
+            currentQuestionId = questionKey;
+            hasLoggedForCurrent = false;
+        }
+
         if (challengeType === 'error') {
             nextClickFunc();
         } else if (challengeType) {
@@ -5194,9 +6616,8 @@ function One() {
         }
     }
 
-    let zXIArDomWMPkmTVf = 0;
-    let GtPzsoCcLnDAVvjb;
-    let SciiOTPybxFAimRW = false;
+
+
     function nextClickFunc() {
         setTimeout(function () {
             try {
@@ -5212,35 +6633,36 @@ function One() {
 
                 if (nextButton) {
                     if (nextButtonAriaValue === 'true' || nextButtonAriaValue === true) {
-                        if (document.querySelectorAll('._35QY2._3jIlr.f2zGP._18W4a.xtPuL').length > 0) {
-                        } else {
-                            if (nextButtonAriaValue === 'true') {
-                                console.log('The next button is disabled.');
+                        requestAnimationFrame(() => {
+                            if (document.querySelectorAll('._35QY2._3jIlr.f2zGP._18W4a.xtPuL').length > 0) {
+                            } else {
+                                if (nextButtonAriaValue === 'true') {
+                                    //console.log('The next button is disabled.');
+                                    logOnce(3, window.sol, document.querySelector('.RMEuZ._1GVfY'));
+                                }
                             }
-                        }
-                        if (zXIArDomWMPkmTVf >= 3 && !SciiOTPybxFAimRW && nextButtonAriaValue === 'true') {
-                            SciiOTPybxFAimRW = true;
-                            LhEqEHHc();
-                            //notificationCall("Can't Recognize Question Type", "Duolingo Pro ran into an error while solving this question, an automatic question error report is being made.");
-                        }
+                        });
                     } else if (nextButtonAriaValue === 'false' || nextButtonAriaValue === false) {
                         nextButton.click();
-                        //mainSolveStatistics('question', 1);
-                        zXIArDomWMPkmTVf = 0;
-                        if (document.querySelector('[data-test="player-next"]').classList.contains('_2oGJR')) {
-                            if (isAutoMode) {
-                                setTimeout(function () {
-                                    nextButton.click();
-                                }, 100);
+                        requestAnimationFrame(() => {
+                            if (document.querySelector('[data-test="player-next"]').classList.contains('_2oGJR')) { // _1rcV8 _1VYyp _1ursp _7jW2t _3DbUj _2VWgj _3S8jJ
+                                logOnce(1, window.sol, document.querySelector('.RMEuZ._1GVfY'));
+                                //mainSolveStatistics('question', 1);
+                                if (isAutoMode) {
+                                    setTimeout(function () {
+                                        nextButton.click();
+                                    }, 100);
+                                }
+                            } else if (document.querySelector('[data-test="player-next"]').classList.contains('_3S8jJ')) {
+                                logOnce(2, window.sol, document.querySelector('.RMEuZ._1GVfY'));
+                                //if (solveSpeed < 0.6) {
+                                //    solveSpeed = 0.6;
+                                //    localStorage.setItem('duopro.autoSolveDelay', solveSpeed);
+                                //}
+                            } else {
+                                console.log('The element does not have the class ._9C_ii or .NAidc or the element is not found.');
                             }
-                        } else if (document.querySelector('[data-test="player-next"]').classList.contains('_3S8jJ')) {
-                            //if (solveSpeed < 0.6) {
-                            //    solveSpeed = 0.6;
-                            //    localStorage.setItem('duopro.autoSolveDelay', solveSpeed);
-                            //}
-                        } else {
-                            console.log('The element does not have the class ._9C_ii or .NAidc or the element is not found.');
-                        }
+                        });
                     } else {
                         console.log('The aria-disabled attribute is not set or has an unexpected value.');
                         //notificationCall("what", "Idk");
@@ -5252,23 +6674,21 @@ function One() {
             } catch (error) { }
         }, 100);
     }
-    let fPuxeFVNBsHJUBgP = false;
+
+
     function LhEqEHHc() {
-        if (!fPuxeFVNBsHJUBgP) {
-            fPuxeFVNBsHJUBgP = true;
-            const randomImageValue = Math.random().toString(36).substring(2, 15);
-            //questionErrorLogs(findReact(document.getElementsByClassName(findReactMainElementClass)[0]).props.currentChallenge, document.body.innerHTML, randomImageValue);
-            //const challengeAssistElement = document.querySelector('[data-test="challenge challenge-assist"]');
-            const challengeAssistElement = document.querySelector('._3x0ok');
-            if (challengeAssistElement) {
-            } else {
-                console.log('Element not found');
-            }
+        const randomImageValue = Math.random().toString(36).substring(2, 15);
+        //questionErrorLogs(findReact(document.getElementsByClassName(findReactMainElementClass)[0]).props.currentChallenge, document.body.innerHTML, randomImageValue);
+        //const challengeAssistElement = document.querySelector('[data-test="challenge challenge-assist"]');
+        const challengeAssistElement = document.querySelector('._3x0ok');
+        if (challengeAssistElement) {
+        } else {
+            console.log('Element not found');
         }
     }
     function determineChallengeType() {
         try {
-            console.log(window.sol);
+            if (debug) console.log(window.sol);
             if (document.getElementsByClassName("FmlUF").length > 0) {
                 // Story
                 if (window.sol.type === "arrange") {
@@ -5288,27 +6708,32 @@ function One() {
                 } else if (document.querySelectorAll('[data-test*="challenge-name"]').length > 0 && document.querySelectorAll('[data-test="challenge-choice"]').length > 0) {
                     hcwNIIOdaQqCZRDL = false;
                     return 'Challenge Name';
-                } else if (window.sol.type === 'listenMatch') {
-                    hcwNIIOdaQqCZRDL = false;
-                    return 'Listen Match';
                 } else if (document.querySelectorAll('[data-test="challenge challenge-listenSpeak"]').length > 0) {
                     hcwNIIOdaQqCZRDL = false;
                     return 'Listen Speak';
-                } else if (document.querySelectorAll('[data-test="challenge-choice"]').length > 0) {
+                } else if (document.querySelectorAll('[data-test="challenge-choice"]').length > 0 || window.sol.type === "typeComplete" || window.sol.correctIndex !== undefined) {
                     hcwNIIOdaQqCZRDL = false;
-                    if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0) {
+                    if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0 || window.sol.type === "typeComplete") {
                         return 'Challenge Choice with Text Input';
+                    } else if (window.sol.correctIndices !== undefined) {
+                        return 'Indices Run';
                     } else {
                         return 'Challenge Choice'
                     }
                 } else if (document.querySelectorAll('[data-test$="challenge-tap-token"]').length > 0) {
                     hcwNIIOdaQqCZRDL = false;
                     if (window.sol.pairs !== undefined) {
-                        return 'Pairs';
+                        if (window.sol.pairs[0].learningWord !== undefined) {
+                            return 'Listening Pairs';
+                        } else {
+                            return 'Pairs';
+                        }
                     } else if (window.sol.correctTokens !== undefined) {
                         return 'Tokens Run';
                     } else if (window.sol.correctIndices !== undefined) {
                         return 'Indices Run';
+                    } else if (window.sol.type === "typeClozeTable" || window.sol.displayTokens || window.sol.displayTableTokens) {
+                        return 'Table Tokens';
                     }
                 } else if (document.querySelectorAll('[data-test="challenge-tap-token-text"]').length > 0) {
                     hcwNIIOdaQqCZRDL = false;
@@ -5322,6 +6747,8 @@ function One() {
                 } else if (document.querySelectorAll('textarea[data-test="challenge-translate-input"]').length > 0) {
                     hcwNIIOdaQqCZRDL = false;
                     return 'Challenge Translate Input';
+                } else if (window.sol.type === "typeCloze" || window.sol.type === "typeClozeTable" || window.sol.type === "typeCompleteTable") {
+                    return 'Type Cloze';
                 } else if (document.querySelectorAll('[data-test="session-complete-slide"]').length > 0) {
                     return 'Session Complete';
                 } else if (document.querySelectorAll('[data-test="daily-quest-progress-slide"]').length > 0) {
@@ -5343,24 +6770,77 @@ function One() {
     function handleChallenge(challengeType) {
         // Implement logic to handle different challenge types
         // This function should encapsulate the logic for each challenge type
-        if (challengeType === 'Challenge Speak' || challengeType === 'Listen Match' || challengeType === 'Listen Speak') {
+        if (challengeType === 'Listen Speak') {
             const buttonSkip = document.querySelector('button[data-test="player-skip"]');
             buttonSkip?.click();
         } else if (challengeType === 'Challenge Choice' || challengeType === 'Challenge Choice with Text Input') {
             // Text input
             if (challengeType === 'Challenge Choice with Text Input') {
-                let elm = document.querySelectorAll('[data-test="challenge-text-input"]')[0];
+                let elm;
+
+                if (document.querySelectorAll('[data-test="challenge-text-input"]').length > 0) {
+                    elm = document.querySelectorAll('[data-test="challenge-text-input"]')[0];
+                } else {
+                    elm = document.querySelector("input");
+                }
+
                 let nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
-                nativeInputValueSetter.call(elm, window.sol.correctSolutions ? window.sol.correctSolutions[0].split(/(?<=^\S+)\s/)[1] : (window.sol.displayTokens ? window.sol.displayTokens.find(t => t.isBlank).text : window.sol.prompt));
+                nativeInputValueSetter.call(elm, (window.sol.correctSolutions && window.sol.correctSolutions.length > 0) ? window.sol.correctSolutions[0].split(/(?<=^\S+)\s/)[1] : (window.sol.displayTokens ? window.sol.displayTokens.find(t => t.isBlank).text : window.sol.prompt));
                 let inputEvent = new Event('input', {
                     bubbles: true
                 });
 
                 elm.dispatchEvent(inputEvent);
             } else if (challengeType === 'Challenge Choice') {
-                document.querySelectorAll("[data-test='challenge-choice']")[window.sol.correctIndex].click();
+                if (document.querySelectorAll('div[data-test="word-bank"] [data-test*="challenge-tap-token"]:not(span)').length > 0) {
+                    document.querySelectorAll('div[data-test="word-bank"] [data-test*="challenge-tap-token"]:not(span)')[window.sol.correctIndex].click();
+                } else {
+                    document.querySelectorAll("[data-test='challenge-choice']")[window.sol.correctIndex].click();
+                }
             }
 
+        } else if (challengeType === 'Listening Pairs') {
+            let nl = document.querySelectorAll(
+              '[data-test*="challenge-tap-token"]:not(span)'
+            );
+            window.sol.pairs?.forEach((pair) => {
+              for (let i = 0; i < nl.length; i++) {
+                let nlInnerText;
+
+                if (
+                  nl[i].querySelector(
+                    '[data-test="challenge-tap-token-text"]'
+                  ) !== null
+                ) {
+                  nlInnerText = nl[i]
+                    .querySelector('[data-test="challenge-tap-token-text"]')
+                    .innerText.toLowerCase()
+                    .trim();
+                } else {
+                  nlInnerText = nl[i]
+                    .getAttribute("data-test")
+                    .split("-")[0]
+                    .toLowerCase()
+                    .trim();
+                }
+
+                try {
+                  if (
+                    nlInnerText === pair.translation.toLowerCase().trim() &&
+                    !nl[i].disabled
+                  ) {
+                    nl[i].click();
+                  }
+                } catch (TypeError) {
+                  if (
+                    nlInnerText === pair.learningWord.toLowerCase().trim() &&
+                    !nl[i].disabled
+                  ) {
+                    nl[i].click();
+                  }
+                }
+              }
+            });
         } else if (challengeType === 'Pairs') {
             let nl = document.querySelectorAll('[data-test*="challenge-tap-token"]:not(span)');
             if (document.querySelectorAll('[data-test="challenge-tap-token-text"]').length === nl.length) {
@@ -5420,6 +6900,29 @@ function One() {
         } else if (challengeType === 'Tokens Run') {
             correctTokensRun();
 
+        } else if (challengeType === 'Table Tokens') {
+            const extractedTexts = window.sol.displayTableTokens
+              .filter(
+                (pair) => pair[0][0].text !== "" && pair[1][0].text !== ""
+              )
+              .map((pair) => {
+                const secondText = pair[1][0].text;
+                const damageStart = pair[1][0].damageStart;
+                if (damageStart) {
+                  return secondText.slice(damageStart);
+                } else {
+                  return secondText;
+                }
+              });
+
+            let tokens = document.querySelectorAll('[data-test="challenge-tap-token-text"]');
+            extractedTexts.forEach(text => {
+                tokens.forEach(token => {
+                    if (token.innerHTML === text && token.parentElement.parentElement.parentElement.parentElement.parentElement.getAttribute("data-test") === "word-bank") {
+                        token.parentElement.parentElement.click();
+                    }
+                });
+            });
         } else if (challengeType === 'Indices Run') {
             correctIndicesRun();
 
@@ -5478,6 +6981,81 @@ function One() {
             });
 
             elm.dispatchEvent(inputEvent);
+        } else if (challengeType === 'Type Cloze') {
+            if (window.sol.type === "typeClozeTable" || window.sol.type === "typeCompleteTable") {
+                let extractedTexts;
+                if (window.sol.type === "typeClozeTable") {
+                    extractedTexts = window.sol.displayTableTokens
+                    .filter(
+                        (pair) => pair[0][0].text !== "" && pair[1][0].text !== "" && pair[1][0]?.damageStart !== undefined
+                    )
+                    .map((pair) => {
+                        const secondText = pair[1][0].text;
+                        const damageStart = pair[1][0].damageStart;
+                        return secondText.slice(damageStart);
+                    });
+                } else {
+                    extractedTexts = window.sol.displayTableTokens
+                    .filter(
+                        (pair) => pair[0][0].isBlank === true || pair[1][0].isBlank === true
+                    )
+                    .map((pair) => {
+                        return pair[1][0].text;
+                    });
+                }
+
+                let tokens = document.querySelectorAll("input.b4jqk._3mwuq");
+                for (let i = 0; i < extractedTexts.length; i++) {
+                    let token = tokens[i];
+                    let nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+                        window.HTMLInputElement.prototype,
+                        "value"
+                    ).set;
+
+                    nativeInputValueSetter.call(token, extractedTexts[i]);
+
+                    let inputEvent = new Event("input", {
+                        bubbles: true,
+                    });
+                    token.dispatchEvent(inputEvent);
+                }
+                /*
+                extractedTexts.forEach((text) => {
+                    tokens.forEach((token) => {
+                        let nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+                            window.HTMLInputElement.prototype,
+                            "value"
+                        ).set;
+
+                        nativeInputValueSetter.call(token, text);
+
+                        let inputEvent = new Event("input", {
+                            bubbles: true,
+                        });
+                        token.dispatchEvent(inputEvent);
+                    });
+                });
+                */
+            } else {
+              let elm = document.querySelectorAll("input.b4jqk._3mwuq")[0];
+              let nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+                window.HTMLInputElement.prototype,
+                "value"
+              ).set;
+              window.sol.displayTokens.forEach((token) => {
+                if (token.damageStart) {
+                  nativeInputValueSetter.call(
+                    elm,
+                    token.text.slice(token.damageStart)
+                  );
+                }
+              });
+              let inputEvent = new Event("input", {
+                bubbles: true,
+              });
+
+              elm.dispatchEvent(inputEvent);
+            }
         } else if (challengeType === 'Session Complete') {
         } else if (challengeType === 'Story Arrange') {
             let choices = document.querySelectorAll('[data-test*="challenge-tap-token"]:not(span)');
@@ -5522,10 +7100,43 @@ function One() {
 
 
     function correctIndicesRun() {
-        if (window.sol.correctIndices) {
-            window.sol.correctIndices?.forEach(index => {
-                document.querySelectorAll('div[data-test="word-bank"] [data-test*="challenge-tap-token"]:not(span)')[index].click();
+        if (window.sol.type === "tapDescribe") {
+            window.sol.correctSolutions[0].split(" ").forEach(solution => {
+                document.querySelectorAll('[data-test="challenge-tap-token-text"]').forEach(element => {
+                    if (solution.includes(element.innerHTML)) {
+                        element.parentElement.parentElement.click();
+                    }
+                });
             });
+        } else if (window.sol.type === "syllableTap" || window.sol.type === "syllableListenTap") {
+            (
+              window.sol.correctSolutionTransliterations?.[0]?.tokens ||
+              window.sol.promptTransliteration?.tokens
+            ).forEach((token) => {
+              document
+                .querySelectorAll('[data-test="challenge-tap-token-text"]')
+                .forEach((element) => {
+                  if (token.token.includes(element.innerHTML)) {
+                    element.parentElement.parentElement.click();
+                  }
+                });
+            });
+        } else if (window.sol.correctIndices) {
+            let elements = document.querySelectorAll('div[data-test="word-bank"] [data-test*="challenge-tap-token"]:not(span)');
+            if (elements.length > 0) {
+                window.sol.correctIndices?.forEach(index => {
+                    if (index < elements.length) {
+                        elements[index].click();
+                    }
+                });
+            } else {
+                elements = document.querySelectorAll("[data-test='challenge-choice']");
+                window.sol.correctIndices?.forEach(index => {
+                    if (index < elements.length) {
+                        elements[index].click();
+                    }
+                });
+            }
         }
     }
 
