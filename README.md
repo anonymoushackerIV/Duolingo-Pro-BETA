@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/readme/logo.jpeg" alt="Duolingo PRO Logo" width="300"/>
+  <img src="https://github.com/anonymoushackerIV/Duolingo-Pro-BETA/blob/main/assets/readme/logo.png" alt="Duolingo PRO Logo" width="300"/>
 </p>
 
 ## Table of Contents
