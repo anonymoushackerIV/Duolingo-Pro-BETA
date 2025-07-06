@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./assets/readme/logo.jpeg" alt="Duolingo PRO Logo" width="300"/>
+</p>
+
 ## Table of Contents
 - [About Duolingo PRO](#about-duolingo-pro)
 - [Features](#features)
