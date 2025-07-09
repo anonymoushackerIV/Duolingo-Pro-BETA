@@ -1,16 +1,17 @@
 <p align="center">
-  <img src="https://github.com/anonymoushackerIV/Duolingo-Pro-BETA/blob/main/assets/readme/logo.png" alt="Duolingo PRO Logo" width="300"/>
+  <img src="https://github.com/anonymoushackerIV/Duolingo-Pro-BETA/blob/main/assets/readme/logo.png" alt="Duolingo PRO Logo" width="128"/>
+  <h1 align="center">Duolingo PRO</h1>
 </p>
 
 ## Table of Contents
-- [About Duolingo PRO](#about-duolingo-pro)
+- [About](#about)
 - [Features](#features)
 - [If You Run Into An Issue, Try...](#if-you-run-into-an-issue-try)
 - [Images](#images)
 - [Repository Activity](#repository-activity)
 
-## About Duolingo PRO
-Duolingo PRO 3.1 is an auto-solver user-script for gaining XP instantly, farming XP automatically, completing quests, leveling up on the leaderboard, extending your streak, and more, for Duolingo. 
+## About
+Duolingo PRO 3.1 is an auto-solver user-script for gaining XP instantly, farming XP automatically, completing quests, leveling up on the leaderboard, extending your streak, getting gems, and more for Duolingo. 
 Working as of July 2025. 
 Join our [Discord server](https://discord.gg/r8xQ7K59Mt) to get the latest news, talk with the developers, report bugs, and do much more.
 Subscribe to our [Youtube channel](https://www.youtube.com/@DuolingoPROscript) for the latest updates.
