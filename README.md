@@ -1,7 +1,7 @@
 <p align="center">
   <img src="https://github.com/anonymoushackerIV/Duolingo-Pro-BETA/blob/main/assets/readme/logo.png" alt="Duolingo PRO Logo" width="128"/>
   <h1 align="center">Duolingo PRO</h1>
-  <p align="center"><i>The ultimate auto-solver and XP farming tool for Duolingo</i></p>
+  <p align="center">The ultimate auto-solver and XP farming tool for Duolingo</p>
 </p>
 
 ---
