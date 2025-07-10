@@ -48,7 +48,7 @@
 
 1. **Install [Tampermonkey](https://www.tampermonkey.net/)** (recommended userscript manager for Chrome/Chromium browsers).
 2. **Download the latest Duolingo PRO script** from this repository.
-3. **Enable Developer Mode** in Chrome:  
+3. **Enable Developer Mode** in Chrome (or Chromium browser):  
    `Settings > Extensions > Developer Mode ON`
 4. **Join our [Discord server](https://discord.gg/r8xQ7K59Mt)** for updates, support, and community discussions.
 5. **Watch our [YouTube tutorials](https://www.youtube.com/@DuolingoPROscript)** for detailed setup and usage guides.
